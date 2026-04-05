@@ -1,0 +1,3561 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vitalis – Dein Gesundheits-Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #f5f0e8;
+    --card: #fffdf8;
+    --ink: #1a1a18;
+    --muted: #7a756a;
+    --accent: #2d6a4f;
+    --accent2: #e76f51;
+    --accent3: #457b9d;
+    --gold: #c9a84c;
+    --border: #e2ddd4;
+    --radius: 16px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--accent);
+    color: white;
+    padding: 20px 20px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    letter-spacing: -0.5px;
+  }
+  header .streak-badge {
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    gap: 4px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 61px;
+    z-index: 99;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  nav button {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  nav button.active {
+    background: var(--accent);
+    color: white;
+  }
+
+  /* MAIN */
+  main { padding: 16px; max-width: 480px; margin: 0 auto; }
+
+  .section { display: none; }
+  .section.visible { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .card h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
+    margin-bottom: 14px;
+    color: var(--ink);
+  }
+  .card h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+
+  /* FEELING SCALE */
+  .feeling-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .feeling-btn {
+    aspect-ratio: 1;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+  .feeling-btn span.label {
+    font-size: 0.55rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .feeling-btn.selected {
+    border-color: var(--accent);
+    background: #eef6f1;
+    transform: scale(1.05);
+  }
+  .feeling-btn:hover { transform: scale(1.05); }
+
+  .feeling-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .feeling-row label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    min-width: 40px;
+  }
+
+  .log-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    margin-top: 6px;
+  }
+  .log-btn:hover { opacity: 0.88; }
+  .log-btn.secondary {
+    background: transparent;
+    color: var(--accent);
+    border: 2px solid var(--accent);
+  }
+  .log-btn.danger {
+    background: transparent;
+    color: var(--accent2);
+    border: 2px solid var(--accent2);
+  }
+
+  .feeling-history {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .feeling-entry {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .feeling-entry .emojis { font-size: 1.1rem; }
+  .feeling-entry .arrow { color: var(--accent); font-weight: 600; }
+
+  /* WATER */
+  .water-display {
+    text-align: center;
+    margin: 14px 0;
+  }
+  .water-amount {
+    font-family: 'DM Serif Display', serif;
+    font-size: 3rem;
+    color: var(--accent3);
+    line-height: 1;
+  }
+  .water-goal { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+  .water-bar-wrap {
+    background: #dce8f0;
+    border-radius: 20px;
+    height: 14px;
+    overflow: hidden;
+    margin: 12px 0;
+  }
+  .water-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #457b9d, #a8dadc);
+    border-radius: 20px;
+    transition: width 0.4s ease;
+  }
+  .water-btns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .water-btn {
+    padding: 10px 8px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent3);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .water-btn:hover { border-color: var(--accent3); background: #edf4f8; }
+  .goal-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .goal-row label { font-size: 0.85rem; color: var(--muted); }
+  .goal-row input {
+    width: 80px;
+    padding: 6px 10px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+  .goal-row span { font-size: 0.85rem; color: var(--muted); }
+
+  /* ALCOHOL */
+  .alc-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 14px;
+  }
+  .alc-count {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.8rem;
+    line-height: 1;
+  }
+  .alc-count.over { color: var(--accent2); }
+  .alc-count.ok { color: var(--accent); }
+  .alc-info { text-align: right; }
+  .alc-info .max { font-size: 0.82rem; color: var(--muted); }
+  .alc-info .joker-info { font-size: 0.82rem; color: var(--gold); font-weight: 600; }
+  .alc-dots {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+  }
+  .alc-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--border);
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .alc-dot.filled { background: var(--accent2); }
+  .alc-dot.joker { background: var(--gold); }
+  .alc-dot.filled:hover, .alc-dot.joker:hover { opacity: 0.75; }
+  .alc-controls { display: flex; gap: 8px; }
+  .alc-controls button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-weight: 600;
+  }
+  .alc-controls button:hover { border-color: var(--accent2); }
+  .alc-reset {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .alc-settings {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .alc-settings .mini-field {
+    flex: 1;
+  }
+  .alc-settings label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .alc-settings input {
+    width: 100%;
+    padding: 7px 10px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
+  /* ACTIVITIES */
+  .activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg);
+    border-radius: 12px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .activity-item:hover { border-color: var(--accent); background: #eef6f1; }
+  .activity-item.selected { border-color: var(--accent); background: #eef6f1; }
+  .activity-icon { font-size: 1.4rem; }
+  .activity-info { flex: 1; }
+  .activity-info .name { font-weight: 600; font-size: 0.9rem; }
+  .activity-info .dur { font-size: 0.78rem; color: var(--muted); }
+  .activity-item .check {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+  }
+  .activity-item.selected .check {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .add-activity-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .add-activity-form input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+  }
+  .add-activity-form input:focus { outline: none; border-color: var(--accent); }
+  .add-activity-form button {
+    padding: 8px 14px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .del-activity {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+    line-height: 1;
+  }
+  .del-activity:hover { color: var(--accent2); }
+  .log-activity-btn {
+    margin-top: 12px;
+  }
+  .activity-log-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .activity-log-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    font-size: 0.82rem;
+  }
+  .activity-log-entry .pts { color: var(--gold); font-weight: 600; }
+
+  /* REWARDS */
+  .points-display {
+    text-align: center;
+    padding: 10px 0 16px;
+  }
+  .points-big {
+    font-family: 'DM Serif Display', serif;
+    font-size: 3.5rem;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .points-label { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+  .streak-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
+    border-radius: 12px;
+    color: white;
+    margin-bottom: 14px;
+  }
+  .streak-display .fire { font-size: 1.8rem; }
+  .streak-display .streak-num { font-family: 'DM Serif Display', serif; font-size: 2rem; line-height: 1; }
+  .streak-display .streak-text { font-size: 0.8rem; opacity: 0.85; }
+  .badges-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .badge {
+    aspect-ratio: 1;
+    border-radius: 14px;
+    border: 2px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .badge.earned {
+    border-color: var(--gold);
+    background: #fdf9ec;
+    box-shadow: 0 0 0 1px var(--gold);
+  }
+  .badge.earned::after {
+    content: '✓';
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 0.65rem;
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .badge .badge-icon { font-size: 1.8rem; }
+  .badge .badge-name { font-size: 0.65rem; color: var(--muted); font-weight: 600; text-align: center; line-height: 1.2; }
+  .badge .badge-pts { font-size: 0.6rem; color: var(--gold); font-weight: 600; }
+  .badge.locked { opacity: 0.4; filter: grayscale(1); }
+  .progress-bar-wrap {
+    background: var(--border);
+    border-radius: 20px;
+    height: 8px;
+    overflow: hidden;
+    margin: 10px 0 4px;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), #e8c86d);
+    border-radius: 20px;
+    transition: width 0.5s ease;
+  }
+  .next-badge-info { font-size: 0.78rem; color: var(--muted); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s;
+    z-index: 1000;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* UTILS */
+  .small-note {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 14px 0;
+  }
+  /* TIME CHIPS */
+  .chip {
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 2px solid var(--border);
+    background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .chip.active { background: var(--accent); border-color: var(--accent); color: white; }
+  #custom-time-row.active { border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 Vitalis</h1>
+  <div class="streak-badge" id="header-streak">🔥 <span id="streak-header-num">0</span> Tage</div>
+</header>
+
+<nav>
+  <button class="active" onclick="showSection('home')">🏠 Heute</button>
+  <button onclick="showSection('feeling')">😊 Gefühl</button>
+  <button onclick="showSection('water')">💧 Wasser</button>
+  <button onclick="showSection('activity')">🏃 Aktivität</button>
+  <button onclick="showSection('alcohol')">🍷 Alkohol</button>
+  <button onclick="showSection('sweets')">🍬 Süßes</button>
+  <button onclick="showSection('weight')">⚖️ Gewicht</button>
+  <button onclick="showSection('sleep')">🌙 Schlaf</button>
+  <button onclick="showSection('body')">🧘 Körper</button>
+  <button onclick="showSection('verlauf')">📊 Verlauf</button>
+  <button onclick="showSection('rewards')">🏆 Rewards</button>
+</nav>
+
+<main>
+
+<!-- HOME / HEUTE -->
+<div id="section-home" class="section visible">
+
+  <!-- DANKBARKEIT ABEND CHECK-IN -->
+  <div class="card" id="gratitude-checkin-card" style="display:none;background:linear-gradient(135deg,#2d1b4e,#4a2060);color:white;border:none;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌟 Guten Abend!</div>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:12px;">Wofür bist du heute dankbar?</div>
+    <textarea id="gratitude-input" placeholder="Heute war ich dankbar für…"
+      style="width:100%;padding:10px 12px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:70px;background:rgba(255,255,255,0.15);color:white;outline:none;"
+      onfocus="this.style.background='rgba(255,255,255,0.2)'"
+      onblur="this.style.background='rgba(255,255,255,0.15)'"
+    ></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+      <button onclick="skipGratitude()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+      <button onclick="logGratitude()" style="padding:8px 18px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Notieren ✓</button>
+    </div>
+  </div>
+  <div class="card" id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌙 Guten Morgen!</div>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht?</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px;" id="sleep-checkin-grid"></div>
+    <button onclick="skipSleepCheckin()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+  </div>
+
+  <div class="card">
+    <h2 id="home-greeting">Guten Tag! 👋</h2>
+    <div id="today-summary" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+  <div class="card">
+    <h3>Schnell-Log</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="log-btn secondary" style="flex:1;min-width:120px;" onclick="showSection('feeling')">😊 Gefühl</button>
+      <button class="log-btn secondary" style="flex:1;min-width:120px;" onclick="showSection('water')">💧 Wasser</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+      <button class="log-btn secondary" style="flex:1;min-width:120px;" onclick="showSection('activity')">🏃 Aktivität</button>
+      <button class="log-btn secondary" style="flex:1;min-width:120px;" onclick="showSection('alcohol')">🍷 Alkohol</button>
+    </div>
+    <div style="margin-top:10px;text-align:center;">
+      <button onclick="resetGratitudeToday()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:0.75rem;color:var(--muted);cursor:pointer;text-decoration:underline;">🌟 Dankbarkeit zurücksetzen</button>
+    </div>
+  </div>
+</div>
+<div id="section-feeling" class="section">
+  <div class="card">
+    <h2>Wie fühlst du dich?</h2>
+
+    <!-- VOR Aktivität -->
+    <h3>VOR der Aktivität</h3>
+    <div class="feeling-grid" id="feeling-before-grid"></div>
+
+    <hr class="divider">
+
+    <!-- NACH Aktivität -->
+    <h3>NACH der Aktivität</h3>
+    <div class="feeling-grid" id="feeling-after-grid"></div>
+
+    <button class="log-btn" onclick="logFeeling()">Gefühl speichern</button>
+  </div>
+
+  <div class="card">
+    <h2>Verlauf</h2>
+    <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+      <button class="chip active" id="ff-heute" onclick="setFeelingFilter('heute')">Heute</button>
+      <button class="chip" id="ff-woche" onclick="setFeelingFilter('woche')">Woche</button>
+      <button class="chip" id="ff-monat" onclick="setFeelingFilter('monat')">Monat</button>
+      <button class="chip" id="ff-alles" onclick="setFeelingFilter('alles')">Alles</button>
+    </div>
+    <div class="feeling-history" id="feeling-history"></div>
+    <p class="small-note" id="feeling-empty" style="display:none;">Noch keine Einträge.</p>
+  </div>
+</div>
+
+<!-- WASSER -->
+<div id="section-water" class="section">
+  <div class="card">
+    <h2>Wassertracker 💧</h2>
+    <div class="water-display">
+      <div class="water-amount"><span id="water-ml">0</span> ml</div>
+      <div class="water-goal">Ziel: <span id="water-goal-display">2000</span> ml</div>
+    </div>
+    <div class="water-bar-wrap">
+      <div class="water-bar" id="water-bar" style="width:0%"></div>
+    </div>
+    <div class="water-btns">
+      <button class="water-btn" onclick="addWater(150)">☕ 150 ml</button>
+      <button class="water-btn" onclick="addWater(200)">🥛 200 ml</button>
+      <button class="water-btn" onclick="addWater(330)">🧃 330 ml</button>
+      <button class="water-btn" onclick="addWater(500)">🍶 500 ml</button>
+      <button class="water-btn" onclick="addWater(750)">🫙 750 ml</button>
+      <button class="water-btn" onclick="addWater(-200)" style="color:var(--accent2)">↩ −200 ml</button>
+    </div>
+    <div class="goal-row">
+      <label>Tagesziel:</label>
+      <input type="number" id="water-goal-input" value="2000" min="500" max="5000" step="100" onchange="setWaterGoal(this.value)">
+      <span>ml</span>
+    </div>
+    <button class="log-btn secondary" style="margin-top:10px;" onclick="resetWater()">Tag zurücksetzen</button>
+  </div>
+</div>
+
+<!-- AKTIVITÄTEN -->
+<div id="section-activity" class="section">
+  <div class="card">
+    <h2>Aktivität planen & loggen</h2>
+    <div class="activity-list" id="activity-list"></div>
+    <hr class="divider">
+    <h3>Eigene hinzufügen</h3>
+    <div class="add-activity-form">
+      <input type="text" id="new-activity-name" placeholder="z.B. Yoga, Tanzen …">
+      <input type="number" id="new-activity-min" placeholder="Min" min="5" max="240" style="width:70px;">
+      <button onclick="addCustomActivity()">+</button>
+    </div>
+    <hr class="divider">
+    <h3>Wann war das?</h3>
+
+    <!-- Datum -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+      <button class="chip active" id="chip-date-heute"     onclick="selectDateChip('heute')">📅 Heute</button>
+      <button class="chip"        id="chip-date-gestern"   onclick="selectDateChip('gestern')">Gestern</button>
+      <button class="chip"        id="chip-date-vorgestern" onclick="selectDateChip('vorgestern')">Vorgestern</button>
+      <button class="chip"        id="chip-date-own"       onclick="activateDateCustom()">📆 Datum…</button>
+    </div>
+    <div id="custom-date-row" style="display:none;padding:8px 12px;background:var(--bg);border-radius:10px;border:2px solid var(--border);margin-bottom:8px;">
+      <input type="date" id="activity-custom-date"
+        style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;color:var(--ink);outline:none;width:100%;"
+        onchange="selectCustomDate(this.value)">
+    </div>
+
+    <!-- Tageszeit -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+      <button class="chip" id="chip-ganztags" onclick="selectTimeSlot('ganztags')">☀️ Ganztags</button>
+      <button class="chip" id="chip-morgens"  onclick="selectTimeSlot('morgens')">🌅 Morgens</button>
+      <button class="chip" id="chip-mittags"  onclick="selectTimeSlot('mittags')">🌤 Mittags</button>
+      <button class="chip" id="chip-abends"   onclick="selectTimeSlot('abends')">🌙 Abends</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:10px;border:2px solid var(--border);" id="custom-time-row">
+      <label style="font-size:0.82rem;color:var(--muted);white-space:nowrap;">🕐 Eigene Uhrzeit:</label>
+      <input type="time" id="activity-custom-time"
+        style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;color:var(--ink);outline:none;cursor:pointer;"
+        onchange="selectCustomTime(this.value)" onclick="activateCustomTime()">
+    </div>
+    <div style="font-size:0.78rem;color:var(--muted);margin:8px 0 12px;padding:8px 12px;background:var(--bg);border-radius:8px;" id="activity-time-preview">
+      ⏱ Kein Zeitpunkt gewählt – bitte auswählen.
+    </div>
+    <button class="log-btn" id="activity-log-btn" onclick="logSelectedActivity()" disabled style="opacity:0.4;cursor:not-allowed;">✅ Aktivität loggen (+Punkte)</button>
+  </div>
+
+  <div class="card">
+    <h2>Heute geloggt</h2>
+    <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+      <button class="chip active" id="af-heute" onclick="setActivityFilter('heute')">Heute</button>
+      <button class="chip" id="af-woche" onclick="setActivityFilter('woche')">Woche</button>
+      <button class="chip" id="af-monat" onclick="setActivityFilter('monat')">Monat</button>
+      <button class="chip" id="af-alles" onclick="setActivityFilter('alles')">Alles</button>
+    </div>
+    <div class="activity-log-list" id="activity-log-list"></div>
+    <p class="small-note" id="activity-empty">Noch nichts geloggt.</p>
+  </div>
+</div>
+
+<!-- ALKOHOL -->
+<div id="section-alcohol" class="section">
+
+  <!-- CHALLENGE AKTIV -->
+  <div id="challenge-active-card" style="display:none;">
+    <div class="card" style="background:linear-gradient(135deg,#1a1a2e,#16213e);color:white;border:none;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <div style="font-family:'DM Serif Display',serif;font-size:1.2rem;">🏆 6-Wochen-Challenge</div>
+          <div style="font-size:0.78rem;opacity:0.7;margin-top:2px;">Kein Alkohol. Keine Ausnahme.</div>
+        </div>
+        <div style="text-align:right;">
+          <div id="challenge-days-left" style="font-family:'DM Serif Display',serif;font-size:2.4rem;line-height:1;color:#f4c261;"></div>
+          <div style="font-size:0.72rem;opacity:0.7;">Tage übrig</div>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div style="background:rgba(255,255,255,0.15);border-radius:20px;height:10px;margin-bottom:8px;overflow:hidden;">
+        <div id="challenge-progress-bar" style="height:100%;background:linear-gradient(90deg,#f4c261,#f9e07f);border-radius:20px;transition:width 0.5s;"></div>
+      </div>
+      <div id="challenge-progress-label" style="font-size:0.75rem;opacity:0.7;margin-bottom:16px;"></div>
+
+      <!-- Heute geloggt? -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button onclick="challengeLogToday(true)" id="challenge-clean-btn"
+          style="flex:1;padding:11px;border-radius:12px;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;color:white;transition:all 0.15s;">
+          ✅ Heute clean
+        </button>
+        <button onclick="challengeBreak()"
+          style="flex:1;padding:11px;border-radius:12px;border:2px solid rgba(231,111,81,0.5);background:rgba(231,111,81,0.15);font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;color:#e76f51;transition:all 0.15s;">
+          🍷 Getrunken
+        </button>
+      </div>
+
+      <!-- Streak dots – letzte 7 Tage -->
+      <div id="challenge-streak-dots" style="display:flex;gap:4px;margin-bottom:16px;"></div>
+
+      <button onclick="abortChallenge()" style="background:none;border:none;color:rgba(255,255,255,0.35);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;text-decoration:underline;padding:0;">Challenge abbrechen</button>
+    </div>
+  </div>
+
+  <!-- NORMALER TRACKER -->
+  <div id="alc-normal-card">
+    <div class="card">
+      <h2>Alkohol-Tracker 🍷</h2>
+      <p class="small-note" style="margin-bottom:14px;">Nicht wie viel – sondern an wie vielen Tagen.</p>
+
+      <h3 style="margin-bottom:8px;">Diese Woche</h3>
+      <div id="alc-week-dots" style="display:flex;gap:6px;margin-bottom:6px;"></div>
+      <div id="alc-week-status" style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;"></div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+        <button class="chip active" id="achip-heute"     onclick="selectAlcDate('heute')">📅 Heute</button>
+        <button class="chip"        id="achip-gestern"   onclick="selectAlcDate('gestern')">Gestern</button>
+        <button class="chip"        id="achip-vorgestern" onclick="selectAlcDate('vorgestern')">Vorgestern</button>
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button onclick="toggleAlcToday(true)" id="alc-yes-btn"
+          style="flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.15s;">
+          🍷 Getrunken
+        </button>
+        <button onclick="toggleAlcToday(false)" id="alc-no-btn"
+          style="flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.15s;">
+          ✅ Nüchtern
+        </button>
+      </div>
+
+      <hr class="divider">
+
+      <h3 style="margin-bottom:8px;">Monatliche Joker</h3>
+      <div id="alc-joker-dots" style="display:flex;gap:8px;margin-bottom:6px;"></div>
+      <div id="alc-joker-status" style="font-size:0.82rem;color:var(--muted);margin-bottom:10px;"></div>
+      <button class="alc-reset" onclick="useJoker()">🃏 Joker für diese Woche einsetzen</button>
+
+      <hr class="divider">
+
+      <div class="alc-settings">
+        <div class="mini-field">
+          <label>Max. Tage / Woche</label>
+          <input type="number" id="alc-max-input" value="3" min="1" max="7" onchange="setAlcMax(this.value)">
+        </div>
+        <div class="mini-field">
+          <label>Joker / Monat</label>
+          <input type="number" id="alc-joker-input" value="2" min="0" max="4" onchange="setJokerMax(this.value)">
+        </div>
+      </div>
+      <button class="alc-reset" style="margin-top:8px;" onclick="resetAlcWeek()">Woche zurücksetzen</button>
+    </div>
+
+    <!-- Challenge starten -->
+    <div class="card" id="challenge-start-card">
+      <h2>🏆 6-Wochen-Challenge</h2>
+      <p class="small-note" style="margin-bottom:14px;line-height:1.5;">42 Tage ohne Alkohol. Kein Joker, keine Ausnahme. Einmal pro Jahr.</p>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:6px;">Startdatum</label>
+        <input type="date" id="challenge-start-date"
+          style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.95rem;">
+      </div>
+      <button class="log-btn" onclick="startChallenge()">Challenge starten 🚀</button>
+      <div id="challenge-done-note" style="display:none;margin-top:10px;" class="small-note"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SÜSSIGKEITEN -->
+<div id="section-sweets" class="section">
+
+  <div class="card">
+    <h2>Süssigkeiten 🍬</h2>
+
+    <!-- Quick-Log Buttons -->
+    <h3>Schnell hinzufügen</h3>
+    <div id="sweets-quick-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
+
+    <!-- Eigene eingeben -->
+    <h3>Eigene Süssigkeit</h3>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <input type="text" id="sweets-custom-name" placeholder="Name (z.B. Muffin)"
+        style="flex:2;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
+      <input type="number" id="sweets-custom-kcal" placeholder="kcal" min="0" max="2000"
+        style="flex:1;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;text-align:center;">
+      <button onclick="logCustomSweet()" style="padding:8px 12px;background:var(--accent2);color:white;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">+</button>
+    </div>
+    <p class="small-note">kcal ist optional – nur zur Orientierung.</p>
+  </div>
+
+  <!-- Tages- & Wochenübersicht -->
+  <div class="card">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;margin-bottom:14px;">
+      <div>
+        <div id="sweets-today-count" style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent2);">0</div>
+        <div style="font-size:0.72rem;color:var(--muted);">Heute (Port.)</div>
+      </div>
+      <div>
+        <div id="sweets-today-kcal" style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent2);">0</div>
+        <div style="font-size:0.72rem;color:var(--muted);">Heute (kcal)</div>
+      </div>
+      <div>
+        <div id="sweets-week-count" style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--muted);">0</div>
+        <div style="font-size:0.72rem;color:var(--muted);">Woche (Port.)</div>
+      </div>
+    </div>
+
+    <!-- Wochenlimit -->
+    <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--muted);margin-bottom:4px;">
+      <span>Wochenlimit</span>
+      <span id="sweets-week-pct"></span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="sweets-week-bar" style="background:linear-gradient(90deg,var(--accent2),#f4a261);"></div>
+    </div>
+    <div class="goal-row" style="margin-top:10px;">
+      <label>Max. Portionen/Woche:</label>
+      <input type="number" id="sweets-week-max" value="7" min="1" max="50"
+        style="width:60px;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.9rem;text-align:center;"
+        onchange="setSweetsMax(this.value)">
+    </div>
+  </div>
+
+  <!-- Verlauf heute -->
+  <div class="card">
+    <h2>Heute</h2>
+    <div id="sweets-today-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="sweets-today-empty">Heute noch nichts geloggt. 💪</p>
+  </div>
+
+</div>
+
+<!-- GEWICHT -->
+<div id="section-weight" class="section">
+
+  <div class="card">
+    <h2>⚖️ Gewichtsverlauf</h2>
+    <p class="small-note" style="margin-bottom:16px;line-height:1.5;">Kein Ziel, kein Druck. Einmal pro Woche reicht – der Trend zählt, nicht die Zahl.</p>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <input type="number" id="weight-input" placeholder="— kg" min="30" max="300" step="0.1"
+        inputmode="decimal"
+        style="flex:1;padding:14px 16px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1.6rem;font-weight:700;color:var(--ink);text-align:center;">
+      <span style="color:var(--muted);font-size:1.1rem;font-weight:600;">kg</span>
+      <button class="log-btn" style="padding:14px 20px;white-space:nowrap;font-size:1rem;" onclick="logWeight()">Notieren</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;">
+      <button class="chip active" id="wchip-heute"     onclick="selectWeightDate('heute')">📅 Heute</button>
+      <button class="chip"        id="wchip-gestern"   onclick="selectWeightDate('gestern')">Gestern</button>
+      <button class="chip"        id="wchip-vorgestern" onclick="selectWeightDate('vorgestern')">Vorgestern</button>
+    </div>
+
+    <!-- Wiegetag -->
+    <div style="margin-top:12px;">
+      <label style="font-size:0.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:8px;">Mein Wiegetag</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="weigh-day-grid"></div>
+      <p class="small-note" style="margin-top:6px;" id="weigh-day-note"></p>
+    </div>
+  </div>
+
+  <!-- TREND -->
+  <div class="card" id="weight-stats-card" style="display:none;">
+    <h2>Trend</h2>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;margin-bottom:14px;">
+      <div>
+        <div id="weight-current-display" style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--accent);"></div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Aktuell</div>
+      </div>
+      <div>
+        <div id="weight-start-display" style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--muted);"></div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Start</div>
+      </div>
+      <div>
+        <div id="weight-diff-display" style="font-family:'DM Serif Display',serif;font-size:1.6rem;"></div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Veränderung</div>
+      </div>
+    </div>
+    <canvas id="weight-canvas" height="140" style="width:100%;display:block;"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Einträge</h2>
+    <div id="weight-log-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="weight-empty">Noch keine Einträge.</p>
+  </div>
+</div>
+
+<!-- SCHLAF -->
+<div id="section-sleep" class="section">
+  <div class="card">
+    <h2>🌙 Schlaf-Check</h2>
+    <p class="small-note" style="margin-bottom:16px;line-height:1.5;">Kein Muss, keine Punkte. Morgens ausfüllen – wie war die Nacht?</p>
+
+    <!-- QUALITÄT 1-10 -->
+    <h3 style="margin-bottom:10px;">Schlafqualität</h3>
+    <div id="sleep-quality-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:18px;"></div>
+
+    <!-- DAUER -->
+    <h3 style="margin-bottom:8px;">Schlafdauer (optional)</h3>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <input type="number" id="sleep-hours" placeholder="—" min="1" max="16" step="0.5"
+        inputmode="decimal"
+        style="width:80px;padding:10px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:1.3rem;font-weight:700;text-align:center;">
+      <span style="color:var(--muted);">Stunden</span>
+    </div>
+
+    <!-- INS BETT / AUFGESTANDEN -->
+    <h3 style="margin-bottom:8px;">Zeiten (optional)</h3>
+    <div style="display:flex;gap:12px;margin-bottom:18px;">
+      <div style="flex:1;">
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;">Ins Bett</label>
+        <input type="time" id="sleep-bedtime"
+          style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;">
+      </div>
+      <div style="flex:1;">
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;">Aufgestanden</label>
+        <input type="time" id="sleep-waketime"
+          style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;">
+      </div>
+    </div>
+
+    <!-- NOTIZ -->
+    <h3 style="margin-bottom:6px;">Notiz (optional)</h3>
+    <textarea id="sleep-note" placeholder="Geträumt? Aufgewacht? Wie war der Morgen?"
+      style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:60px;background:var(--bg);color:var(--ink);"></textarea>
+
+    <button class="log-btn secondary" style="margin-top:12px;" onclick="logSleep()">Nacht notieren</button>
+  </div>
+
+  <!-- VERLAUF -->
+  <div class="card">
+    <h2>Verlauf</h2>
+    <canvas id="sleep-canvas" height="120" style="width:100%;display:block;margin-bottom:12px;" id="sleep-chart"></canvas>
+    <div id="sleep-log-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <p class="small-note" id="sleep-empty">Noch keine Einträge.</p>
+  </div>
+</div>
+
+<!-- KÖRPER -->
+<div id="section-body" class="section">
+
+  <div class="card">
+    <h2>🧘 Körper-Check</h2>
+    <p class="small-note" style="margin-bottom:16px;line-height:1.5;">Kein Muss, keine Punkte, kein Druck. Einfach beobachten – was nimmst du gerade wahr?</p>
+
+    <!-- HUNGER / SÄTTIGUNG -->
+    <h3 style="margin-bottom:10px;">Hunger & Sättigung – gerade jetzt</h3>
+    <div id="hunger-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:18px;"></div>
+
+    <!-- ESSEN GETAN -->
+    <h3 style="margin-bottom:10px;">Wie hat mir das letzte Essen getan?</h3>
+    <div id="meal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:18px;"></div>
+
+    <!-- KÖRPERGEFÜHL -->
+    <h3 style="margin-bottom:10px;">Wie wohl fühle ich mich heute in meinem Körper?</h3>
+    <div id="body-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:18px;"></div>
+
+    <!-- NOTIZ -->
+    <h3 style="margin-bottom:6px;">Kurze Notiz (optional)</h3>
+    <textarea id="body-note" placeholder="Was fällt dir gerade auf? Kein Muss…"
+      style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:70px;background:var(--bg);color:var(--ink);"></textarea>
+
+    <button class="log-btn secondary" style="margin-top:12px;" onclick="logBody()">Beobachtung notieren</button>
+  </div>
+
+  <div class="card">
+    <h2>Verlauf</h2>
+    <div id="body-log-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+    <p class="small-note" id="body-empty">Noch keine Einträge.</p>
+  </div>
+</div>
+
+<!-- VERLAUF -->
+<div id="section-verlauf" class="section">
+
+  <!-- Zeitraum-Filter -->
+  <div class="card" style="padding:14px 16px;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="chip"        id="vf-heute"   onclick="setVerlaufFilter('heute')">Heute</button>
+      <button class="chip active" id="vf-woche"   onclick="setVerlaufFilter('woche')">Woche</button>
+      <button class="chip"        id="vf-monat"   onclick="setVerlaufFilter('monat')">Monat</button>
+      <button class="chip"        id="vf-alles"   onclick="setVerlaufFilter('alles')">Alles</button>
+    </div>
+    <div id="verlauf-zeitraum" style="font-size:0.75rem;color:var(--muted);margin-top:8px;"></div>
+  </div>
+
+  <!-- Übersicht-Kacheln -->
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:4px;grid-auto-rows:auto;" id="verlauf-kacheln"></div>
+
+  <!-- Aktivitäten -->
+  <div class="card" id="vl-activity-card">
+    <h2>🏃 Aktivitäten</h2>
+    <div id="vl-activity-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-activity-empty">Keine Einträge im Zeitraum.</p>
+  </div>
+
+  <!-- Gefühl -->
+  <div class="card" id="vl-feeling-card">
+    <h2>😊 Gefühl</h2>
+    <div id="vl-feeling-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-feeling-empty">Keine Einträge im Zeitraum.</p>
+  </div>
+
+  <!-- Süssigkeiten -->
+  <div class="card" id="vl-sweets-card">
+    <h2>🍬 Süssigkeiten</h2>
+    <div id="vl-sweets-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-sweets-empty">Keine Einträge im Zeitraum.</p>
+  </div>
+
+  <!-- Schlaf -->
+  <div class="card">
+    <h2>🌙 Schlaf</h2>
+    <div id="vl-sleep-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-sleep-empty">Keine Einträge im Zeitraum.</p>
+  </div>
+
+  <!-- Dankbarkeit -->
+  <div class="card">
+    <h2>🌟 Dankbarkeit</h2>
+    <div id="vl-gratitude-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-gratitude-empty">Keine Einträge im Zeitraum.</p>
+  </div>
+
+  <!-- Körper -->
+  <div class="card">
+    <h2>🧘 Körper</h2>
+    <div id="vl-body-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-body-empty">Keine Einträge im Zeitraum.</p>
+  </div>
+
+</div>
+
+<!-- REWARDS -->
+<div id="section-rewards" class="section">
+  <div class="points-display">
+    <div class="points-big" id="total-points">0</div>
+    <div class="points-label">Gesammelte Punkte</div>
+  </div>
+
+  <div class="streak-display">
+    <div class="fire">🔥</div>
+    <div>
+      <div class="streak-num" id="streak-num">0</div>
+      <div class="streak-text">Tage aktiv in Folge</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Nächste Belohnung</h2>
+    <div id="next-badge-name" style="font-weight:600;margin-bottom:6px;"></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="next-badge-progress"></div>
+    </div>
+    <div class="next-badge-info" id="next-badge-info"></div>
+  </div>
+
+  <div class="card">
+    <h2>Wie verdiene ich Punkte?</h2>
+    <div style="display:flex;flex-direction:column;gap:7px;font-size:0.84rem;">
+      <div style="display:flex;justify-content:space-between;"><span>💧 Wasser (pro Portion)</span><span style="color:var(--gold);font-weight:600;">+5</span></div>
+      <div style="display:flex;justify-content:space-between;"><span>💧 Tagesziel Wasser erreicht</span><span style="color:var(--gold);font-weight:600;">+30</span></div>
+      <div style="display:flex;justify-content:space-between;"><span>🏃 Aktivität (Minuten × Pkt/Min)</span><span style="color:var(--gold);font-weight:600;">individuell</span></div>
+      <div style="display:flex;justify-content:space-between;"><span>🔥 Streak-Tag</span><span style="color:var(--gold);font-weight:600;">+20</span></div>
+      <div style="display:flex;justify-content:space-between;"><span>✅ Nüchtern-Tag</span><span style="color:var(--gold);font-weight:600;">+15</span></div>
+      <div style="display:flex;justify-content:space-between;"><span>🍷 Woche im Limit</span><span style="color:var(--gold);font-weight:600;">+50</span></div>
+      <div style="display:flex;justify-content:space-between;"><span>🏆 Challenge-Tag clean</span><span style="color:var(--gold);font-weight:600;">+10</span></div>
+      <div style="display:flex;justify-content:space-between;"><span>🏅 Badge freischalten</span><span style="color:var(--gold);font-weight:600;">→ siehe Badges</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Meine Belohnungen 🎁</h2>
+    <p class="small-note" style="margin-bottom:12px;">Definiere persönliche Ziele, die du dir gönnst wenn du Punkte erreichst.</p>
+    <div id="custom-rewards-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+      <div style="flex:3;min-width:140px;">
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:3px;">Belohnung</label>
+        <input type="text" id="reward-name-input" placeholder="z.B. Massage buchen 💆"
+          style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
+      </div>
+      <div style="flex:2;min-width:90px;">
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:3px;">ab Punkte</label>
+        <input type="number" id="reward-pts-input" placeholder="10000" min="10" max="99999" step="10"
+          style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;text-align:center;">
+      </div>
+      <button onclick="addCustomReward()" style="padding:8px 14px;background:var(--gold);color:white;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;">+ Hinzufügen</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Badges 🏅</h2>
+    <div id="badges-grid"></div>
+  </div>
+</div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =====================
+// STATE
+// =====================
+const BADGES = [
+  // Einstieg – basiert auf Aktivitäts-Log
+  { id:'first_step',    icon:'👣', name:'Erster Schritt',       pts:10,  cat:'Start',     cond: s => s.activityLog.length >= 1 },
+  { id:'hundred',       icon:'💯', name:'100 Minuten aktiv',    pts:20,  cat:'Start',     cond: s => s.activityLog.reduce((t,e)=>t+(e.min||0),0) >= 100 },
+  { id:'five_hundred',  icon:'🌟', name:'500 Minuten aktiv',    pts:50,  cat:'Start',     cond: s => s.activityLog.reduce((t,e)=>t+(e.min||0),0) >= 500 },
+  // Wasser
+  { id:'hydrated',      icon:'💧', name:'Gut hydriert',         pts:50,  cat:'Wasser',    cond: s => s.waterDays >= 3 },
+  { id:'water_week',    icon:'🚿', name:'Wasser-Woche',         pts:80,  cat:'Wasser',    cond: s => s.waterDays >= 7 },
+  { id:'water_master',  icon:'🌊', name:'Wasser-Profi',         pts:120, cat:'Wasser',    cond: s => s.waterDays >= 14 },
+  // Aktivität – direkt aus Log
+  { id:'mover',         icon:'🏃', name:'5 Aktivitäten',        pts:100, cat:'Aktivität', cond: s => s.activityLog.length >= 5 },
+  { id:'active_10',     icon:'🏋️', name:'10 Aktivitäten',      pts:200, cat:'Aktivität', cond: s => s.activityLog.length >= 10 },
+  { id:'active_25',     icon:'🥇', name:'25 Aktivitäten',       pts:400, cat:'Aktivität', cond: s => s.activityLog.length >= 25 },
+  // Streak
+  { id:'streak_3',      icon:'🔥', name:'3 Tage Streak',        pts:60,  cat:'Streak',    cond: s => s.streak >= 3 },
+  { id:'streak_7',      icon:'⚡', name:'7 Tage Streak',        pts:150, cat:'Streak',    cond: s => s.streak >= 7 },
+  { id:'streak_14',     icon:'🌈', name:'2 Wochen Streak',      pts:300, cat:'Streak',    cond: s => s.streak >= 14 },
+  { id:'streak_30',     icon:'👑', name:'30 Tage Streak',       pts:600, cat:'Streak',    cond: s => s.streak >= 30 },
+  // Alkohol – nur wenn auch geloggt wurde
+  { id:'challenge_done', icon:'🏆', name:'6-Wochen-Challenge', pts:1000, cat:'Alkohol', cond: s => s.challenge?.completed },
+  { id:'dry_week',      icon:'🌵', name:'Trockene Woche',       pts:80,  cat:'Alkohol',   cond: s => (s.alcDaysLog||[]).filter(e=>{ const ws=new Date(); ws.setDate(ws.getDate()-((ws.getDay()+6)%7)); ws.setHours(0,0,0,0); return new Date(e.date)>=ws && e.drank; }).length === 0 && (s.alcDaysLog||[]).filter(e=>{ const ws=new Date(); ws.setDate(ws.getDate()-((ws.getDay()+6)%7)); ws.setHours(0,0,0,0); return new Date(e.date)>=ws; }).length >= 5 },
+  { id:'within_limit',  icon:'✅', name:'Im Limit geblieben',   pts:50,  cat:'Alkohol',   cond: s => { const ws=new Date(); ws.setDate(ws.getDate()-((ws.getDay()+6)%7)); ws.setHours(0,0,0,0); const days=(s.alcDaysLog||[]).filter(e=>new Date(e.date)>=ws); return days.length>=3 && days.filter(e=>e.drank).length<=s.alcMax; } },
+  // Gewicht
+  { id:'weight_logged', icon:'⚖️', name:'Gewicht geloggt',      pts:20,  cat:'Gewicht',   cond: s => s.weightLog && s.weightLog.length >= 1 },
+  { id:'weight_streak', icon:'📉', name:'7× Gewicht getrackt',  pts:100, cat:'Gewicht',   cond: s => s.weightLog && s.weightLog.length >= 7 },
+  { id:'weight_goal',   icon:'🎯', name:'Zielgewicht erreicht', pts:300, cat:'Gewicht',   cond: s => s.weightGoal && s.weightLog.length > 0 && Math.abs(s.weightLog[0].kg - s.weightGoal) < 0.5 },
+];
+
+const FEELINGS = [
+  { emoji:'😴', label:'müde' },
+  { emoji:'😕', label:'schlecht' },
+  { emoji:'😐', label:'okay' },
+  { emoji:'🙂', label:'gut' },
+  { emoji:'😄', label:'super' },
+];
+
+const DEFAULT_ACTIVITIES = [
+  { id:'walk',   icon:'🚶', name:'Gehen',        min:0,  ptsPerMin:1,  steps:true,  stepsDefault:5000, custom:false },
+  { id:'bike',   icon:'🚴', name:'Radfahren',    min:45, ptsPerMin:1,  steps:false, custom:false },
+  { id:'swim',   icon:'🏊', name:'Schwimmen',    min:40, ptsPerMin:2,  steps:false, custom:false },
+  { id:'stretch',icon:'🧘', name:'Dehnen',       min:20, ptsPerMin:1,  steps:false, custom:false },
+  { id:'run',    icon:'🏃', name:'Laufen',       min:30, ptsPerMin:2,  steps:false, custom:false },
+];
+
+function loadState() {
+  const raw = localStorage.getItem('vitalis_state');
+  const defaults = {
+    waterMl: 0,
+    waterGoal: 2000,
+    waterDays: 0,
+    alcMax: 3,         // Max Tage pro Woche
+    jokerMax: 2,       // Joker pro Monat
+    jokersUsed: 0,     // Joker diese Woche genutzt
+    jokersUsedMonth: 0,// Joker diesen Monat genutzt
+    alcTodayLogged: null, // Datum des heutigen Eintrags
+    alcDaysLog: [],    // [{date, drank}] pro Tag
+    challenge: null,   // {startDate, log:[{date,clean}], completed, aborted}
+    totalPoints: 0,
+    streak: 0,
+    lastActiveDate: null,
+    activitiesLogged: 0,
+    earnedBadges: [],
+    feelingLog: [],
+    activityLog: [],
+    activities: DEFAULT_ACTIVITIES,
+    weightLog: [],
+    weightGoal: null,
+    heightCm: null,
+    weighDay: null,
+    customRewards: [],
+    sweetsLog: [],
+    sweetsWeekMax: 7,
+    bodyLog: [],
+    sleepLog: [],
+    sleepCheckinSkipped: null,
+    gratitudeLog: [],
+    gratitudeSkipped: null,
+    selectedActivity: null,
+  };
+  if (!raw) return defaults;
+  try { return { ...defaults, ...JSON.parse(raw) }; }
+  catch(e) { return defaults; }
+}
+
+function saveState() {
+  localStorage.setItem('vitalis_state', JSON.stringify(state));
+}
+
+let state = loadState();
+
+// Migration: update old 'Spaziergang' to steps-based 'Gehen'
+if (state.activities) {
+  state.activities = state.activities.map(a => {
+    if (a.id === 'walk') {
+      return { ...a, name: 'Gehen', steps: true, stepsDefault: a.stepsDefault || 5000, min: 0 };
+    }
+    return a;
+  });
+  // Add walk if missing entirely
+  if (!state.activities.find(a => a.id === 'walk')) {
+    state.activities.unshift({ id:'walk', icon:'🚶', name:'Gehen', min:0, ptsPerMin:1, steps:true, stepsDefault:5000, custom:false });
+  }
+  saveState();
+}
+let feelingBefore = null;
+let feelingAfter = null;
+
+// =====================
+// NAV
+// =====================
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.getElementById('section-' + id).classList.add('visible');
+  document.querySelectorAll('nav button').forEach((b, i) => b.classList.remove('active'));
+  const map = ['home','feeling','water','activity','alcohol','sweets','weight','sleep','body','verlauf','rewards'];
+  const idx = map.indexOf(id);
+  if (idx >= 0) document.querySelectorAll('nav button')[idx].classList.add('active');
+  if (id === 'home') renderHome();
+  if (id === 'feeling') renderFeeling();
+  if (id === 'water') renderWater();
+  if (id === 'activity') renderActivities();
+  if (id === 'alcohol') renderAlcohol();
+  if (id === 'sweets') renderSweets();
+  if (id === 'weight') renderWeight();
+  if (id === 'sleep') renderSleep();
+  if (id === 'body') renderBody();
+  if (id === 'verlauf') renderVerlauf();
+  if (id === 'rewards') renderRewards();
+}
+
+// =====================
+// TOAST
+// =====================
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// =====================
+// HOME
+// =====================
+function renderHome() {
+  const now = new Date();
+  const hour = now.getHours();
+
+  // Greeting
+  const greeting = hour < 12 ? 'Guten Morgen! ☀️' : hour < 18 ? 'Guten Tag! 👋' : 'Guten Abend! 🌙';
+  const greetEl = document.getElementById('home-greeting');
+  if (greetEl) greetEl.textContent = greeting;
+
+  // Sleep check-in: 5–11h morgens
+  const checkinCard = document.getElementById('sleep-checkin-card');
+  const todayStr = now.toDateString();
+  const loggedToday = state.sleepLog.length > 0 && new Date(state.sleepLog[0].ts).toDateString() === todayStr;
+  const skippedToday = state.sleepCheckinSkipped === todayStr;
+
+  if (hour >= 5 && hour < 12 && !loggedToday && !skippedToday) {
+    checkinCard.style.display = '';
+    renderSleepCheckinGrid();
+  } else {
+    checkinCard.style.display = 'none';
+  }
+
+  // Gratitude check-in: 18–23h abends
+  const gratitudeCard = document.getElementById('gratitude-checkin-card');
+  const gratitudeToday = state.gratitudeLog.length > 0 && new Date(state.gratitudeLog[0].ts).toDateString() === todayStr;
+  const gratitudeSkipped = state.gratitudeSkipped === todayStr;
+
+  if (hour >= 18 && hour < 23 && !gratitudeToday && !gratitudeSkipped) {
+    gratitudeCard.style.display = '';
+  } else if (hour >= 18 && hour < 23 && (gratitudeToday || gratitudeSkipped)) {
+    // Bereits erledigt heute – nichts zeigen
+    gratitudeCard.style.display = 'none';
+  } else {
+    gratitudeCard.style.display = 'none';
+  }
+
+  const s = document.getElementById('today-summary');
+  const waterPct = Math.min(100, Math.round(state.waterMl / state.waterGoal * 100));
+  const drinkDaysThisWeek = typeof getAlcDrinkDaysCount === 'function' ? getAlcDrinkDaysCount() : 0;
+  const challengeActive = typeof isChallengeActive === 'function' && isChallengeActive();
+  s.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;">
+      <span style="font-size:1.4rem;">💧</span>
+      <div style="flex:1;">
+        <div style="font-size:0.85rem;font-weight:600;">Wasser heute</div>
+        <div style="background:var(--border);border-radius:10px;height:6px;margin-top:4px;overflow:hidden;">
+          <div style="height:100%;width:${waterPct}%;background:#457b9d;border-radius:10px;"></div>
+        </div>
+      </div>
+      <span style="font-size:0.82rem;color:var(--muted);">${state.waterMl}/${state.waterGoal} ml</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;">
+      <span style="font-size:1.4rem;">🍷</span>
+      <div>
+        <div style="font-size:0.85rem;font-weight:600;">Alkohol diese Woche</div>
+        <div style="font-size:0.78rem;color:var(--muted);">${challengeActive ? '🏆 Challenge läuft' : drinkDaysThisWeek + ' von ' + state.alcMax + ' Tagen'}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;">
+      <span style="font-size:1.4rem;">🌙</span>
+      <div>
+        <div style="font-size:0.85rem;font-weight:600;">Letzte Nacht</div>
+        <div style="font-size:0.78rem;color:var(--muted);">${state.sleepLog.length > 0 ? (state.sleepLog[0].score !== null ? state.sleepLog[0].score+'/10' : '') + (state.sleepLog[0].hours ? ' · '+state.sleepLog[0].hours+'h' : '') : 'Noch nicht notiert'}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;">
+      <span style="font-size:1.4rem;">🍬</span>
+      <div>
+        <div style="font-size:0.85rem;font-weight:600;">Süssigkeiten heute</div>
+        <div style="font-size:0.78rem;color:var(--muted);">${(() => { const t=new Date().toDateString(); const n=state.sweetsLog.filter(e=>new Date(e.ts).toDateString()===t).length; return n===0?'Nichts geloggt':n+' Portion'+(n>1?'en':''); })()}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;">
+      <span style="font-size:1.4rem;">⚖️</span>
+      <div>
+        <div style="font-size:0.85rem;font-weight:600;">Gewicht</div>
+        <div style="font-size:0.78rem;color:var(--muted);">${state.weightLog.length > 0 ? state.weightLog[0].kg.toFixed(1) + ' kg' : 'Noch nicht eingetragen'}</div>
+      </div>
+    </div>
+    ${challengeActive ? `
+    <div style="padding:10px 14px;background:linear-gradient(135deg,rgba(26,26,46,0.08),rgba(22,33,62,0.08));border-radius:10px;border-left:3px solid #f4c261;">
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:2px;">🏆 6-Wochen-Challenge</div>
+      <div style="font-weight:600;font-size:0.88rem;">Tag ${Math.min(Math.floor((new Date()-new Date(state.challenge.startDate))/86400000)+1,42)} von 42 · ${Math.max(0,42-Math.floor((new Date()-new Date(state.challenge.startDate))/86400000))} Tage übrig 🔥</div>
+    </div>` : ''}
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;">
+      <span style="font-size:1.4rem;">🏆</span>
+      <div>
+        <div style="font-size:0.85rem;font-weight:600;">Punkte gesamt</div>
+        <div style="font-size:0.78rem;color:var(--muted);">${state.totalPoints} Punkte · ${state.streak} Tage Streak</div>
+      </div>
+    </div>
+    ${(() => {
+      const todayEntry = state.gratitudeLog.find(e => new Date(e.ts).toDateString() === new Date().toDateString());
+      return todayEntry ? `
+        <div style="padding:10px 14px;background:linear-gradient(135deg,rgba(45,27,78,0.08),rgba(74,32,96,0.08));border-radius:10px;border-left:3px solid #9b59b6;">
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">🌟 Heute dankbar für</div>
+          <div style="font-size:0.85rem;color:var(--ink);font-style:italic;">"${todayEntry.text}"</div>
+        </div>` : '';
+    })()}
+  `;
+}
+
+// =====================
+// FEELING
+// =====================
+function renderFeeling() {
+  renderFeelingGrid('feeling-before-grid', 'before');
+  renderFeelingGrid('feeling-after-grid', 'after');
+  renderFeelingHistory();
+}
+
+function renderFeelingGrid(gridId, type) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  FEELINGS.forEach((f, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'feeling-btn';
+    btn.innerHTML = `<span>${f.emoji}</span><span class="label">${f.label}</span>`;
+    const selected = type === 'before' ? feelingBefore : feelingAfter;
+    if (selected === i) btn.classList.add('selected');
+    btn.onclick = () => {
+      if (type === 'before') feelingBefore = i;
+      else feelingAfter = i;
+      renderFeelingGrid(gridId, type);
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function logFeeling() {
+  if (feelingBefore === null && feelingAfter === null) {
+    showToast('Bitte mindestens ein Gefühl wählen.'); return;
+  }
+  const entry = {
+    ts: new Date().toISOString(),
+    before: feelingBefore,
+    after: feelingAfter,
+  };
+  state.feelingLog.unshift(entry);
+  if (state.feelingLog.length > 20) state.feelingLog.pop();
+  addPoints(10, '😊 Gefühl geloggt');
+  feelingBefore = null; feelingAfter = null;
+  saveState();
+  renderFeelingGrid('feeling-before-grid','before');
+  renderFeelingGrid('feeling-after-grid','after');
+  renderFeelingHistory();
+  checkStreak();
+  showToast('✅ Gefühl gespeichert! +5 Punkte');
+}
+
+function renderFeelingHistory() {
+  const list = document.getElementById('feeling-history');
+  const empty = document.getElementById('feeling-empty');
+  list.innerHTML = '';
+  const filtered = filterByDate(state.feelingLog, feelingFilter);
+  if (!filtered.length) { empty.style.display=''; return; }
+  empty.style.display = 'none';
+  filtered.slice(0,20).forEach((e) => {
+    const i = state.feelingLog.indexOf(e);
+    const d = new Date(e.ts);
+    const time = feelingFilter === 'heute'
+      ? d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})
+      : d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const before = e.before !== null ? FEELINGS[e.before].emoji : '–';
+    const after  = e.after  !== null ? FEELINGS[e.after].emoji  : '–';
+    const div = document.createElement('div');
+    div.className = 'feeling-entry';
+    div.innerHTML = `
+      <span class="emojis">${before}</span>
+      <span class="arrow">→</span>
+      <span class="emojis">${after}</span>
+      <span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${time}</span>
+      <button onclick="deleteFeelingEntry(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;margin-left:6px;">✕</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function deleteFeelingEntry(i) {
+  showConfirm('Eintrag löschen?', 'Diesen Gefühls-Eintrag wirklich entfernen?', () => {
+    state.feelingLog.splice(i, 1);
+    saveState();
+    renderFeelingHistory();
+  });
+}
+
+// =====================
+// WATER
+// =====================
+function renderWater() {
+  document.getElementById('water-ml').textContent = state.waterMl;
+  document.getElementById('water-goal-display').textContent = state.waterGoal;
+  document.getElementById('water-goal-input').value = state.waterGoal;
+  const pct = Math.min(100, Math.round(state.waterMl / state.waterGoal * 100));
+  document.getElementById('water-bar').style.width = pct + '%';
+}
+
+function addWater(ml) {
+  state.waterMl = Math.max(0, state.waterMl + ml);
+  const goalHit = state.waterMl >= state.waterGoal;
+  if (ml > 0) {
+    addPoints(5, '💧 Wasser getrunken');
+    if (goalHit && state.waterMl - ml < state.waterGoal) {
+      showToast('🎉 Tagesziel erreicht! +30 Bonus');
+      addPoints(30, '💧 Tagesziel erreicht');
+      state.waterDays++;
+    }
+  }
+  saveState();
+  renderWater();
+  checkBadges();
+}
+
+function setWaterGoal(v) {
+  state.waterGoal = Math.max(500, parseInt(v) || 2000);
+  saveState();
+  renderWater();
+}
+
+function resetWater() {
+  state.waterMl = 0;
+  state.waterDays = 0;
+  saveState();
+  renderWater();
+  showToast('Wasser-Tracker zurückgesetzt.');
+}
+
+// =====================
+// ACTIVITIES
+// =====================
+function renderActivities() {
+  const list = document.getElementById('activity-list');
+  list.innerHTML = '';
+  state.activities.forEach((a, i) => {
+    const ppm = a.ptsPerMin || 1;
+    const isSteps = a.steps === true;
+    const stepsVal = a.stepsDefault || 5000;
+    const totalPts = isSteps ? Math.round(stepsVal / 1000) * 10 : a.min * ppm;
+    const div = document.createElement('div');
+    div.className = 'activity-item' + (state.selectedActivity === i ? ' selected' : '');
+
+    const inputFields = isSteps ? `
+      <input type="number" value="${stepsVal}" min="100" max="100000" step="100"
+        style="width:72px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.78rem;text-align:center;"
+        onclick="event.stopPropagation()" onchange="updateActivitySteps(event,${i})">
+      <span style="font-size:0.72rem;color:var(--muted);">Schritte</span>
+      <span style="font-size:0.72rem;color:var(--gold);font-weight:600;">= ${totalPts} Pkt</span>
+    ` : `
+      <input type="number" value="${a.min}" min="1" max="300"
+        style="width:50px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.78rem;text-align:center;"
+        onclick="event.stopPropagation()" onchange="updateActivityDuration(event,${i})">
+      <span style="font-size:0.72rem;color:var(--muted);">Min</span>
+      <span style="font-size:0.72rem;color:var(--muted);">·</span>
+      <input type="number" value="${ppm}" min="1" max="20"
+        style="width:40px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.78rem;text-align:center;"
+        onclick="event.stopPropagation()" onchange="updateActivityPts(event,${i})">
+      <span style="font-size:0.72rem;color:var(--muted);">Pkt/Min</span>
+      <span style="font-size:0.72rem;color:var(--gold);font-weight:600;">= ${totalPts} Pkt</span>
+    `;
+
+    div.innerHTML = `
+      <span class="activity-icon" onclick="selectActivity(${i})" style="cursor:pointer;">${a.icon || '🏃'}</span>
+      <div class="activity-info" onclick="selectActivity(${i})" style="cursor:pointer;flex:1;">
+        <div class="name">${a.name}</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;">
+          ${inputFields}
+        </div>
+      </div>
+      <div class="check" onclick="selectActivity(${i})" style="cursor:pointer;">${state.selectedActivity === i ? '✓' : ''}</div>
+      ${a.custom ? `<button class="del-activity" onclick="deleteActivity(event,${i})">✕</button>` : ''}
+    `;
+    list.appendChild(div);
+  });
+  renderActivityLog();
+}
+
+function updateActivityDuration(event, i) {
+  const val = parseInt(event.target.value);
+  if (!isNaN(val) && val >= 1 && val <= 300) {
+    showConfirm(
+      'Dauer ändern?',
+      'Wenn du die Dauer änderst, wird dein Streak zurückgesetzt.',
+      () => {
+        state.activities[i].min = val;
+        state.streak = 0;
+        state.lastActiveDate = null;
+        document.getElementById('streak-header-num').textContent = 0;
+        saveState();
+        renderActivities();
+        showToast('Dauer geändert – Streak zurückgesetzt.');
+      }
+    );
+  }
+}
+
+function updateActivitySteps(event, i) {
+  const val = parseInt(event.target.value);
+  if (!isNaN(val) && val >= 100) {
+    state.activities[i].stepsDefault = val;
+    saveState();
+    renderActivities();
+  }
+}
+
+function updateActivityPts(event, i) {
+  const val = parseInt(event.target.value);
+  if (!isNaN(val) && val >= 1 && val <= 20) {
+    state.activities[i].ptsPerMin = val;
+    saveState();
+    renderActivities();
+  }
+}
+
+function selectActivity(i) {
+  state.selectedActivity = state.selectedActivity === i ? null : i;
+  renderActivities();
+}
+
+function addCustomActivity() {
+  const name = document.getElementById('new-activity-name').value.trim();
+  const min  = parseInt(document.getElementById('new-activity-min').value) || 30;
+  if (!name) { showToast('Bitte Name eingeben.'); return; }
+  state.activities.push({ id: 'custom_' + Date.now(), icon:'⚡', name, min, ptsPerMin:1, custom:true });
+  document.getElementById('new-activity-name').value = '';
+  document.getElementById('new-activity-min').value = '';
+  saveState();
+  renderActivities();
+}
+
+function deleteActivity(e, i) {
+  e.stopPropagation();
+  showConfirm(
+    'Aktivität löschen?',
+    'Diese Aktivität löschen? Dein Streak wird zurückgesetzt.',
+    () => {
+      state.activities.splice(i, 1);
+      if (state.selectedActivity === i) state.selectedActivity = null;
+      state.streak = 0;
+      state.lastActiveDate = null;
+      document.getElementById('streak-header-num').textContent = 0;
+      saveState();
+      renderActivities();
+      showToast('Aktivität gelöscht – Streak zurückgesetzt.');
+    }
+  );
+}
+
+// =====================
+// ACTIVITY DATE + TIME
+// =====================
+const TIME_SLOTS = {
+  ganztags: { label: 'Ganztags', time: '12:00' },
+  morgens:  { label: 'Morgens',  time: '07:00' },
+  mittags:  { label: 'Mittags',  time: '12:30' },
+  abends:   { label: 'Abends',   time: '18:30' },
+};
+
+let selectedActivityTime = null;
+let selectedActivityDate = new Date().toDateString(); // default: heute
+
+function getSelectedBase() {
+  // Returns a Date set to the selected date
+  const base = new Date();
+  if (selectedActivityDate === new Date().toDateString()) return base;
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  if (selectedActivityDate === yesterday.toDateString()) return yesterday;
+  const vv = new Date(); vv.setDate(vv.getDate()-2);
+  if (selectedActivityDate === vv.toDateString()) return vv;
+  // custom date
+  return new Date(selectedActivityDate);
+}
+
+function updatePreview() {
+  const base = getSelectedBase();
+  const today = new Date().toDateString();
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const dateLabel = base.toDateString() === today ? 'Heute'
+    : base.toDateString() === yesterday.toDateString() ? 'Gestern'
+    : base.toLocaleDateString('de-DE', {weekday:'short',day:'2-digit',month:'2-digit'});
+
+  if (selectedActivityTime) {
+    const t = new Date(selectedActivityTime);
+    const isGanztags = t.getHours() === 12 && t.getMinutes() === 0 && document.getElementById('chip-ganztags')?.classList.contains('active');
+    const timeStr = isGanztags ? 'Ganztags' : `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')} Uhr`;
+    document.getElementById('activity-time-preview').innerHTML =
+      `⏱ <strong>${dateLabel}</strong> · <strong>${timeStr}</strong>`;
+  }
+}
+
+function selectDateChip(when) {
+  ['heute','gestern','vorgestern','own'].forEach(k => {
+    const el = document.getElementById('chip-date-' + k);
+    if (el) el.classList.toggle('active', k === when);
+  });
+  document.getElementById('custom-date-row').style.display = 'none';
+  const d = new Date();
+  if (when === 'gestern')    d.setDate(d.getDate()-1);
+  if (when === 'vorgestern') d.setDate(d.getDate()-2);
+  selectedActivityDate = d.toDateString();
+  updatePreview();
+}
+
+function activateDateCustom() {
+  ['heute','gestern','vorgestern','own'].forEach(k => {
+    const el = document.getElementById('chip-date-' + k);
+    if (el) el.classList.toggle('active', k === 'own');
+  });
+  document.getElementById('custom-date-row').style.display = '';
+  // Set max to today
+  const dateInput = document.getElementById('activity-custom-date');
+  dateInput.max = new Date().toISOString().split('T')[0];
+}
+
+function selectCustomDate(val) {
+  selectedActivityDate = new Date(val).toDateString();
+  updatePreview();
+}
+
+function enableLogBtn() {
+  const btn = document.getElementById('activity-log-btn');
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+}
+
+function selectTimeSlot(slot) {
+  ['ganztags','morgens','mittags','abends'].forEach(k => {
+    const el = document.getElementById('chip-' + k);
+    if (el) el.classList.toggle('active', k === slot);
+  });
+  document.getElementById('custom-time-row').classList.remove('active');
+  const s = TIME_SLOTS[slot];
+  document.getElementById('activity-custom-time').value = s.time;
+  const base = getSelectedBase();
+  const [h, m] = s.time.split(':').map(Number);
+  base.setHours(h, m, 0, 0);
+  selectedActivityTime = base.toISOString();
+  updatePreview();
+  enableLogBtn();
+}
+
+function activateCustomTime() {
+  ['ganztags','morgens','mittags','abends'].forEach(k => {
+    const el = document.getElementById('chip-' + k);
+    if (el) el.classList.remove('active');
+  });
+  document.getElementById('custom-time-row').classList.add('active');
+}
+
+function selectCustomTime(val) {
+  activateCustomTime();
+  const [h, m] = val.split(':').map(Number);
+  const base = getSelectedBase();
+  base.setHours(h, m, 0, 0);
+  selectedActivityTime = base.toISOString();
+  updatePreview();
+  enableLogBtn();
+}
+
+function resetTimeSlot() {
+  ['ganztags','morgens','mittags','abends'].forEach(k => {
+    const el = document.getElementById('chip-' + k);
+    if (el) el.classList.remove('active');
+  });
+  ['heute','gestern','vorgestern','own'].forEach(k => {
+    const el = document.getElementById('chip-date-' + k);
+    if (el) el.classList.toggle('active', k === 'heute');
+  });
+  document.getElementById('custom-time-row').classList.remove('active');
+  document.getElementById('custom-date-row').style.display = 'none';
+  selectedActivityTime = null;
+  selectedActivityDate = new Date().toDateString();
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('activity-custom-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  document.getElementById('activity-time-preview').innerHTML = `⏱ Kein Zeitpunkt gewählt – bitte auswählen.`;
+  const btn = document.getElementById('activity-log-btn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
+}
+
+function logSelectedActivity() {
+  if (state.selectedActivity === null) { showToast('Bitte Aktivität auswählen.'); return; }
+  const a = state.activities[state.selectedActivity];
+  const isSteps = a.steps === true;
+  const pts = isSteps
+    ? Math.round((a.stepsDefault || 5000) / 1000) * 10
+    : a.min * (a.ptsPerMin || 1);
+  const label = isSteps ? `${(a.stepsDefault||5000).toLocaleString('de-DE')} Schritte` : `${a.min} min`;
+  const ts = selectedActivityTime || new Date().toISOString();
+  state.activityLog.unshift({ name: a.name, icon: a.icon || '🏃', min: a.min, pts, label, ts });
+  if (state.activityLog.length > 20) state.activityLog.pop();
+  state.activitiesLogged++;
+  addPoints(pts, '🏃 ' + a.name);
+  checkStreak();
+  resetTimeSlot();
+  saveState();
+  renderActivities();
+  checkBadges();
+  showToast(`✅ ${a.name} geloggt! +${pts} Punkte`);
+}
+
+function renderActivityLog() {
+  const list = document.getElementById('activity-log-list');
+  const empty = document.getElementById('activity-empty');
+  list.innerHTML = '';
+  const filtered = filterByDate(state.activityLog, activityFilter)
+    .map((e, _, arr) => ({ e, i: state.activityLog.indexOf(e) }));
+  if (!filtered.length) { empty.style.display=''; return; }
+  empty.style.display = 'none';
+
+  filtered.forEach(({ e, i }) => {
+    const t = new Date(e.ts);
+    const dateStr = t.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'})
+      + ' ' + t.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+
+    const outer = document.createElement('div');
+    outer.style.cssText = 'border:2px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2px;';
+
+    // Summary row
+    const summary = document.createElement('div');
+    summary.className = 'activity-log-entry';
+    summary.style.cssText = 'cursor:pointer;padding:10px 12px;margin:0;border-radius:0;justify-content:space-between;';
+    summary.innerHTML = `
+      <span style="font-size:1.1rem;">${e.icon}</span>
+      <span style="flex:1;font-weight:600;font-size:0.88rem;margin:0 8px;">${e.name}</span>
+      <span style="font-size:0.78rem;color:var(--muted);">${e.label || e.min+' min'}</span>
+      <span class="pts" style="margin:0 8px;">+${e.pts}</span>
+      <span id="toggle-icon-${i}" style="color:var(--muted);font-size:0.8rem;">▼</span>
+    `;
+
+    // Detail panel
+    const detail = document.createElement('div');
+    detail.id = `activity-detail-${i}`;
+    detail.style.cssText = 'display:none;padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);';
+    detail.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div>
+          <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">Aktivität</label>
+          <div style="font-size:0.9rem;font-weight:600;">${e.icon} ${e.name}</div>
+        </div>
+        <div>
+          <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">Datum & Zeit</label>
+          <div style="font-size:0.82rem;">${dateStr}</div>
+        </div>
+        <div>
+          <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">${e.label?.includes('Schritte') ? 'Schritte' : 'Minuten'}</label>
+          <input type="number" value="${e.label?.includes('Schritte') ? parseInt(e.label) : e.min}"
+            min="1" max="${e.label?.includes('Schritte') ? 100000 : 300}"
+            style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;"
+            onchange="editActivityLogField(${i},'min',this.value)">
+        </div>
+        <div>
+          <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">Punkte</label>
+          <input type="number" value="${e.pts}"
+            min="0" max="9999"
+            style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;"
+            onchange="editActivityLogField(${i},'pts',this.value)">
+        </div>
+      </div>
+      <button onclick="deleteActivityLog(${i})" class="log-btn danger" style="width:100%;padding:10px;">🗑 Eintrag löschen</button>
+    `;
+
+    summary.onclick = () => {
+      const isOpen = detail.style.display !== 'none';
+      detail.style.display = isOpen ? 'none' : '';
+      document.getElementById(`toggle-icon-${i}`).textContent = isOpen ? '▼' : '▲';
+    };
+
+    outer.appendChild(summary);
+    outer.appendChild(detail);
+    list.appendChild(outer);
+  });
+}
+
+function editActivityLogField(i, field, val) {
+  const entry = state.activityLog[i];
+  if (!entry) return;
+  const num = parseInt(val);
+  if (isNaN(num) || num < 0) return;
+  if (field === 'min') {
+    entry.min = num;
+    if (entry.label?.includes('Schritte')) {
+      entry.label = `${num.toLocaleString('de-DE')} Schritte`;
+      entry.pts = Math.round(num / 1000) * 10;
+    } else {
+      entry.pts = num * (entry.ptsPerMin || 1);
+    }
+  }
+  if (field === 'pts') entry.pts = num;
+  state.totalPoints = calcPoints();
+  const el = document.getElementById('total-points');
+  if (el) el.textContent = state.totalPoints;
+  saveState();
+  renderActivityLog();
+  showToast('✅ Eintrag aktualisiert.');
+}
+
+function deleteActivityLog(i) {
+  showConfirm('Eintrag löschen?', 'Eintrag entfernen? Punkte werden entsprechend angepasst.', () => {
+    state.activityLog.splice(i, 1);
+    if (state.activitiesLogged > 0) state.activitiesLogged--;
+    state.totalPoints = calcPoints();
+    const el = document.getElementById('total-points');
+    if (el) el.textContent = state.totalPoints;
+    saveState();
+    renderActivityLog();
+    showToast('Eintrag gelöscht.');
+  });
+}
+
+// =====================
+// ALCOHOL (Tage-basiert)
+// =====================
+function getWeekStart() {
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // Mo = Wochenstart
+  return d;
+}
+
+function getMonthStart() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+function getAlcWeekDays() {
+  // Tage dieser Woche (Mo–So) aus alcDaysLog
+  const weekStart = getWeekStart();
+  return (state.alcDaysLog || []).filter(e => new Date(e.date) >= weekStart);
+}
+
+function getAlcDrinkDaysCount() {
+  return getAlcWeekDays().filter(e => e.drank).length;
+}
+
+function getJokersUsedMonth() {
+  const monthStart = getMonthStart();
+  return (state.alcDaysLog || []).filter(e => e.joker && new Date(e.date) >= monthStart).length;
+}
+
+function renderAlcohol() {
+  const challengeCard = document.getElementById('challenge-active-card');
+  const normalCard    = document.getElementById('alc-normal-card');
+
+  if (isChallengeActive()) {
+    challengeCard.style.display = '';
+    normalCard.style.display = 'none';
+    renderChallenge();
+    return;
+  }
+
+  challengeCard.style.display = 'none';
+  normalCard.style.display = '';
+
+  // Show/hide start button based on yearly limit
+  const doneNote = document.getElementById('challenge-done-note');
+  const startCard = document.getElementById('challenge-start-card');
+  if (state.challenge?.completed && new Date(state.challenge.startDate).getFullYear() === new Date().getFullYear()) {
+    doneNote.style.display = '';
+    doneNote.textContent = '🏆 Challenge dieses Jahr bereits abgeschlossen!';
+    document.querySelector('#challenge-start-card .log-btn').disabled = true;
+    document.querySelector('#challenge-start-card .log-btn').style.opacity = '0.4';
+  } else if (state.challenge?.aborted) {
+    doneNote.style.display = '';
+    doneNote.textContent = 'Challenge abgebrochen. Nächstes Jahr wieder starten.';
+  }
+
+  // Set default start date to today
+  const dateInput = document.getElementById('challenge-start-date');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
+
+  document.getElementById('alc-max-input').value = state.alcMax;
+  document.getElementById('alc-joker-input').value = state.jokerMax;
+
+  const weekDays = getAlcWeekDays();
+  const drinkDays = weekDays.filter(e => e.drank).length;
+  const jokerDaysMonth = getJokersUsedMonth();
+  const jokersLeft = state.jokerMax - jokerDaysMonth;
+  const todayStr = new Date().toDateString();
+  const todayEntry = (state.alcDaysLog || []).find(e => new Date(e.date).toDateString() === todayStr);
+  const over = drinkDays > state.alcMax;
+
+  const yesBtn = document.getElementById('alc-yes-btn');
+  const noBtn  = document.getElementById('alc-no-btn');
+  if (todayEntry) {
+    if (todayEntry.drank) {
+      yesBtn.style.background = 'var(--accent2)'; yesBtn.style.color = 'white'; yesBtn.style.borderColor = 'var(--accent2)';
+      noBtn.style.background = 'white'; noBtn.style.color = 'var(--ink)'; noBtn.style.borderColor = 'var(--border)';
+    } else {
+      noBtn.style.background = 'var(--accent)'; noBtn.style.color = 'white'; noBtn.style.borderColor = 'var(--accent)';
+      yesBtn.style.background = 'white'; yesBtn.style.color = 'var(--ink)'; yesBtn.style.borderColor = 'var(--border)';
+    }
+  } else {
+    yesBtn.style.background = noBtn.style.background = 'white';
+    yesBtn.style.color = noBtn.style.color = 'var(--ink)';
+    yesBtn.style.borderColor = noBtn.style.borderColor = 'var(--border)';
+  }
+
+  const weekDots = document.getElementById('alc-week-dots');
+  weekDots.innerHTML = '';
+  const dayNames = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+  const ws = getWeekStart();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(ws); d.setDate(ws.getDate() + i);
+    const dStr = d.toDateString();
+    const entry = (state.alcDaysLog || []).find(e => new Date(e.date).toDateString() === dStr);
+    const isToday = dStr === todayStr;
+    const dot = document.createElement('div');
+    dot.style.cssText = `flex:1;text-align:center;padding:8px 2px;border-radius:10px;border:2px solid ${isToday?'var(--accent)':'var(--border)'};background:${entry?.drank?'var(--accent2)':entry?.drank===false?'#eef6f1':'white'};`;
+    dot.innerHTML = `<div style="font-size:0.9rem;">${entry?.drank?'🍷':entry?.drank===false?'✅':'·'}</div><div style="font-size:0.65rem;color:var(--muted);margin-top:2px;">${dayNames[i]}</div>`;
+    weekDots.appendChild(dot);
+  }
+
+  const statusEl = document.getElementById('alc-week-status');
+  statusEl.textContent = over
+    ? `⚠️ Limit überschritten (${drinkDays}/${state.alcMax} Tage)`
+    : `${drinkDays} von ${state.alcMax} Tagen diese Woche`;
+  statusEl.style.color = over ? 'var(--accent2)' : 'var(--muted)';
+
+  const jokerDots = document.getElementById('alc-joker-dots');
+  jokerDots.innerHTML = '';
+  for (let i = 0; i < state.jokerMax; i++) {
+    const dot = document.createElement('div');
+    dot.style.cssText = `width:40px;height:40px;border-radius:50%;border:2px solid ${i<jokerDaysMonth?'var(--border)':'var(--gold)'};background:${i<jokerDaysMonth?'var(--border)':'#fdf9ec'};display:flex;align-items:center;justify-content:center;font-size:1.1rem;`;
+    dot.textContent = i < jokerDaysMonth ? '✓' : '🃏';
+    jokerDots.appendChild(dot);
+  }
+  document.getElementById('alc-joker-status').textContent =
+    `${Math.max(0,jokersLeft)} von ${state.jokerMax} Joker diesen Monat übrig`;
+}
+
+function toggleAlcToday(drank) {
+  const targetDate = getDateFromKey(
+    document.getElementById('achip-gestern')?.classList.contains('active') ? 'gestern' :
+    document.getElementById('achip-vorgestern')?.classList.contains('active') ? 'vorgestern' : 'heute'
+  );
+  const targetStr = targetDate.toDateString();
+  const existing = (state.alcDaysLog || []).find(e => new Date(e.date).toDateString() === targetStr);
+  if (existing) {
+    existing.drank = drank;
+  } else {
+    if (!state.alcDaysLog) state.alcDaysLog = [];
+    targetDate.setHours(12,0,0,0);
+    state.alcDaysLog.push({ date: targetDate.toISOString(), drank, joker: false });
+  }
+  saveState();
+  renderAlcohol();
+  const label = targetStr === new Date().toDateString() ? 'Heute' :
+    targetStr === (() => { const d=new Date(); d.setDate(d.getDate()-1); return d.toDateString(); })() ? 'Gestern' : 'Vorgestern';
+  showToast(drank ? `🍷 ${label} als Trinktag geloggt.` : `✅ ${label} nüchtern +15 Punkte!`);
+}
+
+function useJoker() {
+  const jokerDaysMonth = getJokersUsedMonth();
+  if (jokerDaysMonth >= state.jokerMax) { showToast('Keine Joker mehr diesen Monat.'); return; }
+  const drinkDays = getAlcDrinkDaysCount();
+  if (drinkDays <= state.alcMax) { showToast('Kein Überschuss – Joker nicht nötig.'); return; }
+  // Mark this week's first excess day as joker
+  const weekStart = getWeekStart();
+  const excessDay = (state.alcDaysLog || []).find(e =>
+    new Date(e.date) >= weekStart && e.drank && !e.joker
+  );
+  if (excessDay) { excessDay.joker = true; }
+  saveState();
+  renderAlcohol();
+  showToast('🃏 Joker eingesetzt!');
+}
+
+function setAlcMax(v) {
+  state.alcMax = Math.max(1, parseInt(v) || 2);
+  saveState(); renderAlcohol();
+}
+
+function setJokerMax(v) {
+  state.jokerMax = Math.max(0, parseInt(v) || 2);
+  saveState(); renderAlcohol();
+}
+
+function resetAlcWeek() {
+  const weekStart = getWeekStart();
+  state.alcDaysLog = (state.alcDaysLog || []).filter(e => new Date(e.date) < weekStart);
+  saveState(); renderAlcohol();
+  showToast('Woche zurückgesetzt.');
+}
+
+// =====================
+// CHALLENGE
+// =====================
+const CHALLENGE_DAYS = 42;
+
+function isChallengeActive() {
+  return state.challenge && !state.challenge.completed && !state.challenge.aborted;
+}
+
+function startChallenge() {
+  const dateVal = document.getElementById('challenge-start-date').value;
+  if (!dateVal) { showToast('Bitte Startdatum wählen.'); return; }
+
+  // Check once per year
+  if (state.challenge && state.challenge.completed) {
+    const completedYear = new Date(state.challenge.startDate).getFullYear();
+    if (completedYear === new Date().getFullYear()) {
+      showToast('Challenge bereits dieses Jahr abgeschlossen! 🏆'); return;
+    }
+  }
+
+  showConfirm(
+    '🏆 Challenge starten?',
+    '42 Tage ohne Alkohol. Kein Joker, keine Ausnahme. Bist du bereit?',
+    () => {
+      state.challenge = {
+        startDate: new Date(dateVal).toISOString(),
+        log: [],
+        completed: false,
+        aborted: false,
+      };
+      saveState();
+      renderAlcohol();
+      showToast('🚀 Challenge gestartet! Du schaffst das.');
+    }
+  );
+}
+
+function challengeLogToday(clean) {
+  if (!isChallengeActive()) return;
+  const todayStr = new Date().toDateString();
+  const existing = state.challenge.log.find(e => new Date(e.date).toDateString() === todayStr);
+  if (existing) { existing.clean = clean; }
+  else { state.challenge.log.push({ date: new Date().toISOString(), clean }); }
+
+  // Check completion
+  const start = new Date(state.challenge.startDate);
+  const daysPassed = Math.floor((new Date() - start) / 86400000) + 1;
+  if (daysPassed >= CHALLENGE_DAYS) {
+    const allClean = state.challenge.log.filter(e => !e.clean).length === 0;
+    if (allClean) {
+      state.challenge.completed = true;
+      addPoints(1000, '🏆 Challenge abgeschlossen');
+      saveState();
+      renderAlcohol();
+      showToast('🏆 Challenge abgeschlossen! 1000 Punkte!');
+      return;
+    }
+  }
+  saveState();
+  renderAlcohol();
+  showToast(clean ? '✅ Tag ' + daysPassed + ' geschafft!' : '');
+}
+
+function challengeBreak() {
+  showConfirm(
+    '🍷 Wirklich getrunken?',
+    'Das beendet die Challenge. Du kannst sie nächstes Jahr erneut starten.',
+    () => {
+      state.challenge.aborted = true;
+      const todayStr = new Date().toDateString();
+      state.challenge.log.push({ date: new Date().toISOString(), clean: false });
+      saveState();
+      renderAlcohol();
+      showToast('Challenge beendet. Nächstes Jahr wieder.');
+    }
+  );
+}
+
+function abortChallenge() {
+  showConfirm(
+    'Challenge abbrechen?',
+    'Die Challenge wird beendet. Du kannst sie nächstes Jahr erneut starten.',
+    () => {
+      state.challenge.aborted = true;
+      saveState();
+      renderAlcohol();
+      showToast('Challenge abgebrochen.');
+    }
+  );
+}
+
+function renderChallenge() {
+  const c = state.challenge;
+  const start = new Date(c.startDate);
+  const now = new Date();
+  const daysPassed = Math.max(0, Math.floor((now - start) / 86400000));
+  const daysLeft = Math.max(0, CHALLENGE_DAYS - daysPassed);
+  const pct = Math.min(100, Math.round((daysPassed / CHALLENGE_DAYS) * 100));
+
+  document.getElementById('challenge-days-left').textContent = daysLeft;
+  document.getElementById('challenge-progress-bar').style.width = pct + '%';
+  document.getElementById('challenge-progress-label').textContent = `Tag ${Math.min(daysPassed+1, CHALLENGE_DAYS)} von ${CHALLENGE_DAYS} · ${pct}% geschafft`;
+
+  // Today button state
+  const todayStr = now.toDateString();
+  const todayEntry = c.log.find(e => new Date(e.date).toDateString() === todayStr);
+  const cleanBtn = document.getElementById('challenge-clean-btn');
+  if (todayEntry?.clean) {
+    cleanBtn.style.background = 'rgba(82,183,136,0.3)';
+    cleanBtn.style.borderColor = '#52b788';
+  } else {
+    cleanBtn.style.background = 'rgba(255,255,255,0.1)';
+    cleanBtn.style.borderColor = 'rgba(255,255,255,0.3)';
+  }
+
+  // Last 7 days dots
+  const dots = document.getElementById('challenge-streak-dots');
+  dots.innerHTML = '';
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now); d.setDate(now.getDate() - i);
+    const dStr = d.toDateString();
+    const entry = c.log.find(e => new Date(e.date).toDateString() === dStr);
+    const isToday = dStr === todayStr;
+    const isFuture = d > now;
+    const dot = document.createElement('div');
+    dot.style.cssText = `flex:1;height:28px;border-radius:6px;border:1.5px solid ${isToday?'#f4c261':'rgba(255,255,255,0.2)'};background:${isFuture?'transparent':entry?.clean?'rgba(82,183,136,0.4)':entry?.clean===false?'rgba(231,111,81,0.4)':'rgba(255,255,255,0.08)'};display:flex;align-items:center;justify-content:center;font-size:0.75rem;`;
+    dot.textContent = isFuture ? '' : entry?.clean ? '✓' : entry?.clean===false ? '✗' : '·';
+    dots.appendChild(dot);
+  }
+}
+
+// =====================
+// POINTS & BADGES
+// =====================
+// Punkte-Übersicht:
+// Gefühl loggen:        10 Pts
+// Wasser +Portion:       5 Pts
+// Wasser Tagesziel:     30 Pts Bonus
+// Aktivität (pro 10min):15 Pts  (30min = 45, 60min = 90)
+// Streak Tag:           20 Pts
+// Gewicht loggen:       10 Pts
+// Gewicht -0.5kg:       50 Pts
+// Gewicht -1kg:        100 Pts
+// Gewicht -2kg:        200 Pts
+// Alkohol im Limit:     25 Pts/Woche
+// Süssigkeit geloggt:    5 Pts
+
+function calcPoints() {
+  // Wenn alle Logs leer sind → alles auf 0
+  const hasAnyEntry = state.activityLog.length > 0
+    || state.waterDays > 0
+    || (state.alcDaysLog||[]).length > 0;
+
+  if (!hasAnyEntry) {
+    state.streak = 0;
+    state.lastActiveDate = null;
+    state.earnedBadges = [];
+    state.activitiesLogged = 0;
+    return 0;
+  }
+
+  let pts = 0;
+
+  // Aktivitäten: Minuten × ptsPerMin
+  state.activityLog.forEach(e => pts += (e.pts || e.min || 0));
+
+  // Wasser: 5 pro Portion (vereinfacht über waterDays), 30 pro Tagesziel
+  pts += state.waterDays * 30;
+
+  // Streak: 20 pro Tag
+  pts += state.streak * 20;
+
+  // Alkohol: +15 pro Nüchtern-Tag
+  const soberDays = (state.alcDaysLog || []).filter(e => e.drank === false).length;
+  pts += soberDays * 15;
+
+  // Alkohol: +50 pro Woche im Limit (jede abgeschlossene Woche)
+  const weeksInLimit = calcWeeksInLimit();
+  pts += weeksInLimit * 50;
+
+  // Challenge: +10 pro clean Tag
+  if (state.challenge) {
+    const cleanDays = state.challenge.log.filter(e => e.clean).length;
+    pts += cleanDays * 10;
+  }
+
+  // Badges
+  const stillEarned = state.earnedBadges.filter(id => {
+    const b = BADGES.find(b => b.id === id);
+    return b && b.cond(state);
+  });
+  state.earnedBadges = stillEarned;
+  stillEarned.forEach(id => {
+    const b = BADGES.find(b => b.id === id);
+    if (b) pts += b.pts;
+  });
+
+  return pts;
+}
+
+function calcWeeksInLimit() {
+  // Zählt abgeschlossene Wochen (Mo–So) wo Trinktage <= alcMax
+  if (!state.alcDaysLog || !state.alcDaysLog.length) return 0;
+  const now = new Date();
+  const thisWeekStart = getWeekStart();
+  let count = 0;
+  // Look back up to 52 weeks
+  for (let w = 1; w <= 52; w++) {
+    const wStart = new Date(thisWeekStart);
+    wStart.setDate(wStart.getDate() - w * 7);
+    const wEnd = new Date(wStart);
+    wEnd.setDate(wStart.getDate() + 7);
+    const daysInWeek = state.alcDaysLog.filter(e => {
+      const d = new Date(e.date);
+      return d >= wStart && d < wEnd;
+    });
+    if (daysInWeek.length === 0) break; // no data further back
+    const drinkDays = daysInWeek.filter(e => e.drank).length;
+    if (drinkDays <= state.alcMax) count++;
+  }
+  return count;
+}
+
+function addPoints(pts, reason) {
+  // Nicht mehr manuell addieren – wird live berechnet
+  // Wir speichern nur noch den Grund für spätere Nutzung
+  // Punkte werden via calcPoints() ermittelt
+  state.totalPoints = calcPoints();
+  const el = document.getElementById('total-points');
+  if (el) el.textContent = state.totalPoints;
+  document.getElementById('streak-header-num').textContent = state.streak;
+  checkBadges();
+}
+
+function checkStreak() {
+  const today = new Date().toDateString();
+  if (state.lastActiveDate !== today) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (state.lastActiveDate === yesterday.toDateString()) {
+      state.streak++;
+    } else if (state.lastActiveDate !== today) {
+      state.streak = 1;
+    }
+    state.lastActiveDate = today;
+    saveState();
+    addPoints(20, '🔥 Streak');
+  }
+  document.getElementById('streak-header-num').textContent = state.streak;
+}
+
+function checkBadges() {
+  let newBadge = false;
+  BADGES.forEach(b => {
+    if (!state.earnedBadges.includes(b.id) && b.cond(state)) {
+      state.earnedBadges.push(b.id);
+      if (b.pts > 0) state.totalPoints += b.pts;
+      showToast(`🏅 Badge freigeschaltet: ${b.name}! +${b.pts} Punkte`);
+      newBadge = true;
+    }
+  });
+  if (newBadge) saveState();
+}
+
+function renderRewards() {
+  state.totalPoints = calcPoints();
+  saveState();
+  document.getElementById('total-points').textContent = state.totalPoints;
+  document.getElementById('streak-num').textContent = state.streak;
+  document.getElementById('streak-header-num').textContent = state.streak;
+
+  // Next badge – nimm den, bei dem Punkte-Fortschritt am weitesten ist (nur Punkte-basierte Badges)
+  const unearned = BADGES.filter(b => !state.earnedBadges.includes(b.id));
+  const ptsBadges = unearned.filter(b => b.pts > 0 && state.totalPoints < b.pts);
+  const next = ptsBadges.length > 0
+    ? ptsBadges.reduce((best, b) => (b.pts < best.pts ? b : best), ptsBadges[0])
+    : unearned[0] || null;
+
+  if (next) {
+    document.getElementById('next-badge-name').textContent = next.icon + ' ' + next.name;
+    if (next.pts > 0 && state.totalPoints <= next.pts) {
+      const pct = Math.min(100, Math.round(state.totalPoints / next.pts * 100));
+      document.getElementById('next-badge-progress').style.width = pct + '%';
+      document.getElementById('next-badge-info').textContent = `${state.totalPoints} / ${next.pts} Punkte`;
+    } else {
+      document.getElementById('next-badge-progress').style.width = '80%';
+      document.getElementById('next-badge-info').textContent = 'Bedingung: weiter tracken';
+    }
+  } else {
+    document.getElementById('next-badge-name').textContent = '🎉 Alle Badges freigeschaltet!';
+    document.getElementById('next-badge-progress').style.width = '100%';
+    document.getElementById('next-badge-info').textContent = '';
+  }
+
+  // Custom rewards
+  renderCustomRewards();
+
+  // Badges by category
+  const grid = document.getElementById('badges-grid');
+  grid.innerHTML = '';
+  const cats = [...new Set(BADGES.map(b => b.cat))];
+  cats.forEach(cat => {
+    const catBadges = BADGES.filter(b => b.cat === cat);
+    const catDiv = document.createElement('div');
+    catDiv.style.cssText = 'margin-bottom:14px;';
+    catDiv.innerHTML = `<div style="font-size:0.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">${cat}</div>`;
+    const inner = document.createElement('div');
+    inner.className = 'badges-grid';
+    catBadges.forEach(b => {
+      const earned = state.earnedBadges.includes(b.id);
+      const div = document.createElement('div');
+      div.className = 'badge' + (earned ? ' earned' : ' locked');
+      div.title = earned ? 'Freigeschaltet!' : `Freischalten: +${b.pts} Punkte`;
+      div.innerHTML = `<div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div><div class="badge-pts">${earned ? '✓ verdient' : b.pts > 0 ? '+'+b.pts+' Pts' : ''}</div>`;
+      inner.appendChild(div);
+    });
+    catDiv.appendChild(inner);
+    grid.appendChild(catDiv);
+  });
+}
+
+function renderCustomRewards() {
+  const list = document.getElementById('custom-rewards-list');
+  list.innerHTML = '';
+  if (!state.customRewards.length) {
+    list.innerHTML = '<p class="small-note">Noch keine eigenen Belohnungen.</p>';
+    return;
+  }
+  state.customRewards.forEach((r, i) => {
+    const unlocked = state.totalPoints >= r.pts;
+    const div = document.createElement('div');
+    div.style.cssText = `display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:2px solid ${unlocked ? 'var(--gold)' : 'var(--border)'};background:${unlocked ? '#fdf9ec' : 'var(--bg)'};`;
+    div.innerHTML = `
+      <span style="font-size:1.2rem;">${unlocked ? '🎁' : '🔒'}</span>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:0.88rem;${unlocked ? 'color:var(--ink)' : 'color:var(--muted)'};">${r.name}</div>
+        <div style="font-size:0.75rem;color:${unlocked ? 'var(--gold)' : 'var(--muted)'};">${unlocked ? '✅ Freigeschaltet!' : 'ab ' + r.pts + ' Punkten'}</div>
+      </div>
+      ${unlocked && !r.claimed ? `<button onclick="claimReward(${i})" style="padding:5px 10px;background:var(--gold);color:white;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;">Einlösen</button>` : ''}
+      ${r.claimed ? `<span style="font-size:0.75rem;color:var(--muted);font-style:italic;">eingelöst</span>` : ''}
+      <button onclick="deleteCustomReward(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;">✕</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function addCustomReward() {
+  const name = document.getElementById('reward-name-input').value.trim();
+  const pts  = parseInt(document.getElementById('reward-pts-input').value);
+  if (!name) { showToast('Bitte Belohnungsname eingeben.'); return; }
+  if (!pts || pts < 10) { showToast('Bitte Punktzahl eingeben (min. 10).'); return; }
+  state.customRewards.push({ name, pts, claimed: false });
+  document.getElementById('reward-name-input').value = '';
+  document.getElementById('reward-pts-input').value = '';
+  saveState();
+  renderCustomRewards();
+  showToast('🎁 Belohnung hinzugefügt!');
+}
+
+function claimReward(i) {
+  state.customRewards[i].claimed = true;
+  saveState();
+  renderCustomRewards();
+  showToast('🎉 Belohnung eingelöst – gönn dir was!');
+}
+
+function deleteCustomReward(i) {
+  showConfirm('Belohnung löschen?', 'Diese Belohnung wirklich entfernen?', () => {
+    state.customRewards.splice(i, 1);
+    saveState();
+    renderCustomRewards();
+  });
+}
+
+// =====================
+// SWEETS
+// =====================
+const DEFAULT_SWEETS = [
+  { icon:'🍫', name:'Schokolade', kcal:150 },
+  { icon:'🍬', name:'Gummibärchen', kcal:80 },
+  { icon:'🍦', name:'Eis',        kcal:200 },
+  { icon:'🍰', name:'Kuchen',     kcal:320 },
+  { icon:'🍪', name:'Keks',       kcal:90  },
+  { icon:'🧁', name:'Muffin',     kcal:280 },
+];
+
+function renderSweets() {
+  document.getElementById('sweets-week-max').value = state.sweetsWeekMax;
+
+  // Quick-log buttons
+  const qgrid = document.getElementById('sweets-quick-grid');
+  qgrid.innerHTML = '';
+  DEFAULT_SWEETS.forEach(s => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'padding:10px 6px;border:2px solid var(--border);border-radius:12px;background:white;cursor:pointer;transition:all 0.15s;font-family:"DM Sans",sans-serif;';
+    btn.innerHTML = `<div style="font-size:1.5rem;">${s.icon}</div><div style="font-size:0.72rem;font-weight:600;color:var(--ink);margin-top:2px;">${s.name}</div><div style="font-size:0.68rem;color:var(--muted);">${s.kcal} kcal</div>`;
+    btn.onmouseenter = () => btn.style.borderColor = 'var(--accent2)';
+    btn.onmouseleave = () => btn.style.borderColor = 'var(--border)';
+    btn.onclick = () => logSweet(s.name, s.kcal, s.icon);
+    qgrid.appendChild(btn);
+  });
+
+  updateSweetsStats();
+}
+
+function updateSweetsStats() {
+  const today = new Date().toDateString();
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 6);
+
+  const todayLog  = state.sweetsLog.filter(e => new Date(e.ts).toDateString() === today);
+  const weekLog   = state.sweetsLog.filter(e => new Date(e.ts) >= weekAgo);
+
+  const todayKcal = todayLog.reduce((s, e) => s + (e.kcal || 0), 0);
+  const weekCount = weekLog.length;
+
+  document.getElementById('sweets-today-count').textContent = todayLog.length;
+  document.getElementById('sweets-today-kcal').textContent  = todayKcal;
+  document.getElementById('sweets-week-count').textContent  = weekCount;
+
+  const pct = Math.min(100, Math.round(weekCount / state.sweetsWeekMax * 100));
+  document.getElementById('sweets-week-bar').style.width = pct + '%';
+  document.getElementById('sweets-week-bar').style.background =
+    pct >= 100 ? 'var(--accent2)' : 'linear-gradient(90deg,var(--accent2),#f4a261)';
+  document.getElementById('sweets-week-pct').textContent = `${weekCount} / ${state.sweetsWeekMax} Portionen`;
+
+  // Today list
+  const list  = document.getElementById('sweets-today-list');
+  const empty = document.getElementById('sweets-today-empty');
+  list.innerHTML = '';
+  if (!todayLog.length) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  [...todayLog].reverse().forEach((e, ri) => {
+    const idx = state.sweetsLog.indexOf(e);
+    const d   = new Date(e.ts);
+    const time = d.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
+    const div = document.createElement('div');
+    div.className = 'activity-log-entry';
+    div.innerHTML = `
+      <span>${e.icon || '🍬'} ${e.name}</span>
+      <span style="color:var(--muted);font-size:0.78rem;">${e.kcal ? e.kcal+' kcal' : '–'}</span>
+      <span style="color:var(--muted);font-size:0.78rem;">${time}</span>
+      <button onclick="deleteSweetEntry(${idx})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;">✕</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function logSweet(name, kcal, icon) {
+  state.sweetsLog.unshift({ name, kcal, icon, ts: new Date().toISOString() });
+  saveState();
+  updateSweetsStats();
+  const weekLog = state.sweetsLog.filter(e => new Date(e.ts) >= (() => { const d=new Date(); d.setDate(d.getDate()-6); return d; })());
+  if (weekLog.length > state.sweetsWeekMax) {
+    showToast(`⚠️ ${name} – Wochenlimit überschritten!`);
+  } else {
+    showToast(`${icon} ${name} geloggt.`);
+  }
+}
+
+function logCustomSweet() {
+  const name = document.getElementById('sweets-custom-name').value.trim();
+  const kcal = parseInt(document.getElementById('sweets-custom-kcal').value) || 0;
+  if (!name) { showToast('Bitte Name eingeben.'); return; }
+  logSweet(name, kcal || null, '🍬');
+  document.getElementById('sweets-custom-name').value = '';
+  document.getElementById('sweets-custom-kcal').value = '';
+}
+
+function setSweetsMax(v) {
+  state.sweetsWeekMax = Math.max(1, parseInt(v) || 7);
+  saveState();
+  updateSweetsStats();
+}
+
+function deleteSweetEntry(i) {
+  showConfirm('Eintrag löschen?', 'Diesen Süssigkeiten-Eintrag wirklich entfernen?', () => {
+    state.sweetsLog.splice(i, 1);
+    saveState();
+    updateSweetsStats();
+  });
+}
+
+function setHeight(v) {
+  const val = parseInt(v);
+  if (!isNaN(val) && val >= 100 && val <= 250) {
+    state.heightCm = val;
+    saveState();
+    renderBMI();
+  }
+}
+
+function renderBMI() {
+  const card = document.getElementById('bmi-card');
+  if (!state.heightCm || !state.weightLog.length) { if(card) card.style.display='none'; return; }
+  card.style.display = '';
+  const kg = state.weightLog[0].kg;
+  const m  = state.heightCm / 100;
+  const bmi = kg / (m * m);
+
+  let label, color;
+  if      (bmi < 18.5) { label = 'Untergewicht';  color = '#457b9d'; }
+  else if (bmi < 25)   { label = 'Normalgewicht';  color = '#2d6a4f'; }
+  else if (bmi < 30)   { label = 'Übergewicht';    color = '#c9a84c'; }
+  else                  { label = 'Adipositas';     color = '#e76f51'; }
+
+  document.getElementById('bmi-value').textContent = bmi.toFixed(1);
+  document.getElementById('bmi-value').style.color = color;
+  document.getElementById('bmi-label').textContent = label;
+  document.getElementById('bmi-label').style.color = color;
+
+  drawBMIBarometer(bmi, color);
+}
+
+function drawBMIBarometer(bmi, needleColor) {
+  const canvas = document.getElementById('bmi-canvas');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth || 320;
+  const H = 110;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+
+  const cx = W / 2, cy = H - 10;
+  const r  = Math.min(W / 2 - 16, 90);
+  const startAngle = Math.PI;
+  const endAngle   = 0;
+
+  // Segments: <18.5 | 18.5–25 | 25–30 | 30+
+  const segments = [
+    { from: 10,   to: 18.5, color: '#a8d8ea' },
+    { from: 18.5, to: 25,   color: '#52b788' },
+    { from: 25,   to: 30,   color: '#f4c261' },
+    { from: 30,   to: 40,   color: '#e76f51' },
+  ];
+  const bmiMin = 10, bmiMax = 40;
+
+  function bmiToAngle(v) {
+    const pct = (Math.min(bmiMax, Math.max(bmiMin, v)) - bmiMin) / (bmiMax - bmiMin);
+    return Math.PI + pct * Math.PI;
+  }
+
+  // Draw arc segments
+  segments.forEach(s => {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, bmiToAngle(s.from), bmiToAngle(s.to));
+    ctx.closePath();
+    ctx.fillStyle = s.color;
+    ctx.fill();
+  });
+
+  // Inner white circle (donut)
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2);
+  ctx.fillStyle = '#fffdf8';
+  ctx.fill();
+
+  // Segment boundary ticks
+  [18.5, 25, 30].forEach(v => {
+    const a = bmiToAngle(v);
+    ctx.beginPath();
+    ctx.moveTo(cx + r * 0.55 * Math.cos(a), cy + r * 0.55 * Math.sin(a));
+    ctx.lineTo(cx + r * Math.cos(a), cy + r * Math.sin(a));
+    ctx.strokeStyle = '#fffdf8';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+
+  // Needle
+  const needleAngle = bmiToAngle(bmi);
+  const nLen = r * 0.72;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + nLen * Math.cos(needleAngle), cy + nLen * Math.sin(needleAngle));
+  ctx.strokeStyle = needleColor;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Needle hub
+  ctx.beginPath();
+  ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+  ctx.fillStyle = needleColor;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+  ctx.fillStyle = 'white';
+  ctx.fill();
+
+  // BMI range labels on arc
+  ctx.font = `bold ${Math.round(W * 0.028)}px DM Sans, sans-serif`;
+  ctx.fillStyle = '#7a756a';
+  ctx.textAlign = 'center';
+  [
+    { v: 14,   label: '<18.5' },
+    { v: 21.5, label: '18.5–25' },
+    { v: 27.5, label: '25–30' },
+    { v: 35,   label: '>30' },
+  ].forEach(item => {
+    const a = bmiToAngle(item.v);
+    const lr = r * 0.78;
+    ctx.fillText(item.label, cx + lr * Math.cos(a), cy + lr * Math.sin(a) - 2);
+  });
+}
+
+function resetGratitudeToday() {
+  state.gratitudeSkipped = null;
+  // Remove today's gratitude entry if exists
+  const todayStr = new Date().toDateString();
+  state.gratitudeLog = state.gratitudeLog.filter(e => new Date(e.ts).toDateString() !== todayStr);
+  saveState();
+  renderHome();
+  showToast('🌟 Dankbarkeit zurückgesetzt.');
+}
+
+function logGratitude() {
+  const text = document.getElementById('gratitude-input').value.trim();
+  if (!text) { showToast('Bitte etwas eingeben.'); return; }
+  state.gratitudeLog.unshift({ ts: new Date().toISOString(), text });
+  if (state.gratitudeLog.length > 60) state.gratitudeLog.pop();
+  document.getElementById('gratitude-input').value = '';
+  saveState();
+  document.getElementById('gratitude-checkin-card').style.display = 'none';
+  showToast('🌟 Schön! Dankbarkeit notiert.');
+}
+
+function skipGratitude() {
+  state.gratitudeSkipped = new Date().toDateString();
+  saveState();
+  document.getElementById('gratitude-checkin-card').style.display = 'none';
+}
+
+function renderSleepCheckinGrid() {
+  const grid = document.getElementById('sleep-checkin-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  SLEEP_QUALITY.forEach((q, i) => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'padding:8px 4px;border:2px solid rgba(255,255,255,0.2);border-radius:12px;background:rgba(255,255,255,0.1);cursor:pointer;color:white;font-family:"DM Sans",sans-serif;text-align:center;transition:all 0.15s;';
+    btn.innerHTML = `<div style="font-size:1.4rem;">${q.emoji}</div><div style="font-size:0.6rem;opacity:0.7;margin-top:2px;white-space:pre-line;">${q.label}</div>`;
+    btn.onmouseenter = () => btn.style.background = 'rgba(255,255,255,0.25)';
+    btn.onmouseleave = () => btn.style.background = 'rgba(255,255,255,0.1)';
+    btn.onclick = () => quickLogSleep(i);
+    grid.appendChild(btn);
+  });
+}
+
+function quickLogSleep(qualityIdx) {
+  state.sleepLog.unshift({
+    ts: new Date().toISOString(),
+    score: SLEEP_QUALITY[qualityIdx].score,
+    hours: null, bedtime: null, wake: null, note: null
+  });
+  if (state.sleepLog.length > 60) state.sleepLog.pop();
+  saveState();
+  document.getElementById('sleep-checkin-card').style.display = 'none';
+  showToast('🌙 Nacht notiert. Guten Morgen!');
+  renderHome();
+}
+
+function skipSleepCheckin() {
+  state.sleepCheckinSkipped = new Date().toDateString();
+  saveState();
+  document.getElementById('sleep-checkin-card').style.display = 'none';
+}
+
+// =====================
+// SLEEP
+// =====================
+const SLEEP_QUALITY = [
+  { score:1,  emoji:'😩', label:'1–2\nSchrecklich' },
+  { score:3,  emoji:'😕', label:'3–4\nSchlecht' },
+  { score:5,  emoji:'😐', label:'5–6\nOkay' },
+  { score:7,  emoji:'🙂', label:'7–8\nGut' },
+  { score:9,  emoji:'😄', label:'9–10\nSuper' },
+];
+let sleepQuality = null;
+
+function renderSleep() {
+  // Quality grid
+  const grid = document.getElementById('sleep-quality-grid');
+  grid.innerHTML = '';
+  SLEEP_QUALITY.forEach((q, i) => {
+    const btn = document.createElement('button');
+    btn.style.cssText = `padding:10px 4px;border:2px solid ${sleepQuality===i?'var(--accent)':'var(--border)'};border-radius:12px;background:${sleepQuality===i?'#eef6f1':'white'};cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:center;`;
+    btn.innerHTML = `<div style="font-size:1.5rem;">${q.emoji}</div><div style="font-size:0.6rem;color:var(--muted);font-weight:500;margin-top:3px;line-height:1.3;white-space:pre-line;">${q.label}</div>`;
+    btn.onclick = () => { sleepQuality = i; renderSleep(); };
+    grid.appendChild(btn);
+  });
+  renderSleepLog();
+}
+
+function logSleep() {
+  const hours   = parseFloat(String(document.getElementById('sleep-hours').value).replace(',','.')) || null;
+  const bedtime = document.getElementById('sleep-bedtime').value || null;
+  const wake    = document.getElementById('sleep-waketime').value || null;
+  const note    = document.getElementById('sleep-note').value.trim() || null;
+  const score   = sleepQuality !== null ? SLEEP_QUALITY[sleepQuality].score : null;
+
+  if (score === null && !hours && !bedtime) {
+    showToast('Bitte mindestens Qualität oder Dauer angeben.'); return;
+  }
+
+  state.sleepLog.unshift({ ts: new Date().toISOString(), score, hours, bedtime, wake, note });
+  if (state.sleepLog.length > 60) state.sleepLog.pop();
+
+  // Reset form
+  sleepQuality = null;
+  document.getElementById('sleep-hours').value = '';
+  document.getElementById('sleep-bedtime').value = '';
+  document.getElementById('sleep-waketime').value = '';
+  document.getElementById('sleep-note').value = '';
+
+  saveState();
+  renderSleep();
+  showToast('🌙 Nacht notiert.');
+}
+
+function renderSleepLog() {
+  const list  = document.getElementById('sleep-log-list');
+  const empty = document.getElementById('sleep-empty');
+  list.innerHTML = '';
+
+  if (!state.sleepLog.length) { empty.style.display=''; drawSleepChart(); return; }
+  empty.style.display = 'none';
+  drawSleepChart();
+
+  state.sleepLog.slice(0,10).forEach((e, i) => {
+    const d = new Date(e.ts);
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const q  = e.score !== null ? SLEEP_QUALITY.find(q=>q.score<=e.score)?.emoji || '😐' : '';
+    const scoreLabel = e.score !== null ? `<span style="font-weight:700;color:var(--accent);">${e.score}/10</span>` : '';
+    const hoursLabel = e.hours ? `${e.hours}h` : '';
+    const timesLabel = (e.bedtime||e.wake) ? `${e.bedtime||'?'} → ${e.wake||'?'}` : '';
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:10px 12px;background:var(--bg);border-radius:10px;';
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${e.note?'6px':'0'};">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.3rem;">${q}</span>
+          ${scoreLabel}
+          <span style="font-size:0.82rem;color:var(--muted);">${hoursLabel} ${timesLabel}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:0.75rem;color:var(--muted);">${ds}</span>
+          <button onclick="deleteSleepEntry(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0;">✕</button>
+        </div>
+      </div>
+      ${e.note ? `<div style="font-size:0.78rem;color:var(--muted);font-style:italic;">"${e.note}"</div>` : ''}
+    `;
+    list.appendChild(div);
+  });
+}
+
+function deleteSleepEntry(i) {
+  showConfirm('Eintrag löschen?', 'Diesen Schlaf-Eintrag entfernen?', () => {
+    state.sleepLog.splice(i, 1);
+    saveState();
+    renderSleepLog();
+  });
+}
+
+function drawSleepChart() {
+  const canvas = document.getElementById('sleep-canvas');
+  if (!canvas) return;
+  const log = [...state.sleepLog].reverse().filter(e => e.score !== null).slice(-14);
+  if (log.length < 2) { canvas.style.display='none'; return; }
+  canvas.style.display = 'block';
+
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth || 320;
+  const H = 120;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0,0,W,H);
+
+  const pad = {t:10,r:10,b:24,l:30};
+  const w = W-pad.l-pad.r, h = H-pad.t-pad.b;
+  const xOf = i => pad.l + (i/(log.length-1))*w;
+  const yOf = v => pad.t + h - ((v-1)/9)*h;
+
+  // Grid lines at 5 and 10
+  [1,5,10].forEach(v => {
+    ctx.beginPath();
+    ctx.moveTo(pad.l, yOf(v)); ctx.lineTo(pad.l+w, yOf(v));
+    ctx.strokeStyle='#e2ddd4'; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle='#7a756a'; ctx.font='10px DM Sans,sans-serif';
+    ctx.textAlign='right';
+    ctx.fillText(v, pad.l-4, yOf(v)+4);
+  });
+
+  // Fill
+  ctx.beginPath();
+  ctx.moveTo(xOf(0), yOf(log[0].score));
+  for(let i=1;i<log.length;i++) ctx.lineTo(xOf(i), yOf(log[i].score));
+  ctx.lineTo(xOf(log.length-1), pad.t+h);
+  ctx.lineTo(xOf(0), pad.t+h);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0,pad.t,0,pad.t+h);
+  grad.addColorStop(0,'rgba(45,106,79,0.2)');
+  grad.addColorStop(1,'rgba(45,106,79,0)');
+  ctx.fillStyle=grad; ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.moveTo(xOf(0), yOf(log[0].score));
+  for(let i=1;i<log.length;i++) ctx.lineTo(xOf(i), yOf(log[i].score));
+  ctx.strokeStyle='#2d6a4f'; ctx.lineWidth=2.5; ctx.stroke();
+
+  // Dots
+  log.forEach((e,i) => {
+    ctx.beginPath();
+    ctx.arc(xOf(i), yOf(e.score), 4, 0, Math.PI*2);
+    ctx.fillStyle='#2d6a4f'; ctx.fill();
+    ctx.fillStyle='white';
+    ctx.beginPath();
+    ctx.arc(xOf(i), yOf(e.score), 2, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // X labels first/last
+  ctx.fillStyle='#7a756a'; ctx.font='10px DM Sans,sans-serif'; ctx.textAlign='center';
+  const fmt = ts => new Date(ts).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+  ctx.fillText(fmt(log[0].ts), xOf(0), H-6);
+  ctx.fillText(fmt(log[log.length-1].ts), xOf(log.length-1), H-6);
+}
+
+// =====================
+// BODY CHECK
+// =====================
+const HUNGER_SCALE = [
+  { emoji:'😫', label:'sehr hungrig' },
+  { emoji:'😕', label:'hungrig' },
+  { emoji:'😐', label:'neutral' },
+  { emoji:'🙂', label:'satt' },
+  { emoji:'😮', label:'übervoll' },
+];
+const MEAL_FEELINGS = [
+  { emoji:'⚡', label:'Energie, leicht' },
+  { emoji:'😴', label:'Müde, träge' },
+  { emoji:'🤢', label:'Bauch unruhig' },
+  { emoji:'😊', label:'Wohl & zufrieden' },
+  { emoji:'🔥', label:'Heißhunger danach' },
+  { emoji:'😌', label:'Ausgeglichen' },
+];
+const BODY_SCALE = [
+  { emoji:'😔', label:'unwohl' },
+  { emoji:'😕', label:'angespannt' },
+  { emoji:'😐', label:'okay' },
+  { emoji:'🙂', label:'wohl' },
+  { emoji:'😄', label:'sehr wohl' },
+];
+
+let bodyHunger   = null;
+let bodyMeal     = null;
+let bodyFeeling  = null;
+
+function renderBody() {
+  renderBodyGrid('hunger-grid',  HUNGER_SCALE,  'hunger');
+  renderBodyGrid('meal-grid',    MEAL_FEELINGS, 'meal',   true);
+  renderBodyGrid('body-grid',    BODY_SCALE,    'body');
+  renderBodyLog();
+}
+
+function renderBodyGrid(gridId, items, type, twoCol) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  items.forEach((f, i) => {
+    const btn = document.createElement('button');
+    btn.style.cssText = `padding:10px 6px;border:2px solid var(--border);border-radius:12px;background:white;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:center;`;
+    btn.innerHTML = `<div style="font-size:1.4rem;">${f.emoji}</div><div style="font-size:0.65rem;color:var(--muted);font-weight:500;margin-top:3px;line-height:1.2;">${f.label}</div>`;
+    const sel = type==='hunger' ? bodyHunger : type==='meal' ? bodyMeal : bodyFeeling;
+    if (sel === i) { btn.style.borderColor='var(--accent)'; btn.style.background='#eef6f1'; }
+    btn.onclick = () => {
+      if (type==='hunger') bodyHunger = i;
+      else if (type==='meal') bodyMeal = i;
+      else bodyFeeling = i;
+      renderBodyGrid(gridId, items, type, twoCol);
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function logBody() {
+  if (bodyHunger === null && bodyMeal === null && bodyFeeling === null) {
+    showToast('Bitte mindestens eine Auswahl treffen.'); return;
+  }
+  const note = document.getElementById('body-note').value.trim();
+  state.bodyLog.unshift({
+    ts:      new Date().toISOString(),
+    hunger:  bodyHunger,
+    meal:    bodyMeal,
+    feeling: bodyFeeling,
+    note,
+  });
+  if (state.bodyLog.length > 30) state.bodyLog.pop();
+  bodyHunger = null; bodyMeal = null; bodyFeeling = null;
+  document.getElementById('body-note').value = '';
+  saveState();
+  renderBody();
+  showToast('🧘 Körper-Check gespeichert.');
+}
+
+function renderBodyLog() {
+  const list  = document.getElementById('body-log-list');
+  const empty = document.getElementById('body-empty');
+  list.innerHTML = '';
+  if (!state.bodyLog.length) { empty.style.display=''; return; }
+  empty.style.display = 'none';
+  state.bodyLog.slice(0,7).forEach(e => {
+    const d    = new Date(e.ts);
+    const date = d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const h = e.hunger  !== null ? HUNGER_SCALE[e.hunger].emoji   : '';
+    const m = e.meal    !== null ? MEAL_FEELINGS[e.meal].emoji    : '';
+    const f = e.feeling !== null ? BODY_SCALE[e.feeling].emoji    : '';
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:12px 14px;background:var(--bg);border-radius:12px;';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="display:flex;gap:10px;font-size:1.3rem;">${h} ${m} ${f}</div>
+        <span style="font-size:0.72rem;color:var(--muted);">${date}</span>
+      </div>
+      ${e.note ? `<div style="font-size:0.82rem;color:var(--muted);font-style:italic;">"${e.note}"</div>` : ''}
+    `;
+    list.appendChild(div);
+  });
+}
+
+let selectedWeightDate  = new Date().toDateString();
+let selectedAlcDate     = new Date().toDateString();
+
+function getDateFromKey(key) {
+  const d = new Date();
+  if (key === 'gestern')    d.setDate(d.getDate()-1);
+  if (key === 'vorgestern') d.setDate(d.getDate()-2);
+  return d;
+}
+
+function selectWeightDate(key) {
+  ['heute','gestern','vorgestern'].forEach(k => {
+    const el = document.getElementById('wchip-' + k);
+    if (el) el.classList.toggle('active', k === key);
+  });
+  selectedWeightDate = getDateFromKey(key).toDateString();
+}
+
+function selectAlcDate(key) {
+  ['heute','gestern','vorgestern'].forEach(k => {
+    const el = document.getElementById('achip-' + k);
+    if (el) el.classList.toggle('active', k === key);
+  });
+  selectedAlcDate = getDateFromKey(key).toDateString();
+  renderAlcohol();
+}
+
+// =====================
+// WEIGHT (Trend-Beobachter)
+// =====================
+const WEEK_DAYS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+function renderWeight() {
+  // Wiegetag-Grid
+  const grid = document.getElementById('weigh-day-grid');
+  if (grid) {
+    grid.innerHTML = '';
+    WEEK_DAYS.forEach((d, i) => {
+      const btn = document.createElement('button');
+      btn.textContent = d;
+      btn.style.cssText = `padding:7px 10px;border-radius:20px;border:2px solid var(--border);background:${state.weighDay===i?'var(--accent)':'white'};color:${state.weighDay===i?'white':'var(--ink)'};font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.15s;`;
+      btn.onclick = () => { state.weighDay = i; saveState(); renderWeight(); };
+      grid.appendChild(btn);
+    });
+    const noteEl = document.getElementById('weigh-day-note');
+    if (state.weighDay !== null) {
+      const today = new Date().getDay();
+      const daysUntil = (state.weighDay - today + 7) % 7;
+      noteEl.textContent = daysUntil === 0 ? '📅 Heute ist dein Wiegetag!' : `📅 Nächster Wiegetag: in ${daysUntil} Tag${daysUntil>1?'en':''}`;
+    } else {
+      noteEl.textContent = 'Wähle einen festen Tag – einmal pro Woche reicht.';
+    }
+  }
+
+  const log = state.weightLog;
+  const statsCard = document.getElementById('weight-stats-card');
+  const empty = document.getElementById('weight-empty');
+
+  if (log.length < 2) {
+    statsCard.style.display = 'none';
+    empty.style.display = log.length === 0 ? '' : 'none';
+  } else {
+    statsCard.style.display = '';
+    empty.style.display = 'none';
+    const current = log[0].kg;
+    const start   = log[log.length - 1].kg;
+    const diff    = current - start;
+    document.getElementById('weight-current-display').textContent = current.toFixed(1) + ' kg';
+    document.getElementById('weight-start-display').textContent   = start.toFixed(1) + ' kg';
+    const diffEl = document.getElementById('weight-diff-display');
+    diffEl.textContent = (diff > 0 ? '+' : '') + diff.toFixed(1) + ' kg';
+    diffEl.style.color = diff < 0 ? 'var(--accent)' : diff > 0 ? 'var(--accent2)' : 'var(--muted)';
+    drawWeightChart();
+  }
+
+  // Log list
+  const list = document.getElementById('weight-log-list');
+  list.innerHTML = '';
+  log.slice(0, 10).forEach((e, i) => {
+    const d = new Date(e.ts);
+    const dateStr = d.toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'2-digit'});
+    const prev = log[i + 1];
+    const delta = prev ? (e.kg - prev.kg) : null;
+    const deltaStr = delta !== null
+      ? `<span style="color:${delta<0?'var(--accent)':delta>0?'var(--accent2)':'var(--muted)'};font-size:0.78rem;">${delta>0?'+':''}${delta.toFixed(1)} kg</span>`
+      : '<span style="font-size:0.78rem;color:var(--muted);">Startwert</span>';
+    const div = document.createElement('div');
+    div.className = 'activity-log-entry';
+    div.innerHTML = `
+      <span style="color:var(--muted);">${dateStr}</span>
+      <span style="font-weight:600;">${e.kg.toFixed(1)} kg</span>
+      ${deltaStr}
+      <button onclick="deleteWeightEntry(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;">✕</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function logWeight() {
+  const raw = document.getElementById('weight-input').value;
+  const val = parseFloat(String(raw).replace(',', '.'));
+  if (isNaN(val) || val < 20 || val > 500) { showToast('Ungültiges Gewicht.'); return; }
+  const key = document.getElementById('wchip-gestern')?.classList.contains('active') ? 'gestern'
+    : document.getElementById('wchip-vorgestern')?.classList.contains('active') ? 'vorgestern' : 'heute';
+  const d = getDateFromKey(key); d.setHours(8,0,0,0);
+  state.weightLog.unshift({ kg: val, ts: d.toISOString() });
+  state.weightLog.sort((a,b) => new Date(b.ts) - new Date(a.ts));
+  document.getElementById('weight-input').value = '';
+  ['heute','gestern','vorgestern'].forEach(k => {
+    const el = document.getElementById('wchip-'+k);
+    if (el) el.classList.toggle('active', k==='heute');
+  });
+  addPoints(10, '⚖️ Gewicht notiert');
+  saveState(); renderWeight(); checkBadges();
+  const dateLabel = key === 'heute' ? 'Heute' : key === 'gestern' ? 'Gestern' : 'Vorgestern';
+  showToast(`⚖️ ${dateLabel} notiert.`);
+}
+
+function setWeightGoal(v) {
+  const trimmed = String(v).trim();
+  if (trimmed === '') {
+    state.weightGoal = null;
+    saveState();
+    renderWeight();
+    showToast('Zielgewicht entfernt.');
+    return;
+  }
+  const val = parseFloat(trimmed.replace(',', '.'));
+  if (isNaN(val) || val < 20 || val > 500) {
+    showToast('Ungültiges Zielgewicht.');
+    return;
+  }
+  state.weightGoal = val;
+  saveState();
+  renderWeight();
+  showToast(`🎯 Zielgewicht gesetzt: ${val} kg`);
+}
+
+function deleteWeightEntry(i) {
+  showConfirm('Eintrag löschen?', 'Diesen Gewichtseintrag wirklich entfernen?', () => {
+    state.weightLog.splice(i, 1);
+    saveState();
+    renderWeight();
+  });
+}
+
+function drawWeightChart() {
+  const canvas = document.getElementById('weight-canvas');
+  const ctx = canvas.getContext('2d');
+  const log = [...state.weightLog].reverse(); // oldest first
+  if (log.length < 2) { ctx.clearRect(0,0,canvas.width,canvas.height); return; }
+
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth || 320;
+  const H = 140;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+
+  const vals = log.map(e => e.kg);
+  const minV = Math.min(...vals) - 1;
+  const maxV = Math.max(...vals) + 1;
+  const pad = { t:10, r:10, b:24, l:44 };
+  const w = W - pad.l - pad.r;
+  const h = H - pad.t - pad.b;
+
+  const xOf = i => pad.l + (i / (log.length - 1)) * w;
+  const yOf = v => pad.t + h - ((v - minV) / (maxV - minV)) * h;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = '#e2ddd4';
+  ctx.lineWidth = 1;
+  [0, 0.5, 1].forEach(f => {
+    const y = pad.t + h * f;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + w, y); ctx.stroke();
+    const label = (maxV - f * (maxV - minV)).toFixed(1);
+    ctx.fillStyle = '#7a756a';
+    ctx.font = '10px DM Sans, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(label, pad.l - 4, y + 4);
+  });
+
+  // Goal line
+  if (state.weightGoal) {
+    const gy = yOf(state.weightGoal);
+    ctx.strokeStyle = '#c9a84c';
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(pad.l, gy); ctx.lineTo(pad.l + w, gy); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Fill
+  ctx.beginPath();
+  ctx.moveTo(xOf(0), yOf(vals[0]));
+  for (let i = 1; i < log.length; i++) ctx.lineTo(xOf(i), yOf(vals[i]));
+  ctx.lineTo(xOf(log.length - 1), pad.t + h);
+  ctx.lineTo(xOf(0), pad.t + h);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + h);
+  grad.addColorStop(0, 'rgba(45,106,79,0.18)');
+  grad.addColorStop(1, 'rgba(45,106,79,0)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.moveTo(xOf(0), yOf(vals[0]));
+  for (let i = 1; i < log.length; i++) ctx.lineTo(xOf(i), yOf(vals[i]));
+  ctx.strokeStyle = '#2d6a4f';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Dots
+  log.forEach((e, i) => {
+    ctx.beginPath();
+    ctx.arc(xOf(i), yOf(e.kg), 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#2d6a4f';
+    ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(xOf(i), yOf(e.kg), 2, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // X-axis labels (first & last)
+  ctx.fillStyle = '#7a756a';
+  ctx.font = '10px DM Sans, sans-serif';
+  ctx.textAlign = 'center';
+  const fmt = ts => new Date(ts).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit'});
+  ctx.fillText(fmt(log[0].ts), xOf(0), H - 6);
+  if (log.length > 1) ctx.fillText(fmt(log[log.length-1].ts), xOf(log.length-1), H - 6);
+}
+
+// =====================
+// VERLAUF & FILTER
+// =====================
+let verlaufFilter  = 'woche';
+let activityFilter = 'heute';
+let feelingFilter  = 'heute';
+
+function getFilterRange(filter) {
+  const now = new Date();
+  const start = new Date();
+  if (filter === 'heute') {
+    start.setHours(0,0,0,0);
+  } else if (filter === 'woche') {
+    start.setDate(now.getDate() - 6);
+    start.setHours(0,0,0,0);
+  } else if (filter === 'monat') {
+    start.setDate(now.getDate() - 29);
+    start.setHours(0,0,0,0);
+  } else {
+    return null; // alles
+  }
+  return start;
+}
+
+function filterByDate(log, filter) {
+  const from = getFilterRange(filter);
+  if (!from) return log;
+  return log.filter(e => {
+    const d = new Date(e.ts || e.date);
+    return d >= from;
+  });
+}
+
+function toggleKachel(id) {
+  const el = document.getElementById(id);
+  const icon = document.getElementById(id + '-icon');
+  if (!el) return;
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : '';
+  if (icon) icon.textContent = isOpen ? '▼' : '▲';
+}
+
+function scrollToVerlauf(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function setVerlaufFilter(f) {
+  verlaufFilter = f;
+  ['heute','woche','monat','alles'].forEach(k => {
+    const el = document.getElementById('vf-' + k);
+    if (el) el.classList.toggle('active', k === f);
+  });
+  renderVerlauf();
+}
+
+function setActivityFilter(f) {
+  activityFilter = f;
+  ['heute','woche','monat','alles'].forEach(k => {
+    const el = document.getElementById('af-' + k);
+    if (el) el.classList.toggle('active', k === f);
+  });
+  renderActivityLog();
+}
+
+function setFeelingFilter(f) {
+  feelingFilter = f;
+  ['heute','woche','monat','alles'].forEach(k => {
+    const el = document.getElementById('ff-' + k);
+    if (el) el.classList.toggle('active', k === f);
+  });
+  renderFeelingHistory();
+}
+
+function renderVerlauf() {
+  const from = getFilterRange(verlaufFilter);
+  const label = verlaufFilter === 'heute' ? 'Heute'
+    : verlaufFilter === 'woche'  ? 'Letzte 7 Tage'
+    : verlaufFilter === 'monat'  ? 'Letzte 30 Tage'
+    : 'Gesamter Zeitraum';
+  document.getElementById('verlauf-zeitraum').textContent = label;
+
+  const acts    = filterByDate(state.activityLog, verlaufFilter);
+  const feels   = filterByDate(state.feelingLog,  verlaufFilter);
+  const sweets  = filterByDate(state.sweetsLog,   verlaufFilter);
+  const bodies  = filterByDate(state.bodyLog,     verlaufFilter);
+  const totalMin = acts.reduce((t,e) => t+(e.min||0), 0);
+  const totalKcal = sweets.reduce((t,e) => t+(e.kcal||0), 0);
+
+  // Kacheln
+  const kacheln = document.getElementById('verlauf-kacheln');
+  kacheln.innerHTML = `
+    <div class="card" style="margin:0;text-align:center;cursor:pointer;grid-column:span 2;" onclick="toggleKachel('kachel-acts')">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div style="display:flex;align-items:baseline;gap:8px;">
+          <span style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent);">${acts.length}</span>
+          <span style="font-size:0.72rem;color:var(--muted);">Aktivitäten · ${totalMin} Min</span>
+        </div>
+        <span id="kachel-acts-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+      </div>
+      <div id="kachel-acts" style="display:none;text-align:left;margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">
+        ${acts.length === 0 ? '<p style="font-size:0.82rem;color:var(--muted);">Keine Einträge.</p>' :
+          acts.map(e => {
+            const d = new Date(e.ts);
+            const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+            return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:0.85rem;">${e.icon||'🏃'} ${e.name} · ${e.label||e.min+' min'}</span>
+              <span style="font-size:0.75rem;color:var(--muted);">${ds}</span>
+              <span style="font-size:0.78rem;color:var(--gold);font-weight:600;">+${e.pts}</span>
+            </div>`;
+          }).join('')}
+      </div>
+    </div>
+    <div class="card" style="margin:0;text-align:center;">
+      <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent3);">${state.waterDays}</div>
+      <div style="font-size:0.72rem;color:var(--muted);">Tagesziele Wasser</div>
+    </div>
+    <div class="card" style="margin:0;text-align:center;">
+      <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent2);">${sweets.length}</div>
+      <div style="font-size:0.72rem;color:var(--muted);">Süssigkeiten</div>
+      <div style="font-size:0.78rem;color:var(--muted);">${totalKcal ? totalKcal+' kcal' : ''}</div>
+    </div>
+    <div class="card" style="margin:0;text-align:center;">
+      <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--gold);">${feels.length}</div>
+      <div style="font-size:0.72rem;color:var(--muted);">Gefühls-Checks</div>
+    </div>
+  `;
+
+  // Aktivitäten
+  renderVerlaufList('vl-activity-list', 'vl-activity-empty', acts, e => {
+    const d = new Date(e.ts);
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const ts = d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    return `<span>${e.icon||'🏃'} ${e.name} · ${e.min} min</span><span style="color:var(--muted);font-size:0.78rem;">${ds} ${ts}</span><span class="pts">+${e.pts} Pts</span>`;
+  });
+
+  // Gefühl
+  renderVerlaufList('vl-feeling-list', 'vl-feeling-empty', feels, e => {
+    const d = new Date(e.ts);
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const before = e.before !== null ? FEELINGS[e.before].emoji : '–';
+    const after  = e.after  !== null ? FEELINGS[e.after].emoji  : '–';
+    return `<span class="emojis">${before}</span><span class="arrow" style="color:var(--accent);font-weight:600;">→</span><span class="emojis">${after}</span><span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>`;
+  });
+
+  // Süssigkeiten
+  renderVerlaufList('vl-sweets-list', 'vl-sweets-empty', sweets, e => {
+    const d = new Date(e.ts);
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    return `<span>${e.icon||'🍬'} ${e.name}</span><span style="color:var(--muted);font-size:0.78rem;">${e.kcal?e.kcal+' kcal':''}</span><span style="color:var(--muted);font-size:0.78rem;">${ds}</span>`;
+  });
+
+  // Schlaf
+  const sleeps = filterByDate(state.sleepLog, verlaufFilter);
+  const avgScore = sleeps.filter(e=>e.score!==null).length
+    ? (sleeps.filter(e=>e.score!==null).reduce((t,e)=>t+e.score,0) / sleeps.filter(e=>e.score!==null).length).toFixed(1)
+    : null;
+  renderVerlaufList('vl-sleep-list', 'vl-sleep-empty', sleeps, e => {
+    const d = new Date(e.ts);
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const q = e.score !== null ? SLEEP_QUALITY.find(q=>q.score<=e.score)?.emoji||'😐' : '';
+    return `<span>${q} ${e.score!==null?e.score+'/10':''} ${e.hours?e.hours+'h':''}</span><span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>`;
+  });
+
+  // Kacheln – sleep avg ergänzen
+  const sleepKachel = avgScore
+    ? `<div class="card" style="margin:0;text-align:center;grid-column:span 2;">
+        <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent);">${avgScore}<span style="font-size:1rem;">/10</span></div>
+        <div style="font-size:0.72rem;color:var(--muted);">Ø Schlafqualität (${sleeps.filter(e=>e.score!==null).length} Nächte)</div>
+       </div>` : '';
+  if (sleepKachel) kacheln.innerHTML += sleepKachel;
+
+  // Dankbarkeit
+  const gratitudes = filterByDate(state.gratitudeLog, verlaufFilter);
+  renderVerlaufList('vl-gratitude-list', 'vl-gratitude-empty', gratitudes, e => {
+    const d = new Date(e.ts);
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    return `<span style="font-style:italic;flex:1;">"${e.text}"</span><span style="font-size:0.75rem;color:var(--muted);white-space:nowrap;margin-left:8px;">${ds}</span>`;
+  });
+
+  // Körper
+  renderVerlaufList('vl-body-list', 'vl-body-empty', bodies, e => {
+    const d = new Date(e.ts);
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const h = e.hunger  !== null && HUNGER_SCALE[e.hunger]  ? HUNGER_SCALE[e.hunger].emoji  : '';
+    const m = e.meal    !== null && MEAL_FEELINGS[e.meal]   ? MEAL_FEELINGS[e.meal].emoji   : '';
+    const f = e.feeling !== null && BODY_SCALE[e.feeling]   ? BODY_SCALE[e.feeling].emoji   : '';
+    return `<span style="font-size:1.1rem;">${h} ${m} ${f}</span><span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>${e.note?`<span style="font-size:0.78rem;color:var(--muted);font-style:italic;width:100%;margin-top:2px;">"${e.note}"</span>`:''}`;
+  });
+}
+
+function renderVerlaufList(listId, emptyId, entries, rowFn) {
+  const list  = document.getElementById(listId);
+  const empty = document.getElementById(emptyId);
+  list.innerHTML = '';
+  if (!entries.length) { empty.style.display=''; return; }
+  empty.style.display = 'none';
+  entries.slice(0,20).forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'activity-log-entry';
+    div.style.flexWrap = 'wrap';
+    div.innerHTML = rowFn(e);
+    list.appendChild(div);
+  });
+}
+
+// =====================
+// CONFIRM DIALOG
+// =====================
+function showConfirm(title, msg, onConfirm) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-overlay').style.display = 'flex';
+  document.getElementById('confirm-ok').onclick = () => {
+    hideConfirm();
+    onConfirm();
+  };
+}
+function hideConfirm() {
+  document.getElementById('confirm-overlay').style.display = 'none';
+}
+
+// =====================
+// INIT
+// =====================
+state.totalPoints = calcPoints();
+saveState();
+renderHome();
+document.getElementById('streak-header-num').textContent = state.streak;
+</script>
+<!-- CONFIRM MODAL -->
+<div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--card);border-radius:18px;padding:24px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+    <div id="confirm-title" style="font-family:'DM Serif Display',serif;font-size:1.15rem;margin-bottom:8px;"></div>
+    <div id="confirm-msg" style="font-size:0.87rem;color:var(--muted);line-height:1.5;margin-bottom:20px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="hideConfirm()" style="flex:1;padding:11px;border-radius:10px;border:2px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;color:var(--muted);cursor:pointer;">Abbrechen</button>
+      <button id="confirm-ok" style="flex:1;padding:11px;border-radius:10px;border:none;background:var(--accent2);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">Löschen</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
