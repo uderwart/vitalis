@@ -478,6 +478,63 @@
     font-weight: 600;
     cursor: pointer;
   }
+  /* SLIDER */
+  .vitalis-slider-wrap {
+    margin: 8px 0 16px;
+  }
+  .vitalis-slider-wrap .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .vitalis-slider-wrap input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent) var(--val, 45%), var(--border) var(--val, 45%));
+    outline: none;
+    cursor: pointer;
+  }
+  .vitalis-slider-wrap input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid var(--accent);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .vitalis-slider-wrap input[type=range]:active::-webkit-slider-thumb {
+    transform: scale(1.2);
+  }
+  .vitalis-slider-value {
+    text-align: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .vitalis-slider-desc {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--muted);
+    min-height: 1.2em;
+  }
+
+  .log-btn.danger {
+    background: #fee2e2;
+    color: #c0392b;
+    border: none;
+  }
+  .log-btn.danger:active { background: #fecaca; }
+
   .del-activity {
     background: none;
     border: none;
@@ -663,6 +720,9 @@
   <button onclick="showSection('about')" id="nav-about">
     <span class="nav-icon">🌿</span><span class="nav-label">Über</span>
   </button>
+  <button onclick="showSection('settings')" id="nav-settings">
+    <span class="nav-icon">⚙️</span><span class="nav-label">Einstellungen</span>
+  </button>
 </nav>
 
 <main>
@@ -687,9 +747,15 @@
 
   <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
     <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌙 Guten Morgen!</div>
-    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht?</div>
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px;" id="sleep-checkin-grid"></div>
-    <button onclick="skipSleepCheckin()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht? (1 = schlecht · 10 = super)</div>
+    <div style="text-align:center;font-family:'DM Serif Display',serif;font-size:2.5rem;color:#f4c261;margin-bottom:6px;" id="checkin-sleep-val">5</div>
+    <input type="range" id="checkin-sleep-slider" min="1" max="10" value="5"
+      style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.3);outline:none;cursor:pointer;margin-bottom:16px;"
+      oninput="document.getElementById('checkin-sleep-val').textContent=this.value">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button onclick="skipSleepCheckin()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+      <button onclick="quickLogSleepSlider()" style="padding:8px 20px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Speichern ✓</button>
+    </div>
   </div>
 
   <!-- GREETING -->
@@ -710,15 +776,25 @@
   <div class="card">
     <h2>Wie fühlst du dich?</h2>
 
-    <!-- VOR Aktivität -->
-    <h3>VOR der Aktivität</h3>
-    <div class="feeling-grid" id="feeling-before-grid"></div>
+    <h3 style="margin-bottom:8px;">VOR der Aktivität</h3>
+    <div class="vitalis-slider-wrap">
+      <div class="vitalis-slider-value" id="feeling-before-val">5</div>
+      <div class="vitalis-slider-desc" id="feeling-before-desc">okay</div>
+      <input type="range" id="feeling-before-slider" min="1" max="10" value="5"
+        oninput="updateSlider('feeling-before', this.value)">
+      <div class="slider-labels"><span>😩 Miserabel</span><span>😄 Super</span></div>
+    </div>
 
     <hr class="divider">
 
-    <!-- NACH Aktivität -->
-    <h3>NACH der Aktivität</h3>
-    <div class="feeling-grid" id="feeling-after-grid"></div>
+    <h3 style="margin-bottom:8px;">NACH der Aktivität</h3>
+    <div class="vitalis-slider-wrap">
+      <div class="vitalis-slider-value" id="feeling-after-val">5</div>
+      <div class="vitalis-slider-desc" id="feeling-after-desc">okay</div>
+      <input type="range" id="feeling-after-slider" min="1" max="10" value="5"
+        oninput="updateSlider('feeling-after', this.value)">
+      <div class="slider-labels"><span>😩 Miserabel</span><span>😄 Super</span></div>
+    </div>
 
     <button class="log-btn" onclick="logFeeling()">Gefühl speichern</button>
   </div>
@@ -775,6 +851,12 @@
       <input type="text" id="new-activity-name" placeholder="z.B. Yoga, Tanzen …">
       <input type="number" id="new-activity-min" placeholder="Min" min="5" max="240" style="width:70px;">
       <button onclick="addCustomActivity()">+</button>
+    </div>
+    <hr class="divider">
+    <!-- LINK für gewählte Aktivität -->
+    <div id="activity-link-area" style="display:none;margin-bottom:4px;">
+      <a id="activity-link-btn" href="#" target="_blank"
+        style="display:block;padding:12px 16px;background:var(--bg);border-radius:12px;border:2px solid var(--border);font-size:0.88rem;font-weight:600;color:#457b9d;text-decoration:none;word-break:break-all;"></a>
     </div>
     <hr class="divider">
     <h3>Wann war das?</h3>
@@ -1051,13 +1133,55 @@
 
 <!-- SCHLAF -->
 <div id="section-sleep" class="section">
+
+  <!-- POWER NAP -->
+  <div class="card" style="background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+      <div>
+        <h2 style="color:white;font-family:'DM Serif Display',serif;">💤 Power Nap</h2>
+        <p style="font-size:0.78rem;opacity:0.7;margin-top:2px;line-height:1.4;">25 Minuten. Wissenschaftlich belegt.<br>Danach Leistung +34%, Wachheit +100%.</p>
+      </div>
+      <div style="text-align:right;">
+        <div id="nap-duration-display" style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:#a8d8ea;line-height:1;">25</div>
+        <div style="font-size:0.68rem;opacity:0.6;">Minuten</div>
+      </div>
+    </div>
+
+    <!-- Duration selector -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;" id="nap-duration-btns">
+      <button onclick="setNapDuration(10)" id="nap-btn-10" style="flex:1;padding:8px;border-radius:10px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">10 Min</button>
+      <button onclick="setNapDuration(20)" id="nap-btn-20" style="flex:1;padding:8px;border-radius:10px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">20 Min</button>
+      <button onclick="setNapDuration(25)" id="nap-btn-25" style="flex:1;padding:8px;border-radius:10px;border:2px solid rgba(168,216,234,0.8);background:rgba(168,216,234,0.15);color:#a8d8ea;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">25 Min ✓</button>
+    </div>
+
+    <!-- Timer display -->
+    <div id="nap-timer-wrap" style="text-align:center;margin-bottom:16px;display:none;">
+      <div id="nap-countdown" style="font-family:'DM Serif Display',serif;font-size:4rem;color:white;line-height:1;letter-spacing:-2px;">25:00</div>
+      <div style="background:rgba(255,255,255,0.15);border-radius:20px;height:4px;margin:12px auto;width:80%;overflow:hidden;">
+        <div id="nap-progress-bar" style="height:100%;background:linear-gradient(90deg,#a8d8ea,#7ec8e3);border-radius:20px;width:100%;transition:width 1s linear;"></div>
+      </div>
+      <div id="nap-status" style="font-size:0.82rem;opacity:0.7;">Entspann dich…</div>
+    </div>
+
+    <button id="nap-start-btn" onclick="handleNapAction()"
+      style="width:100%;padding:13px;border-radius:14px;border:none;background:rgba(168,216,234,0.25);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;border:2px solid rgba(168,216,234,0.4);">
+      💤 Nap starten
+    </button>
+  </div>
+
   <div class="card">
     <h2>🌙 Schlaf-Check</h2>
     <p class="small-note" style="margin-bottom:16px;line-height:1.5;">Kein Muss, keine Punkte. Morgens ausfüllen – wie war die Nacht?</p>
 
     <!-- QUALITÄT 1-10 -->
-    <h3 style="margin-bottom:10px;">Schlafqualität</h3>
-    <div id="sleep-quality-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:18px;"></div>
+    <h3 style="margin-bottom:8px;">Schlafqualität</h3>
+    <div class="vitalis-slider-wrap">
+      <div class="vitalis-slider-value" id="sleep-quality-val">5</div>
+      <div class="vitalis-slider-desc" id="sleep-quality-desc">okay</div>
+      <input type="range" id="sleep-quality-slider" min="1" max="10" value="5"
+        oninput="updateSlider('sleep-quality', this.value)">
+      <div class="slider-labels"><span>😩 Miserabel</span><span>😄 Super</span></div>
+    </div>
 
     <!-- DAUER -->
     <h3 style="margin-bottom:8px;">Schlafdauer (optional)</h3>
@@ -1108,16 +1232,28 @@
     <p class="small-note" style="margin-bottom:16px;line-height:1.5;">Kein Muss, keine Punkte, kein Druck. Einfach beobachten – was nimmst du gerade wahr?</p>
 
     <!-- HUNGER / SÄTTIGUNG -->
-    <h3 style="margin-bottom:10px;">Hunger & Sättigung – gerade jetzt</h3>
-    <div id="hunger-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:18px;"></div>
+    <h3 style="margin-bottom:8px;">Hunger & Sättigung – gerade jetzt</h3>
+    <div class="vitalis-slider-wrap">
+      <div class="vitalis-slider-value" id="hunger-val">5</div>
+      <div class="vitalis-slider-desc" id="hunger-desc">neutral</div>
+      <input type="range" id="hunger-slider" min="1" max="10" value="5"
+        oninput="updateSlider('hunger', this.value)">
+      <div class="slider-labels"><span>😫 Ausgehungert</span><span>😮 Übervoll</span></div>
+    </div>
 
     <!-- ESSEN GETAN -->
-    <h3 style="margin-bottom:10px;">Wie hat mir das letzte Essen getan?</h3>
+    <h3 style="margin-bottom:8px;">Wie hat mir das letzte Essen getan?</h3>
     <div id="meal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:18px;"></div>
 
     <!-- KÖRPERGEFÜHL -->
-    <h3 style="margin-bottom:10px;">Wie wohl fühle ich mich heute in meinem Körper?</h3>
-    <div id="body-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:18px;"></div>
+    <h3 style="margin-bottom:8px;">Wie wohl fühle ich mich in meinem Körper?</h3>
+    <div class="vitalis-slider-wrap">
+      <div class="vitalis-slider-value" id="body-feeling-val">5</div>
+      <div class="vitalis-slider-desc" id="body-feeling-desc">okay</div>
+      <input type="range" id="body-feeling-slider" min="1" max="10" value="5"
+        oninput="updateSlider('body-feeling', this.value)">
+      <div class="slider-labels"><span>😔 Unwohl</span><span>😄 Sehr wohl</span></div>
+    </div>
 
     <!-- NOTIZ -->
     <h3 style="margin-bottom:6px;">Kurze Notiz (optional)</h3>
@@ -1376,7 +1512,137 @@
 
 </div>
 
+<!-- EINSTELLUNGEN -->
+<div id="section-settings" class="section">
+  <div style="padding:4px 4px 16px;">
+    <h1 style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);">⚙️ Einstellungen</h1>
+  </div>
+
+  <div class="card">
+    <h2>🫁 Achtsamkeitspausen</h2>
+    <p class="small-note" style="margin-bottom:16px;line-height:1.5;">Solange die App offen ist, erscheint zu zufälligen Zeiten eine Atemübung.</p>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <span style="font-weight:600;">Aktiv</span>
+      <label style="position:relative;display:inline-block;width:50px;height:28px;">
+        <input type="checkbox" id="breathing-enabled" onchange="saveBreathingSettings()"
+          style="opacity:0;width:0;height:0;">
+        <span id="breathing-toggle" onclick="toggleBreathing()"
+          style="position:absolute;cursor:pointer;inset:0;border-radius:20px;background:var(--border);transition:0.3s;">
+          <span id="breathing-knob" style="position:absolute;width:22px;height:22px;border-radius:50%;background:white;top:3px;left:3px;transition:0.3s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+        </span>
+      </label>
+    </div>
+
+    <div id="breathing-settings-body">
+      <div style="margin-bottom:14px;">
+        <label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:6px;">Atemtechnik</label>
+        <div style="display:flex;flex-direction:column;gap:8px;" id="technique-options"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Pausen pro Tag</label>
+          <input type="number" id="breathing-pauses" min="1" max="5" value="2"
+            style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;"
+            onchange="saveBreathingSettings()">
+        </div>
+        <div>
+          <label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Dauer (Minuten)</label>
+          <input type="number" id="breathing-duration" min="1" max="10" value="3"
+            style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;"
+            onchange="saveBreathingSettings()">
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Zeitfenster</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="number" id="breathing-start" min="6" max="16" value="10"
+            style="width:70px;padding:8px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;"
+            onchange="saveBreathingSettings()">
+          <span style="color:var(--muted);">bis</span>
+          <input type="number" id="breathing-end" min="11" max="22" value="17"
+            style="width:70px;padding:8px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;"
+            onchange="saveBreathingSettings()">
+          <span style="color:var(--muted);">Uhr</span>
+        </div>
+      </div>
+
+      <button class="log-btn secondary" onclick="triggerBreathingNow()">🫁 Jetzt starten (Test)</button>
+    </div>
+  </div>
+</div>
+
 </main>
+
+<!-- POWER NAP OVERLAY -->
+<div id="nap-overlay" style="display:none;position:fixed;inset:0;z-index:3000;background:linear-gradient(135deg,#0a0a1a,#1a1a3e);flex-direction:column;align-items:center;justify-content:center;padding:30px;">
+  <div style="text-align:center;color:white;width:100%;max-width:360px;">
+    <div style="font-size:3rem;margin-bottom:8px;" id="nap-overlay-icon">💤</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:4px;" id="nap-overlay-title">Power Nap</div>
+    <div style="font-size:0.78rem;opacity:0.5;margin-bottom:40px;" id="nap-overlay-sub">Entspann dich…</div>
+
+    <div style="font-family:'DM Serif Display',serif;font-size:5rem;letter-spacing:-3px;color:#a8d8ea;line-height:1;margin-bottom:20px;" id="nap-overlay-countdown">25:00</div>
+
+    <div style="background:rgba(255,255,255,0.1);border-radius:20px;height:6px;width:260px;margin:0 auto 40px;overflow:hidden;">
+      <div id="nap-overlay-bar" style="height:100%;background:linear-gradient(90deg,#a8d8ea,#7ec8e3);border-radius:20px;width:100%;transition:width 1s linear;"></div>
+    </div>
+
+    <!-- After nap feeling -->
+    <div id="nap-after-wrap" style="display:none;margin-bottom:24px;">
+      <div style="font-size:0.88rem;opacity:0.8;margin-bottom:8px;">Wie fühlst du dich nach dem Nap?</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:#a8d8ea;margin-bottom:6px;" id="nap-after-val">7</div>
+      <input type="range" id="nap-after-slider" min="1" max="10" value="7"
+        style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.3);outline:none;cursor:pointer;margin-bottom:4px;"
+        oninput="document.getElementById('nap-after-val').textContent=this.value">
+      <div style="display:flex;justify-content:space-between;font-size:0.68rem;opacity:0.5;"><span>Noch müde</span><span>Frisch & wach</span></div>
+    </div>
+
+    <button id="nap-overlay-btn" onclick="handleNapOverlayAction()"
+      style="padding:14px 36px;background:rgba(168,216,234,0.2);border:2px solid rgba(168,216,234,0.5);border-radius:20px;color:white;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;width:100%;margin-bottom:12px;">
+      Abbrechen
+    </button>
+  </div>
+</div>
+<div id="breathing-overlay" style="display:none;position:fixed;inset:0;z-index:3000;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);flex-direction:column;align-items:center;justify-content:center;padding:30px;">
+  <div style="color:white;text-align:center;width:100%;max-width:360px;">
+    <!-- Header -->
+    <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:4px;" id="breath-title">Atemübung</div>
+    <div style="font-size:0.78rem;opacity:0.6;margin-bottom:40px;" id="breath-subtitle"></div>
+
+    <!-- Animated circle -->
+    <div style="position:relative;width:220px;height:220px;margin:0 auto 40px;" id="breath-circle-wrap">
+      <div id="breath-ring" style="position:absolute;inset:0;border-radius:50%;border:3px solid rgba(255,255,255,0.15);"></div>
+      <div id="breath-circle" style="position:absolute;inset:10px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.06),rgba(255,255,255,0.01));transition:all 0.3s ease;display:flex;align-items:center;justify-content:center;flex-direction:column;border:1.5px solid rgba(255,255,255,0.15);transform:scale(0.55);">
+        <div id="breath-instruction" style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:white;"></div>
+        <div id="breath-countdown" style="font-size:2.5rem;font-weight:300;color:white;line-height:1;margin-top:4px;"></div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div style="font-size:0.82rem;opacity:0.6;margin-bottom:8px;" id="breath-round"></div>
+    <div style="background:rgba(255,255,255,0.15);border-radius:20px;height:4px;width:200px;margin:0 auto 40px;overflow:hidden;">
+      <div id="breath-progress" style="height:100%;background:rgba(255,255,255,0.8);border-radius:20px;width:0%;transition:width 0.5s;"></div>
+    </div>
+
+    <!-- After feeling -->
+    <div id="breath-after-wrap" style="display:none;margin-bottom:24px;">
+      <div style="font-size:0.88rem;opacity:0.8;margin-bottom:8px;">Wie fühlst du dich jetzt?</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:#a8edea;margin-bottom:6px;" id="breath-after-val">5</div>
+      <input type="range" id="breath-after-slider" min="1" max="10" value="5"
+        style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.3);outline:none;cursor:pointer;margin-bottom:4px;"
+        oninput="document.getElementById('breath-after-val').textContent=this.value">
+      <div style="display:flex;justify-content:space-between;font-size:0.68rem;opacity:0.5;"><span>Angespannt</span><span>Sehr ruhig</span></div>
+    </div>
+
+    <button id="breath-action-btn" onclick="handleBreathAction()"
+      style="padding:14px 36px;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.4);border-radius:20px;color:white;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;width:100%;margin-bottom:12px;">
+      Starten
+    </button>
+    <button onclick="closeBreathing()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">Überspringen</button>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -1462,6 +1728,13 @@ function loadState() {
     gratitudeLog: [],
     gratitudeSkipped: null,
     socialContacts: [],  // [{name, how, done, week}]
+    breathingEnabled: true,
+    breathingTechnique: 'box',
+    breathingPausesPerDay: 2,
+    breathingDuration: 3,
+    breathingWindowStart: 10,
+    breathingWindowEnd: 17,
+    breathingLog: [],
     selectedActivity: null,
   };
   if (!raw) return defaults;
@@ -1499,7 +1772,7 @@ function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
   document.getElementById('section-' + id).classList.add('visible');
   document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('active'));
-  const navMap = { home: 'nav-home', verlauf: 'nav-verlauf', social: 'nav-social', rewards: 'nav-rewards', about: 'nav-about' };
+  const navMap = { home: 'nav-home', verlauf: 'nav-verlauf', social: 'nav-social', rewards: 'nav-rewards', about: 'nav-about', settings: 'nav-settings' };
   if (navMap[id]) document.getElementById(navMap[id]).classList.add('active');
   if (id === 'home') renderHome();
   if (id === 'feeling') renderFeeling();
@@ -1513,6 +1786,7 @@ function showSection(id) {
   if (id === 'verlauf') renderVerlauf();
   if (id === 'social') renderSocial();
   if (id === 'rewards') renderRewards();
+  if (id === 'settings') renderSettings();
   if (id === 'about') {} // static
   window.scrollTo(0, 0);
 }
@@ -1678,51 +1952,54 @@ function renderHome() {
 
 
 // =====================
+// SLIDER HELPER
+// =====================
+const SLIDER_DESCS = ['','miserabel','sehr schlecht','schlecht','eher schlecht','okay','ganz gut','gut','sehr gut','ausgezeichnet','super!'];
+const HUNGER_DESCS = ['','ausgehungert','sehr hungrig','hungrig','leicht hungrig','neutral','leicht satt','satt','gut gesättigt','sehr satt','übervoll'];
+const BODY_DESCS   = ['','extrem unwohl','sehr unwohl','unwohl','eher unwohl','so lala','ganz wohl','wohl','sehr wohl','ausgezeichnet','top!'];
+
+function updateSlider(id, val) {
+  val = parseInt(val);
+  const valEl  = document.getElementById(id + '-val');
+  const descEl = document.getElementById(id + '-desc');
+  const slider = document.getElementById(id + '-slider');
+  if (valEl)  valEl.textContent = val;
+  const descs = id === 'hunger' ? HUNGER_DESCS : id === 'body-feeling' ? BODY_DESCS : SLIDER_DESCS;
+  if (descEl) descEl.textContent = descs[val] || '';
+  if (slider) {
+    const pct = ((val - 1) / 9 * 100).toFixed(1) + '%';
+    slider.style.background = `linear-gradient(90deg, var(--accent) 0%, var(--accent) ${pct}, var(--border) ${pct})`;
+  }
+  if (valEl) valEl.style.color = val <= 3 ? 'var(--accent2)' : val <= 6 ? 'var(--gold)' : 'var(--accent)';
+}
+
+function initSlider(id, val) {
+  const slider = document.getElementById(id + '-slider');
+  if (slider) { slider.value = val; updateSlider(id, val); }
+}
+
+// =====================
 // FEELING
 // =====================
 function renderFeeling() {
-  renderFeelingGrid('feeling-before-grid', 'before');
-  renderFeelingGrid('feeling-after-grid', 'after');
+  initSlider('feeling-before', feelingBefore !== null ? feelingBefore : 5);
+  initSlider('feeling-after',  feelingAfter  !== null ? feelingAfter  : 5);
   renderFeelingHistory();
-}
-
-function renderFeelingGrid(gridId, type) {
-  const grid = document.getElementById(gridId);
-  grid.innerHTML = '';
-  FEELINGS.forEach((f, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'feeling-btn';
-    btn.innerHTML = `<span>${f.emoji}</span><span class="label">${f.label}</span>`;
-    const selected = type === 'before' ? feelingBefore : feelingAfter;
-    if (selected === i) btn.classList.add('selected');
-    btn.onclick = () => {
-      if (type === 'before') feelingBefore = i;
-      else feelingAfter = i;
-      renderFeelingGrid(gridId, type);
-    };
-    grid.appendChild(btn);
-  });
 }
 
 function logFeeling() {
-  if (feelingBefore === null && feelingAfter === null) {
-    showToast('Bitte mindestens ein Gefühl wählen.'); return;
-  }
-  const entry = {
-    ts: new Date().toISOString(),
-    before: feelingBefore,
-    after: feelingAfter,
-  };
+  const before = parseInt(document.getElementById('feeling-before-slider')?.value || 5);
+  const after  = parseInt(document.getElementById('feeling-after-slider')?.value  || 5);
+  const entry = { ts: new Date().toISOString(), before, after };
   state.feelingLog.unshift(entry);
   if (state.feelingLog.length > 20) state.feelingLog.pop();
-  addPoints(10, '😊 Gefühl geloggt');
   feelingBefore = null; feelingAfter = null;
+  initSlider('feeling-before', 5);
+  initSlider('feeling-after', 5);
   saveState();
-  renderFeelingGrid('feeling-before-grid','before');
-  renderFeelingGrid('feeling-after-grid','after');
   renderFeelingHistory();
   checkStreak();
-  showToast('✅ Gefühl gespeichert! +5 Punkte');
+  showToast('✅ Gefühl gespeichert!');
 }
 
 function renderFeelingHistory() {
@@ -1738,19 +2015,69 @@ function renderFeelingHistory() {
     const time = feelingFilter === 'heute'
       ? d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})
       : d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
-    const before = e.before !== null ? FEELINGS[e.before].emoji : '–';
-    const after  = e.after  !== null ? FEELINGS[e.after].emoji  : '–';
-    const div = document.createElement('div');
-    div.className = 'feeling-entry';
-    div.innerHTML = `
-      <span class="emojis">${before}</span>
+    const before = e.before !== null ? e.before : '–';
+    const after  = e.after  !== null ? e.after  : '–';
+    const color  = (v) => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
+    const uid = 'fe-' + i;
+
+    const outer = document.createElement('div');
+    outer.style.cssText = 'border:2px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2px;';
+
+    const summary = document.createElement('div');
+    summary.className = 'feeling-entry';
+    summary.style.cssText = 'cursor:pointer;padding:10px 12px;margin:0;border-radius:0;';
+    summary.innerHTML = `
+      <span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(before)};">${before}</span>
       <span class="arrow">→</span>
-      <span class="emojis">${after}</span>
+      <span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(after)};">${after}</span>
       <span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${time}</span>
-      <button onclick="deleteFeelingEntry(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;margin-left:6px;">✕</button>
+      <span id="${uid}-icon" style="color:var(--muted);font-size:0.8rem;margin-left:6px;">▼</span>
     `;
-    list.appendChild(div);
+
+    const detail = document.createElement('div');
+    detail.id = uid;
+    detail.style.cssText = 'display:none;padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);';
+    detail.innerHTML = `
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;">VOR Aktivität</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="range" min="1" max="10" value="${e.before||5}"
+            style="-webkit-appearance:none;flex:1;height:5px;border-radius:10px;background:var(--border);outline:none;"
+            oninput="editFeelingEntry(${i},'before',this.value);this.previousElementSibling && (this.previousElementSibling.textContent=this.value)"
+            onchange="editFeelingEntry(${i},'before',this.value)">
+          <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${color(before)};min-width:20px;">${before}</span>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;">NACH Aktivität</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="range" min="1" max="10" value="${e.after||5}"
+            style="-webkit-appearance:none;flex:1;height:5px;border-radius:10px;background:var(--border);outline:none;"
+            oninput="editFeelingEntry(${i},'after',this.value)"
+            onchange="editFeelingEntry(${i},'after',this.value)">
+          <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${color(after)};min-width:20px;">${after}</span>
+        </div>
+      </div>
+      <button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;">🗑 Löschen</button>
+    `;
+
+    summary.onclick = () => {
+      const open = detail.style.display !== 'none';
+      detail.style.display = open ? 'none' : '';
+      document.getElementById(uid+'-icon').textContent = open ? '▼' : '▲';
+    };
+
+    outer.appendChild(summary);
+    outer.appendChild(detail);
+    list.appendChild(outer);
   });
+}
+
+function editFeelingEntry(i, field, val) {
+  if (state.feelingLog[i]) {
+    state.feelingLog[i][field] = parseInt(val);
+    saveState();
+  }
 }
 
 function deleteFeelingEntry(i) {
@@ -1842,6 +2169,12 @@ function renderActivities() {
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;">
           ${inputFields}
         </div>
+        <div style="margin-top:6px;display:${state.selectedActivity === i ? 'flex' : 'none'};align-items:center;gap:6px;" onclick="event.stopPropagation()" id="link-field-${i}">
+          <input type="url" value="${a.link||''}" placeholder="🔗 Link (optional)"
+            style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.75rem;color:var(--muted);"
+            onchange="updateActivityLink(${i}, this.value)"
+            onclick="event.stopPropagation()">
+        </div>
       </div>
       <div class="check" onclick="selectActivity(${i})" style="cursor:pointer;">${state.selectedActivity === i ? '✓' : ''}</div>
       ${a.custom ? `<button class="del-activity" onclick="deleteActivity(event,${i})">✕</button>` : ''}
@@ -1890,7 +2223,34 @@ function updateActivityPts(event, i) {
 
 function selectActivity(i) {
   state.selectedActivity = state.selectedActivity === i ? null : i;
+  saveState();
   renderActivities();
+  if (state.selectedActivity !== null) {
+    showActivityLink(state.selectedActivity);
+    enableLogBtn();
+  } else {
+    document.getElementById('activity-link-area').style.display = 'none';
+  }
+}
+
+function updateActivityLink(i, url) {
+  state.activities[i].link = url.trim();
+  saveState();
+  if (state.selectedActivity === i) showActivityLink(i);
+}
+
+function showActivityLink(i) {
+  const area = document.getElementById('activity-link-area');
+  const btn  = document.getElementById('activity-link-btn');
+  const a = state.activities[i];
+  if (a && a.link) {
+    const label = a.link.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    btn.href = a.link;
+    btn.textContent = '🔗 ' + label;
+    area.style.display = '';
+  } else {
+    area.style.display = 'none';
+  }
 }
 
 function addCustomActivity() {
@@ -3012,16 +3372,13 @@ function renderSleepCheckinGrid() {
   });
 }
 
-function quickLogSleep(qualityIdx) {
-  state.sleepLog.unshift({
-    ts: new Date().toISOString(),
-    score: SLEEP_QUALITY[qualityIdx].score,
-    hours: null, bedtime: null, wake: null, note: null
-  });
+function quickLogSleepSlider() {
+  const score = parseInt(document.getElementById('checkin-sleep-slider')?.value || 5);
+  state.sleepLog.unshift({ ts: new Date().toISOString(), score, hours: null, bedtime: null, wake: null, note: null });
   if (state.sleepLog.length > 60) state.sleepLog.pop();
   saveState();
   document.getElementById('sleep-checkin-card').style.display = 'none';
-  showToast('🌙 Nacht notiert. Guten Morgen!');
+  showToast('🌙 Schlaf notiert. Guten Morgen!');
   renderHome();
 }
 
@@ -3044,35 +3401,22 @@ const SLEEP_QUALITY = [
 let sleepQuality = null;
 
 function renderSleep() {
-  // Quality grid
-  const grid = document.getElementById('sleep-quality-grid');
-  grid.innerHTML = '';
-  SLEEP_QUALITY.forEach((q, i) => {
-    const btn = document.createElement('button');
-    btn.style.cssText = `padding:10px 4px;border:2px solid ${sleepQuality===i?'var(--accent)':'var(--border)'};border-radius:12px;background:${sleepQuality===i?'#eef6f1':'white'};cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:center;`;
-    btn.innerHTML = `<div style="font-size:1.5rem;">${q.emoji}</div><div style="font-size:0.6rem;color:var(--muted);font-weight:500;margin-top:3px;line-height:1.3;white-space:pre-line;">${q.label}</div>`;
-    btn.onclick = () => { sleepQuality = i; renderSleep(); };
-    grid.appendChild(btn);
-  });
+  initSlider('sleep-quality', sleepQuality !== null ? sleepQuality : 5);
   renderSleepLog();
 }
 
 function logSleep() {
+  const score   = parseInt(document.getElementById('sleep-quality-slider')?.value || 5);
   const hours   = parseFloat(String(document.getElementById('sleep-hours').value).replace(',','.')) || null;
   const bedtime = document.getElementById('sleep-bedtime').value || null;
   const wake    = document.getElementById('sleep-waketime').value || null;
   const note    = document.getElementById('sleep-note').value.trim() || null;
-  const score   = sleepQuality !== null ? SLEEP_QUALITY[sleepQuality].score : null;
-
-  if (score === null && !hours && !bedtime) {
-    showToast('Bitte mindestens Qualität oder Dauer angeben.'); return;
-  }
 
   state.sleepLog.unshift({ ts: new Date().toISOString(), score, hours, bedtime, wake, note });
   if (state.sleepLog.length > 60) state.sleepLog.pop();
 
-  // Reset form
   sleepQuality = null;
+  initSlider('sleep-quality', 5);
   document.getElementById('sleep-hours').value = '';
   document.getElementById('sleep-bedtime').value = '';
   document.getElementById('sleep-waketime').value = '';
@@ -3095,28 +3439,60 @@ function renderSleepLog() {
   state.sleepLog.slice(0,10).forEach((e, i) => {
     const d = new Date(e.ts);
     const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
-    const q  = e.score !== null ? SLEEP_QUALITY.find(q=>q.score<=e.score)?.emoji || '😐' : '';
-    const scoreLabel = e.score !== null ? `<span style="font-weight:700;color:var(--accent);">${e.score}/10</span>` : '';
-    const hoursLabel = e.hours ? `${e.hours}h` : '';
-    const timesLabel = (e.bedtime||e.wake) ? `${e.bedtime||'?'} → ${e.wake||'?'}` : '';
-    const div = document.createElement('div');
-    div.style.cssText = 'padding:10px 12px;background:var(--bg);border-radius:10px;';
-    div.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${e.note?'6px':'0'};">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:1.3rem;">${q}</span>
-          ${scoreLabel}
-          <span style="font-size:0.82rem;color:var(--muted);">${hoursLabel} ${timesLabel}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-size:0.75rem;color:var(--muted);">${ds}</span>
-          <button onclick="deleteSleepEntry(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0;">✕</button>
+    const sc = e.score;
+    const scoreColor = sc<=3?'var(--accent2)':sc<=6?'var(--gold)':'var(--accent)';
+    const uid = 'sl-' + i;
+
+    const outer = document.createElement('div');
+    outer.style.cssText = 'border:2px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2px;';
+
+    const summary = document.createElement('div');
+    summary.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;';
+    summary.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${sc!==null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${scoreColor};">${sc}/10</span>` : ''}
+        <span style="font-size:0.82rem;color:var(--muted);">${e.hours?e.hours+'h':''} ${e.note&&e.note.includes('Power Nap')?'💤':''}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:0.75rem;color:var(--muted);">${ds}</span>
+        <span id="${uid}-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+      </div>
+    `;
+
+    const detail = document.createElement('div');
+    detail.id = uid;
+    detail.style.cssText = 'display:none;padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);';
+    detail.innerHTML = `
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:6px;">Schlafqualität</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="range" min="1" max="10" value="${sc||5}"
+            style="-webkit-appearance:none;flex:1;height:5px;border-radius:10px;background:var(--border);outline:none;cursor:pointer;"
+            onchange="editSleepEntry(${i},'score',this.value);this.nextElementSibling.textContent=this.value+'/10'">
+          <span style="font-family:'DM Serif Display',serif;font-size:1rem;color:${scoreColor};min-width:36px;">${sc||'–'}/10</span>
         </div>
       </div>
-      ${e.note ? `<div style="font-size:0.78rem;color:var(--muted);font-style:italic;">"${e.note}"</div>` : ''}
+      ${e.note ? `<div style="font-size:0.78rem;color:var(--muted);font-style:italic;margin-bottom:10px;">"${e.note}"</div>` : ''}
+      <button onclick="deleteSleepEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;">🗑 Löschen</button>
     `;
-    list.appendChild(div);
+
+    summary.onclick = () => {
+      const open = detail.style.display !== 'none';
+      detail.style.display = open ? 'none' : '';
+      document.getElementById(uid+'-icon').textContent = open ? '▼' : '▲';
+    };
+
+    outer.appendChild(summary);
+    outer.appendChild(detail);
+    list.appendChild(outer);
   });
+}
+
+function editSleepEntry(i, field, val) {
+  if (state.sleepLog[i]) {
+    state.sleepLog[i][field] = field === 'score' ? parseInt(val) : val;
+    saveState();
+  }
 }
 
 function deleteSleepEntry(i) {
@@ -3225,45 +3601,27 @@ let bodyMeal     = null;
 let bodyFeeling  = null;
 
 function renderBody() {
-  renderBodyGrid('hunger-grid',  HUNGER_SCALE,  'hunger');
-  renderBodyGrid('meal-grid',    MEAL_FEELINGS, 'meal',   true);
-  renderBodyGrid('body-grid',    BODY_SCALE,    'body');
+  initSlider('hunger', bodyHunger !== null ? bodyHunger : 5);
+  initSlider('body-feeling', bodyFeeling !== null ? bodyFeeling : 5);
+  renderBodyGrid('meal-grid', MEAL_FEELINGS, 'meal', true);
   renderBodyLog();
 }
 
-function renderBodyGrid(gridId, items, type, twoCol) {
-  const grid = document.getElementById(gridId);
-  grid.innerHTML = '';
-  items.forEach((f, i) => {
-    const btn = document.createElement('button');
-    btn.style.cssText = `padding:10px 6px;border:2px solid var(--border);border-radius:12px;background:white;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:center;`;
-    btn.innerHTML = `<div style="font-size:1.4rem;">${f.emoji}</div><div style="font-size:0.65rem;color:var(--muted);font-weight:500;margin-top:3px;line-height:1.2;">${f.label}</div>`;
-    const sel = type==='hunger' ? bodyHunger : type==='meal' ? bodyMeal : bodyFeeling;
-    if (sel === i) { btn.style.borderColor='var(--accent)'; btn.style.background='#eef6f1'; }
-    btn.onclick = () => {
-      if (type==='hunger') bodyHunger = i;
-      else if (type==='meal') bodyMeal = i;
-      else bodyFeeling = i;
-      renderBodyGrid(gridId, items, type, twoCol);
-    };
-    grid.appendChild(btn);
-  });
-}
-
 function logBody() {
-  if (bodyHunger === null && bodyMeal === null && bodyFeeling === null) {
-    showToast('Bitte mindestens eine Auswahl treffen.'); return;
-  }
+  const hunger  = parseInt(document.getElementById('hunger-slider')?.value || 5);
+  const feeling = parseInt(document.getElementById('body-feeling-slider')?.value || 5);
   const note = document.getElementById('body-note').value.trim();
   state.bodyLog.unshift({
-    ts:      new Date().toISOString(),
-    hunger:  bodyHunger,
-    meal:    bodyMeal,
-    feeling: bodyFeeling,
+    ts: new Date().toISOString(),
+    hunger,
+    meal: bodyMeal,
+    feeling,
     note,
   });
   if (state.bodyLog.length > 30) state.bodyLog.pop();
-  bodyHunger = null; bodyMeal = null; bodyFeeling = null;
+  bodyMeal = null;
+  initSlider('hunger', 5);
+  initSlider('body-feeling', 5);
   document.getElementById('body-note').value = '';
   saveState();
   renderBody();
@@ -3276,22 +3634,82 @@ function renderBodyLog() {
   list.innerHTML = '';
   if (!state.bodyLog.length) { empty.style.display=''; return; }
   empty.style.display = 'none';
-  state.bodyLog.slice(0,7).forEach(e => {
+  state.bodyLog.slice(0,7).forEach((e, i) => {
     const d    = new Date(e.ts);
     const date = d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
-    const h = e.hunger  !== null ? HUNGER_SCALE[e.hunger].emoji   : '';
-    const m = e.meal    !== null ? MEAL_FEELINGS[e.meal].emoji    : '';
-    const f = e.feeling !== null ? BODY_SCALE[e.feeling].emoji    : '';
-    const div = document.createElement('div');
-    div.style.cssText = 'padding:12px 14px;background:var(--bg);border-radius:12px;';
-    div.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <div style="display:flex;gap:10px;font-size:1.3rem;">${h} ${m} ${f}</div>
-        <span style="font-size:0.72rem;color:var(--muted);">${date}</span>
+    const h = e.hunger  !== null ? e.hunger  : '—';
+    const f = e.feeling !== null ? e.feeling : '—';
+    const m = e.meal    !== null && MEAL_FEELINGS[e.meal] ? MEAL_FEELINGS[e.meal].emoji : '';
+    const color = v => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
+    const uid = 'bl-' + i;
+
+    const outer = document.createElement('div');
+    outer.style.cssText = 'border:2px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2px;';
+
+    const summary = document.createElement('div');
+    summary.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;cursor:pointer;';
+    summary.innerHTML = `
+      <div style="display:flex;gap:12px;align-items:center;">
+        <span style="font-size:0.78rem;color:var(--muted);">Hunger <span style="font-family:'DM Serif Display',serif;font-size:1rem;color:${color(h)};">${h}</span></span>
+        <span style="font-size:0.78rem;color:var(--muted);">Wohl <span style="font-family:'DM Serif Display',serif;font-size:1rem;color:${color(f)};">${f}</span></span>
+        ${m ? `<span style="font-size:1rem;">${m}</span>` : ''}
       </div>
-      ${e.note ? `<div style="font-size:0.82rem;color:var(--muted);font-style:italic;">"${e.note}"</div>` : ''}
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:0.72rem;color:var(--muted);">${date}</span>
+        <span id="${uid}-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+      </div>
     `;
-    list.appendChild(div);
+
+    const detail = document.createElement('div');
+    detail.id = uid;
+    detail.style.cssText = 'display:none;padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);';
+    detail.innerHTML = `
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;">Hunger & Sättigung</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="range" min="1" max="10" value="${e.hunger||5}"
+            style="-webkit-appearance:none;flex:1;height:5px;border-radius:10px;background:var(--border);outline:none;cursor:pointer;"
+            onchange="editBodyEntry(${i},'hunger',this.value);this.nextElementSibling.textContent=this.value">
+          <span style="font-family:'DM Serif Display',serif;font-size:1rem;color:${color(h)};min-width:20px;">${h}</span>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;">Wohlbefinden</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="range" min="1" max="10" value="${e.feeling||5}"
+            style="-webkit-appearance:none;flex:1;height:5px;border-radius:10px;background:var(--border);outline:none;cursor:pointer;"
+            onchange="editBodyEntry(${i},'feeling',this.value);this.nextElementSibling.textContent=this.value">
+          <span style="font-family:'DM Serif Display',serif;font-size:1rem;color:${color(f)};min-width:20px;">${f}</span>
+        </div>
+      </div>
+      ${e.note ? `<div style="font-size:0.78rem;color:var(--muted);font-style:italic;margin-bottom:10px;">"${e.note}"</div>` : ''}
+      <button onclick="deleteBodyEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;">🗑 Löschen</button>
+    `;
+
+    summary.onclick = () => {
+      const open = detail.style.display !== 'none';
+      detail.style.display = open ? 'none' : '';
+      document.getElementById(uid+'-icon').textContent = open ? '▼' : '▲';
+    };
+
+    outer.appendChild(summary);
+    outer.appendChild(detail);
+    list.appendChild(outer);
+  });
+}
+
+function editBodyEntry(i, field, val) {
+  if (state.bodyLog[i]) {
+    state.bodyLog[i][field] = parseInt(val);
+    saveState();
+  }
+}
+
+function deleteBodyEntry(i) {
+  showConfirm('Eintrag löschen?', 'Diesen Körper-Eintrag wirklich entfernen?', () => {
+    state.bodyLog.splice(i, 1);
+    saveState();
+    renderBodyLog();
   });
 }
 
@@ -3815,6 +4233,354 @@ function resetSocialWeek() {
 }
 
 // =====================
+// POWER NAP
+// =====================
+let napDuration = 25; // minutes
+let napTimer = null;
+let napSecondsLeft = 0;
+let napTotalSeconds = 0;
+let napRunning = false;
+
+function setNapDuration(min) {
+  napDuration = min;
+  document.getElementById('nap-duration-display').textContent = min;
+  [10,20,25].forEach(m => {
+    const btn = document.getElementById('nap-btn-' + m);
+    if (!btn) return;
+    const active = m === min;
+    btn.style.borderColor = active ? 'rgba(168,216,234,0.8)' : 'rgba(255,255,255,0.2)';
+    btn.style.background  = active ? 'rgba(168,216,234,0.15)' : 'rgba(255,255,255,0.08)';
+    btn.style.color       = active ? '#a8d8ea' : 'white';
+    btn.textContent       = m + ' Min' + (active ? ' ✓' : '');
+  });
+}
+
+function handleNapAction() {
+  // Show overlay and start
+  const overlay = document.getElementById('nap-overlay');
+  overlay.style.display = 'flex';
+  startNap();
+}
+
+function startNap() {
+  napSecondsLeft = napDuration * 60;
+  napTotalSeconds = napSecondsLeft;
+  napRunning = true;
+
+  document.getElementById('nap-overlay-title').textContent = `${napDuration}-Minuten Power Nap`;
+  document.getElementById('nap-overlay-sub').textContent = 'Entspann dich… 💤';
+  document.getElementById('nap-overlay-icon').textContent = '💤';
+  document.getElementById('nap-after-wrap').style.display = 'none';
+  document.getElementById('nap-overlay-btn').textContent = 'Abbrechen';
+  document.getElementById('nap-overlay-btn').onclick = abortNap;
+
+  updateNapDisplay();
+
+  napTimer = setInterval(() => {
+    if (!napRunning) return;
+    napSecondsLeft--;
+    updateNapDisplay();
+    if (napSecondsLeft <= 0) {
+      clearInterval(napTimer);
+      finishNap();
+    }
+  }, 1000);
+}
+
+function updateNapDisplay() {
+  const m = Math.floor(napSecondsLeft / 60);
+  const s = napSecondsLeft % 60;
+  const timeStr = m + ':' + String(s).padStart(2,'0');
+  document.getElementById('nap-overlay-countdown').textContent = timeStr;
+  const pct = (napSecondsLeft / napTotalSeconds * 100).toFixed(1);
+  document.getElementById('nap-overlay-bar').style.width = pct + '%';
+
+  // Last 60 seconds warning
+  if (napSecondsLeft <= 60 && napSecondsLeft > 0) {
+    document.getElementById('nap-overlay-sub').textContent = 'Gleich aufwachen… ☀️';
+    document.getElementById('nap-overlay-icon').textContent = '☀️';
+  }
+}
+
+function finishNap() {
+  napRunning = false;
+  // Play wake-up sound
+  playWakeSound();
+  document.getElementById('nap-overlay-countdown').textContent = '☀️';
+  document.getElementById('nap-overlay-title').textContent = 'Gut geschlafen!';
+  document.getElementById('nap-overlay-sub').textContent = 'Wie fühlst du dich?';
+  document.getElementById('nap-after-wrap').style.display = '';
+  document.getElementById('nap-overlay-btn').textContent = 'Speichern & Schließen';
+  document.getElementById('nap-overlay-btn').onclick = saveNapSession;
+}
+
+function playWakeSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.3, 0.6].forEach(delay => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 528; // Healing frequency
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0, ctx.currentTime + delay);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + delay + 0.1);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + delay + 0.8);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.9);
+    });
+  } catch(e) {}
+}
+
+function saveNapSession() {
+  const score = parseInt(document.getElementById('nap-after-slider')?.value || 7);
+  if (!state.sleepLog) state.sleepLog = [];
+  state.sleepLog.unshift({
+    ts: new Date().toISOString(),
+    score,
+    hours: napDuration / 60,
+    bedtime: null, wake: null,
+    note: `Power Nap (${napDuration} Min)`,
+  });
+  saveState();
+  closeNap();
+  showToast(`💤 Power Nap gespeichert! Gut gemacht.`);
+}
+
+function abortNap() {
+  napRunning = false;
+  if (napTimer) clearInterval(napTimer);
+  closeNap();
+}
+
+function closeNap() {
+  napRunning = false;
+  if (napTimer) clearInterval(napTimer);
+  document.getElementById('nap-overlay').style.display = 'none';
+  document.getElementById('nap-overlay-btn').onclick = abortNap;
+}
+
+// =====================
+// BREATHING
+// =====================
+const TECHNIQUES = {
+  'box':      { name: 'Box Breathing',      desc: '4s ein · 4s halten · 4s aus · 4s halten', phases: [{l:'Einatmen',d:4},{l:'Halten',d:4},{l:'Ausatmen',d:4},{l:'Halten',d:4}] },
+  '4-7-8':    { name: '4-7-8 Atmung',       desc: '4s ein · 7s halten · 8s ausatmen',         phases: [{l:'Einatmen',d:4},{l:'Halten',d:7},{l:'Ausatmen',d:8}] },
+  '4-2-4':    { name: 'Sama Vritti (4-2-4)', desc: '4s ein · 2s halten · 4s aus',              phases: [{l:'Einatmen',d:4},{l:'Halten',d:2},{l:'Ausatmen',d:4}] },
+  'coherent': { name: 'Kohärente Atmung',   desc: '5s ein · 5s aus',                           phases: [{l:'Einatmen',d:5},{l:'Ausatmen',d:5}] },
+};
+
+let breathTimer = null;
+let breathNextTimer = null;
+let breathPhase = 0;
+let breathRound = 0;
+let breathTotalRounds = 0;
+let breathRunning = false;
+let breathStarted = false;
+
+function renderSettings() {
+  const s = state;
+  const toggle = document.getElementById('breathing-toggle');
+  const knob   = document.getElementById('breathing-knob');
+  const body   = document.getElementById('breathing-settings-body');
+  if (toggle) toggle.style.background = s.breathingEnabled ? 'var(--accent)' : 'var(--border)';
+  if (knob)   knob.style.left = s.breathingEnabled ? '25px' : '3px';
+  if (body)   body.style.opacity = s.breathingEnabled ? '1' : '0.4';
+
+  const el = id => document.getElementById(id);
+  if (el('breathing-pauses'))  el('breathing-pauses').value  = s.breathingPausesPerDay;
+  if (el('breathing-duration')) el('breathing-duration').value = s.breathingDuration;
+  if (el('breathing-start'))   el('breathing-start').value   = s.breathingWindowStart;
+  if (el('breathing-end'))     el('breathing-end').value     = s.breathingWindowEnd;
+
+  // Technique options
+  const opts = document.getElementById('technique-options');
+  if (opts) {
+    opts.innerHTML = '';
+    Object.entries(TECHNIQUES).forEach(([key, t]) => {
+      const selected = (s.breathingTechnique || 'box') === key;
+      const div = document.createElement('div');
+      div.style.cssText = `padding:12px 14px;border-radius:12px;border:2px solid ${selected?'var(--accent)':'var(--border)'};background:${selected?'#eef6f1':'white'};cursor:pointer;`;
+      div.innerHTML = `<div style="font-weight:600;font-size:0.88rem;">${t.name}</div><div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${t.desc}</div>`;
+      div.onclick = () => { state.breathingTechnique = key; saveState(); renderSettings(); };
+      opts.appendChild(div);
+    });
+  }
+}
+
+function toggleBreathing() {
+  state.breathingEnabled = !state.breathingEnabled;
+  saveState();
+  renderSettings();
+  if (state.breathingEnabled) scheduleBreathing();
+  else if (breathNextTimer) { clearTimeout(breathNextTimer); breathNextTimer = null; }
+}
+
+function saveBreathingSettings() {
+  state.breathingPausesPerDay  = parseInt(document.getElementById('breathing-pauses')?.value) || 2;
+  state.breathingDuration      = parseInt(document.getElementById('breathing-duration')?.value) || 3;
+  state.breathingWindowStart   = parseInt(document.getElementById('breathing-start')?.value) || 10;
+  state.breathingWindowEnd     = parseInt(document.getElementById('breathing-end')?.value) || 17;
+  saveState();
+  scheduleBreathing();
+}
+
+function scheduleBreathing() {
+  if (breathNextTimer) clearTimeout(breathNextTimer);
+  if (!state.breathingEnabled) return;
+  const now  = new Date();
+  const hour = now.getHours();
+  const start = state.breathingWindowStart || 10;
+  const end   = state.breathingWindowEnd   || 17;
+  if (hour < start || hour >= end) return;
+
+  // Count today's sessions
+  const todayStr = now.toDateString();
+  const todaySessions = (state.breathingLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr).length;
+  if (todaySessions >= (state.breathingPausesPerDay||2)) return;
+
+  // Random delay 20–60 minutes
+  const delayMs = (Math.random() * 40 + 20) * 60 * 1000;
+  breathNextTimer = setTimeout(() => {
+    const h = new Date().getHours();
+    if (h >= start && h < end) showBreathingOverlay();
+  }, delayMs);
+}
+
+function triggerBreathingNow() {
+  showBreathingOverlay();
+}
+
+function showBreathingOverlay() {
+  const t = TECHNIQUES[state.breathingTechnique || 'box'];
+  const overlay = document.getElementById('breathing-overlay');
+  overlay.style.display = 'flex';
+  document.getElementById('breath-title').textContent = t.name;
+  document.getElementById('breath-subtitle').textContent = t.desc;
+  document.getElementById('breath-instruction').textContent = '';
+  document.getElementById('breath-countdown').textContent = '';
+  document.getElementById('breath-round').textContent = '';
+  document.getElementById('breath-progress').style.width = '0%';
+  document.getElementById('breath-action-btn').textContent = 'Starten';
+  document.getElementById('breath-after-wrap').style.display = 'none';
+  breathStarted = false;
+  breathRunning = false;
+  breathPhase = 0;
+  breathRound = 0;
+  const cycleLen = t.phases.reduce((s,p)=>s+p.d, 0);
+  breathTotalRounds = Math.max(1, Math.ceil((state.breathingDuration||3) * 60 / cycleLen));
+}
+
+function handleBreathAction() {
+  if (!breathStarted) {
+    breathStarted = true;
+    document.getElementById('breath-action-btn').textContent = 'Pausieren';
+    runBreathing();
+  } else if (breathRunning) {
+    breathRunning = false;
+    if (breathTimer) clearInterval(breathTimer);
+    document.getElementById('breath-action-btn').textContent = 'Weiter';
+  } else {
+    breathRunning = true;
+    document.getElementById('breath-action-btn').textContent = 'Pausieren';
+    runBreathing();
+  }
+}
+
+function runBreathing() {
+  breathRunning = true;
+  const t = TECHNIQUES[state.breathingTechnique || 'box'];
+  const circle = document.getElementById('breath-circle');
+
+  function nextPhase() {
+    if (!breathRunning) return;
+    if (breathRound >= breathTotalRounds) {
+      finishBreathing(); return;
+    }
+    const phase = t.phases[breathPhase];
+    document.getElementById('breath-instruction').textContent = phase.l;
+    document.getElementById('breath-round').textContent = `Runde ${breathRound+1} von ${breathTotalRounds}`;
+    document.getElementById('breath-progress').style.width = ((breathRound / breathTotalRounds)*100) + '%';
+
+    // Animate circle
+    circle.style.transition = `all ${phase.d * 0.95}s cubic-bezier(0.4, 0, 0.2, 1)`;
+    if (phase.l === 'Einatmen') {
+      circle.style.transform = 'scale(1.65)';
+      circle.style.boxShadow = '0 0 60px rgba(168,237,234,0.4), 0 0 120px rgba(168,237,234,0.15)';
+      circle.style.background = 'radial-gradient(circle,rgba(168,237,234,0.5),rgba(255,255,255,0.08))';
+    } else if (phase.l === 'Ausatmen') {
+      circle.style.transform = 'scale(0.55)';
+      circle.style.boxShadow = '0 0 10px rgba(255,255,255,0.08)';
+      circle.style.background = 'radial-gradient(circle,rgba(255,255,255,0.06),rgba(255,255,255,0.01))';
+    } else {
+      // Halten – schaue auf vorherige Phase
+      const prevPhase = t.phases[(breathPhase - 1 + t.phases.length) % t.phases.length];
+      if (prevPhase.l === 'Einatmen') {
+        // Halten nach Einatmen → groß bleiben
+        circle.style.transform = 'scale(1.65)';
+        circle.style.boxShadow = '0 0 40px rgba(168,237,234,0.25)';
+        circle.style.background = 'radial-gradient(circle,rgba(168,237,234,0.3),rgba(255,255,255,0.06))';
+      } else {
+        // Halten nach Ausatmen → klein bleiben
+        circle.style.transform = 'scale(0.55)';
+        circle.style.boxShadow = '0 0 10px rgba(255,255,255,0.08)';
+        circle.style.background = 'radial-gradient(circle,rgba(255,255,255,0.06),rgba(255,255,255,0.01))';
+      }
+    }
+
+    let remaining = phase.d;
+    document.getElementById('breath-countdown').textContent = remaining;
+    breathTimer = setInterval(() => {
+      if (!breathRunning) { clearInterval(breathTimer); return; }
+      remaining--;
+      document.getElementById('breath-countdown').textContent = remaining > 0 ? remaining : '';
+      if (remaining <= 0) {
+        clearInterval(breathTimer);
+        breathPhase++;
+        if (breathPhase >= t.phases.length) { breathPhase = 0; breathRound++; }
+        nextPhase();
+      }
+    }, 1000);
+  }
+  nextPhase();
+}
+
+function finishBreathing() {
+  breathRunning = false;
+  const circle = document.getElementById('breath-circle');
+  circle.style.transform = 'scale(1)';
+  document.getElementById('breath-instruction').textContent = '✓';
+  document.getElementById('breath-countdown').textContent = '';
+  document.getElementById('breath-round').textContent = 'Abgeschlossen!';
+  document.getElementById('breath-progress').style.width = '100%';
+  document.getElementById('breath-action-btn').style.display = 'none';
+  document.getElementById('breath-after-wrap').style.display = '';
+  // Replace skip button with save
+  const skipBtn = document.querySelector('#breathing-overlay button:last-child');
+  if (skipBtn) { skipBtn.textContent = 'Speichern & Schließen'; skipBtn.onclick = saveBreathingSession; }
+}
+
+function saveBreathingSession() {
+  const score = parseInt(document.getElementById('breath-after-slider')?.value || 5);
+  if (!state.breathingLog) state.breathingLog = [];
+  state.breathingLog.unshift({ ts: new Date().toISOString(), technique: state.breathingTechnique, score });
+  saveState();
+  closeBreathing();
+  showToast('🫁 Pause abgeschlossen. Gut gemacht!');
+  scheduleBreathing(); // Schedule next
+}
+
+function closeBreathing() {
+  if (breathTimer) clearInterval(breathTimer);
+  breathRunning = false;
+  document.getElementById('breathing-overlay').style.display = 'none';
+  document.getElementById('breath-action-btn').style.display = '';
+  const skipBtn = document.querySelector('#breathing-overlay button:last-child');
+  if (skipBtn) { skipBtn.textContent = 'Überspringen'; skipBtn.onclick = closeBreathing; }
+}
+
+// =====================
 // CONFIRM DIALOG
 // =====================
 function showConfirm(title, msg, onConfirm) {
@@ -3837,6 +4603,7 @@ state.totalPoints = calcPoints();
 saveState();
 renderHome();
 document.getElementById('streak-header-num').textContent = state.streak;
+scheduleBreathing();
 </script>
 <!-- CONFIRM MODAL -->
 <div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;padding:20px;">
