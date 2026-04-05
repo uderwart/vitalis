@@ -28,10 +28,9 @@
     background: var(--bg);
     color: var(--ink);
     min-height: 100vh;
-    padding-bottom: 80px;
+    padding-bottom: 90px;
   }
 
-  /* HEADER */
   header {
     background: var(--accent);
     color: white;
@@ -59,37 +58,92 @@
     gap: 5px;
   }
 
-  /* NAV */
-  nav {
-    display: flex;
-    gap: 4px;
-    padding: 12px 16px;
-    overflow-x: auto;
-    scrollbar-width: none;
+  /* BOTTOM NAV */
+  #bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
     background: var(--card);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 61px;
-    z-index: 99;
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 200;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
   }
-  nav::-webkit-scrollbar { display: none; }
-  nav button {
-    flex-shrink: 0;
-    padding: 8px 16px;
+  #bottom-nav button {
+    flex: 1;
+    padding: 10px 8px 14px;
     border: none;
-    border-radius: 20px;
     background: transparent;
-    color: var(--muted);
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.85rem;
+    font-size: 0.72rem;
     font-weight: 500;
+    color: var(--muted);
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
     transition: all 0.2s;
   }
-  nav button.active {
-    background: var(--accent);
-    color: white;
+  #bottom-nav button .nav-icon { font-size: 1.4rem; line-height: 1; }
+  #bottom-nav button .nav-label { font-size: 0.68rem; }
+  #bottom-nav button.active { color: var(--accent); }
+  #bottom-nav button.active .nav-icon { transform: scale(1.15); }
+
+  /* TILES */
+  .home-tile {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 18px 16px;
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    transition: all 0.18s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
+  .home-tile:active { transform: scale(0.97); }
+  .home-tile .tile-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .home-tile .tile-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .home-tile .tile-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    line-height: 1;
+    margin-top: 4px;
+  }
+  .home-tile .tile-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .home-tile .tile-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    border-radius: 0 0 20px 20px;
+  }
+  .home-tile.wide {
+    grid-column: span 2;
+    min-height: 80px;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+  }
+  .home-tile.wide .tile-icon { margin-bottom: 0; font-size: 2.2rem; }
+  .home-tile.wide .tile-content { flex: 1; }
 
   /* MAIN */
   main { padding: 16px; max-width: 480px; margin: 0 auto; }
@@ -593,18 +647,22 @@
   <div class="streak-badge" id="header-streak">🔥 <span id="streak-header-num">0</span> Tage</div>
 </header>
 
-<nav>
-  <button class="active" onclick="showSection('home')">🏠 Heute</button>
-  <button onclick="showSection('feeling')">😊 Gefühl</button>
-  <button onclick="showSection('water')">💧 Wasser</button>
-  <button onclick="showSection('activity')">🏃 Aktivität</button>
-  <button onclick="showSection('alcohol')">🍷 Alkohol</button>
-  <button onclick="showSection('sweets')">🍬 Süßes</button>
-  <button onclick="showSection('weight')">⚖️ Gewicht</button>
-  <button onclick="showSection('sleep')">🌙 Schlaf</button>
-  <button onclick="showSection('body')">🧘 Körper</button>
-  <button onclick="showSection('verlauf')">📊 Verlauf</button>
-  <button onclick="showSection('rewards')">🏆 Rewards</button>
+<nav id="bottom-nav">
+  <button class="active" onclick="showSection('home')" id="nav-home">
+    <span class="nav-icon">🏠</span><span class="nav-label">Heute</span>
+  </button>
+  <button onclick="showSection('verlauf')" id="nav-verlauf">
+    <span class="nav-icon">📊</span><span class="nav-label">Verlauf</span>
+  </button>
+  <button onclick="showSection('social')" id="nav-social">
+    <span class="nav-icon">❤️</span><span class="nav-label">Kontakte</span>
+  </button>
+  <button onclick="showSection('rewards')" id="nav-rewards">
+    <span class="nav-icon">🏆</span><span class="nav-label">Rewards</span>
+  </button>
+  <button onclick="showSection('about')" id="nav-about">
+    <span class="nav-icon">🌿</span><span class="nav-label">Über</span>
+  </button>
 </nav>
 
 <main>
@@ -612,8 +670,8 @@
 <!-- HOME / HEUTE -->
 <div id="section-home" class="section visible">
 
-  <!-- DANKBARKEIT ABEND CHECK-IN -->
-  <div class="card" id="gratitude-checkin-card" style="display:none;background:linear-gradient(135deg,#2d1b4e,#4a2060);color:white;border:none;">
+  <!-- CHECK-INS -->
+  <div id="gratitude-checkin-card" style="display:none;background:linear-gradient(135deg,#2d1b4e,#4a2060);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
     <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌟 Guten Abend!</div>
     <div style="font-size:0.82rem;opacity:0.8;margin-bottom:12px;">Wofür bist du heute dankbar?</div>
     <textarea id="gratitude-input" placeholder="Heute war ich dankbar für…"
@@ -626,30 +684,26 @@
       <button onclick="logGratitude()" style="padding:8px 18px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Notieren ✓</button>
     </div>
   </div>
-  <div class="card" id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;">
+
+  <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
     <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌙 Guten Morgen!</div>
     <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht?</div>
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px;" id="sleep-checkin-grid"></div>
     <button onclick="skipSleepCheckin()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
   </div>
 
-  <div class="card">
-    <h2 id="home-greeting">Guten Tag! 👋</h2>
-    <div id="today-summary" style="display:flex;flex-direction:column;gap:10px;"></div>
+  <!-- GREETING -->
+  <div style="padding:4px 4px 16px;">
+    <h1 id="home-greeting" style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);"></h1>
+    <div id="home-date" style="font-size:0.82rem;color:var(--muted);margin-top:2px;"></div>
   </div>
-  <div class="card">
-    <h3>Schnell-Log</h3>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="log-btn secondary" style="flex:1;min-width:120px;" onclick="showSection('feeling')">😊 Gefühl</button>
-      <button class="log-btn secondary" style="flex:1;min-width:120px;" onclick="showSection('water')">💧 Wasser</button>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-      <button class="log-btn secondary" style="flex:1;min-width:120px;" onclick="showSection('activity')">🏃 Aktivität</button>
-      <button class="log-btn secondary" style="flex:1;min-width:120px;" onclick="showSection('alcohol')">🍷 Alkohol</button>
-    </div>
-    <div style="margin-top:10px;text-align:center;">
-      <button onclick="resetGratitudeToday()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:0.75rem;color:var(--muted);cursor:pointer;text-decoration:underline;">🌟 Dankbarkeit zurücksetzen</button>
-    </div>
+
+  <!-- KACHELN -->
+  <div id="home-tiles" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;"></div>
+
+  <!-- Reset -->
+  <div style="text-align:center;margin-top:16px;">
+    <button onclick="resetGratitudeToday()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:0.72rem;color:var(--muted);cursor:pointer;text-decoration:underline;">🌟 Dankbarkeit zurücksetzen</button>
   </div>
 </div>
 <div id="section-feeling" class="section">
@@ -1204,6 +1258,124 @@
   </div>
 </div>
 
+<!-- SOZIALE KONTAKTE -->
+<div id="section-social" class="section">
+
+  <div style="padding:4px 4px 16px;">
+    <h1 style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);">❤️ Kontakte</h1>
+    <p style="font-size:0.82rem;color:var(--muted);margin-top:4px;line-height:1.5;">Wer verdient diese Woche deine Aufmerksamkeit? Aufschreiben erhöht die Wahrscheinlichkeit deutlich.</p>
+  </div>
+
+  <!-- Diese Woche -->
+  <div class="card">
+    <h2>Diese Woche</h2>
+    <div id="social-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
+    <p class="small-note" id="social-empty" style="margin-bottom:12px;">Noch niemanden eingetragen.</p>
+
+    <!-- Neuen Kontakt hinzufügen -->
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <input type="text" id="social-name-input" placeholder="Name (z.B. Maria, Papa, Kai…)"
+        style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;">
+      <div style="display:flex;gap:8px;">
+        <select id="social-how-input"
+          style="flex:1;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.88rem;background:white;color:var(--ink);">
+          <option value="Treffen">☕ Treffen</option>
+          <option value="Anruf">📞 Anruf</option>
+          <option value="Nachricht">💬 Nachricht</option>
+          <option value="Brief">✉️ Brief</option>
+        </select>
+        <button onclick="addSocialContact()" class="log-btn" style="padding:10px 18px;white-space:nowrap;">+ Hinzufügen</button>
+      </div>
+    </div>
+    <button class="alc-reset" style="margin-top:10px;" onclick="resetSocialWeek()">Neue Woche starten</button>
+  </div>
+
+  <!-- Warum das wichtig ist -->
+  <div class="card" style="background:linear-gradient(135deg,#fff5f5,#ffe8e8);border-color:transparent;">
+    <h2 style="color:#c0392b;">Warum das zählt</h2>
+    <p style="font-size:0.85rem;line-height:1.6;color:var(--ink);">
+      Die Harvard Study of Adult Development – die längste Wohlbefindensstudie der Geschichte (80+ Jahre) – zeigt: <strong>Qualität der Beziehungen ist der stärkste Prädiktor für Gesundheit und Lebenszufriedenheit.</strong> Stärker als Geld, Fitness oder Erfolg.
+    </p>
+    <p style="font-size:0.78rem;color:var(--muted);margin-top:8px;font-style:italic;">Vaillant & Mukamal, 2001 · Waldinger & Schulz, 2023</p>
+  </div>
+
+</div>
+
+<!-- ÜBER VITALIS -->
+<div id="section-about" class="section">
+
+  <div style="padding:4px 4px 16px;">
+    <h1 style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--ink);">🌿 Über Vitalis</h1>
+    <p style="font-size:0.82rem;color:var(--muted);margin-top:4px;">Warum diese App so aufgebaut ist.</p>
+  </div>
+
+  <div class="card">
+    <h2>Die Philosophie</h2>
+    <p style="font-size:0.88rem;line-height:1.7;color:var(--ink);margin-bottom:12px;">
+      Vitalis basiert auf einer einfachen Idee: <strong>Bewusstsein schlägt Kontrolle.</strong> Wer seinen Körper beobachtet statt ihn zu kontrollieren, entwickelt langfristig gesündere Gewohnheiten als jemand der Kalorien zählt und Regeln befolgt.
+    </p>
+    <p style="font-size:0.88rem;line-height:1.7;color:var(--ink);">
+      Die App misst nicht was du essen darfst, sondern hilft dir wahrzunehmen wie du dich fühlst – vor und nach dem Essen, nach dem Schlafen, nach der Bewegung. Aus diesem Bewusstsein entsteht Veränderung. Von innen, nicht von außen.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Wissenschaftliche Grundlagen</h2>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <div style="border-left:3px solid var(--accent);padding-left:12px;">
+        <div style="font-weight:600;font-size:0.88rem;margin-bottom:3px;">Intuitives Essen</div>
+        <p style="font-size:0.82rem;line-height:1.6;color:var(--muted);">Langfristig führt intuitives Essen häufiger zu stabilem Gewicht als restriktive Ernährung. Der Körper reguliert sich selbst, wenn man lernt seine Signale zu hören.</p>
+        <p style="font-size:0.75rem;color:var(--accent);margin-top:4px;font-style:italic;">Tribole & Resch (1995) · Schaefer & Magnuson, Review 2014</p>
+      </div>
+
+      <div style="border-left:3px solid #457b9d;padding-left:12px;">
+        <div style="font-weight:600;font-size:0.88rem;margin-bottom:3px;">Kleine Gewohnheiten</div>
+        <p style="font-size:0.82rem;line-height:1.6;color:var(--muted);">Kleine, konsistente Handlungen verändern Identität und Verhalten nachhaltiger als große Vorsätze. Ein Streak von 3 Tagen wirkt stärker als ein Monatsplan.</p>
+        <p style="font-size:0.75rem;color:#457b9d;margin-top:4px;font-style:italic;">Clear (2018) · Fogg (2019) · Lally et al., 2010</p>
+      </div>
+
+      <div style="border-left:3px solid var(--accent2);padding-left:12px;">
+        <div style="font-weight:600;font-size:0.88rem;margin-bottom:3px;">Bewegung & Stimmung</div>
+        <p style="font-size:0.82rem;line-height:1.6;color:var(--muted);">Regelmäßige körperliche Aktivität hat nachweislich antidepressive Wirkung und verbessert Kognition, Schlaf und Lebensqualität – unabhängig von Intensität.</p>
+        <p style="font-size:0.75rem;color:var(--accent2);margin-top:4px;font-style:italic;">Blumenthal et al. (2007) · Craft & Perna (2004)</p>
+      </div>
+
+      <div style="border-left:3px solid #4a5568;padding-left:12px;">
+        <div style="font-weight:600;font-size:0.88rem;margin-bottom:3px;">Schlaf als Fundament</div>
+        <p style="font-size:0.82rem;line-height:1.6;color:var(--muted);">Schlafmangel beeinträchtigt Entscheidungsfähigkeit, Stoffwechsel, Immunsystem und emotionale Regulation. Kein Gesundheitsverhalten funktioniert ohne ausreichend Schlaf.</p>
+        <p style="font-size:0.75rem;color:#4a5568;margin-top:4px;font-style:italic;">Walker (2017) · Xie et al. (2013)</p>
+      </div>
+
+      <div style="border-left:3px solid #c9a84c;padding-left:12px;">
+        <div style="font-weight:600;font-size:0.88rem;margin-bottom:3px;">Dankbarkeit</div>
+        <p style="font-size:0.82rem;line-height:1.6;color:var(--muted);">Tägliche Dankbarkeitspraxis verbessert messbar Wohlbefinden, Schlafqualität und soziale Beziehungen. Schon 3 Einträge pro Woche zeigen Wirkung.</p>
+        <p style="font-size:0.75rem;color:#c9a84c;margin-top:4px;font-style:italic;">Emmons & McCullough (2003) · Wood et al. (2010)</p>
+      </div>
+
+      <div style="border-left:3px solid #c0392b;padding-left:12px;">
+        <div style="font-weight:600;font-size:0.88rem;margin-bottom:3px;">Soziale Kontakte</div>
+        <p style="font-size:0.82rem;line-height:1.6;color:var(--muted);">Einsamkeit hat denselben Gesundheitseffekt wie 15 Zigaretten täglich. Qualität der Beziehungen ist der stärkste bekannte Prädiktor für ein langes, gesundes Leben.</p>
+        <p style="font-size:0.75rem;color:#c0392b;margin-top:4px;font-style:italic;">Holt-Lunstad et al. (2015) · Harvard Study of Adult Development (2023)</p>
+      </div>
+
+      <div style="border-left:3px solid #6b8f71;padding-left:12px;">
+        <div style="font-weight:600;font-size:0.88rem;margin-bottom:3px;">Absichten aufschreiben</div>
+        <p style="font-size:0.82rem;line-height:1.6;color:var(--muted);">Das Aufschreiben einer konkreten Absicht (wer, wann, wie) erhöht die Wahrscheinlichkeit der Umsetzung um bis zu 300% – das Prinzip hinter dem Kontakte-Feature.</p>
+        <p style="font-size:0.75rem;color:#6b8f71;margin-top:4px;font-style:italic;">Gollwitzer (1999) · Implementation Intentions</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card" style="text-align:center;padding:24px;">
+    <div style="font-size:2rem;margin-bottom:8px;">🌿</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:8px;">Vitalis</div>
+    <div style="font-size:0.78rem;color:var(--muted);line-height:1.6;">Gebaut mit Bedacht. Keine Werbung.<br>Alle Daten bleiben auf deinem Gerät.</div>
+  </div>
+
+</div>
+
 </main>
 
 <div class="toast" id="toast"></div>
@@ -1289,6 +1461,7 @@ function loadState() {
     sleepCheckinSkipped: null,
     gratitudeLog: [],
     gratitudeSkipped: null,
+    socialContacts: [],  // [{name, how, done, week}]
     selectedActivity: null,
   };
   if (!raw) return defaults;
@@ -1325,10 +1498,9 @@ let feelingAfter = null;
 function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
   document.getElementById('section-' + id).classList.add('visible');
-  document.querySelectorAll('nav button').forEach((b, i) => b.classList.remove('active'));
-  const map = ['home','feeling','water','activity','alcohol','sweets','weight','sleep','body','verlauf','rewards'];
-  const idx = map.indexOf(id);
-  if (idx >= 0) document.querySelectorAll('nav button')[idx].classList.add('active');
+  document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('active'));
+  const navMap = { home: 'nav-home', verlauf: 'nav-verlauf', social: 'nav-social', rewards: 'nav-rewards', about: 'nav-about' };
+  if (navMap[id]) document.getElementById(navMap[id]).classList.add('active');
   if (id === 'home') renderHome();
   if (id === 'feeling') renderFeeling();
   if (id === 'water') renderWater();
@@ -1339,7 +1511,10 @@ function showSection(id) {
   if (id === 'sleep') renderSleep();
   if (id === 'body') renderBody();
   if (id === 'verlauf') renderVerlauf();
+  if (id === 'social') renderSocial();
   if (id === 'rewards') renderRewards();
+  if (id === 'about') {} // static
+  window.scrollTo(0, 0);
 }
 
 // =====================
@@ -1355,109 +1530,152 @@ function showToast(msg) {
 }
 
 // =====================
-// HOME
+// HOME (Kacheln)
 // =====================
 function renderHome() {
   const now = new Date();
   const hour = now.getHours();
+  const todayStr = now.toDateString();
 
-  // Greeting
-  const greeting = hour < 12 ? 'Guten Morgen! ☀️' : hour < 18 ? 'Guten Tag! 👋' : 'Guten Abend! 🌙';
+  // Greeting + date
+  const greeting = hour < 12 ? 'Guten Morgen ☀️' : hour < 18 ? 'Guten Tag 👋' : 'Guten Abend 🌙';
   const greetEl = document.getElementById('home-greeting');
   if (greetEl) greetEl.textContent = greeting;
+  const dateEl = document.getElementById('home-date');
+  if (dateEl) dateEl.textContent = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
 
-  // Sleep check-in: 5–11h morgens
+  // Sleep check-in
   const checkinCard = document.getElementById('sleep-checkin-card');
-  const todayStr = now.toDateString();
-  const loggedToday = state.sleepLog.length > 0 && new Date(state.sleepLog[0].ts).toDateString() === todayStr;
-  const skippedToday = state.sleepCheckinSkipped === todayStr;
+  const sleepLoggedToday = state.sleepLog.length > 0 && new Date(state.sleepLog[0].ts).toDateString() === todayStr;
+  const sleepSkipped = state.sleepCheckinSkipped === todayStr;
+  if (hour >= 5 && hour < 12 && !sleepLoggedToday && !sleepSkipped) {
+    checkinCard.style.display = ''; renderSleepCheckinGrid();
+  } else { checkinCard.style.display = 'none'; }
 
-  if (hour >= 5 && hour < 12 && !loggedToday && !skippedToday) {
-    checkinCard.style.display = '';
-    renderSleepCheckinGrid();
-  } else {
-    checkinCard.style.display = 'none';
-  }
-
-  // Gratitude check-in: 18–23h abends
+  // Gratitude check-in
   const gratitudeCard = document.getElementById('gratitude-checkin-card');
   const gratitudeToday = state.gratitudeLog.length > 0 && new Date(state.gratitudeLog[0].ts).toDateString() === todayStr;
   const gratitudeSkipped = state.gratitudeSkipped === todayStr;
+  gratitudeCard.style.display = (hour >= 18 && hour < 23 && !gratitudeToday && !gratitudeSkipped) ? '' : 'none';
 
-  if (hour >= 18 && hour < 23 && !gratitudeToday && !gratitudeSkipped) {
-    gratitudeCard.style.display = '';
-  } else if (hour >= 18 && hour < 23 && (gratitudeToday || gratitudeSkipped)) {
-    // Bereits erledigt heute – nichts zeigen
-    gratitudeCard.style.display = 'none';
-  } else {
-    gratitudeCard.style.display = 'none';
-  }
-
-  const s = document.getElementById('today-summary');
+  // Data
   const waterPct = Math.min(100, Math.round(state.waterMl / state.waterGoal * 100));
-  const drinkDaysThisWeek = typeof getAlcDrinkDaysCount === 'function' ? getAlcDrinkDaysCount() : 0;
+  const drinkDays = typeof getAlcDrinkDaysCount === 'function' ? getAlcDrinkDaysCount() : 0;
   const challengeActive = typeof isChallengeActive === 'function' && isChallengeActive();
-  s.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;">
-      <span style="font-size:1.4rem;">💧</span>
-      <div style="flex:1;">
-        <div style="font-size:0.85rem;font-weight:600;">Wasser heute</div>
-        <div style="background:var(--border);border-radius:10px;height:6px;margin-top:4px;overflow:hidden;">
-          <div style="height:100%;width:${waterPct}%;background:#457b9d;border-radius:10px;"></div>
-        </div>
-      </div>
-      <span style="font-size:0.82rem;color:var(--muted);">${state.waterMl}/${state.waterGoal} ml</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;">
-      <span style="font-size:1.4rem;">🍷</span>
-      <div>
-        <div style="font-size:0.85rem;font-weight:600;">Alkohol diese Woche</div>
-        <div style="font-size:0.78rem;color:var(--muted);">${challengeActive ? '🏆 Challenge läuft' : drinkDaysThisWeek + ' von ' + state.alcMax + ' Tagen'}</div>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;">
-      <span style="font-size:1.4rem;">🌙</span>
-      <div>
-        <div style="font-size:0.85rem;font-weight:600;">Letzte Nacht</div>
-        <div style="font-size:0.78rem;color:var(--muted);">${state.sleepLog.length > 0 ? (state.sleepLog[0].score !== null ? state.sleepLog[0].score+'/10' : '') + (state.sleepLog[0].hours ? ' · '+state.sleepLog[0].hours+'h' : '') : 'Noch nicht notiert'}</div>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;">
-      <span style="font-size:1.4rem;">🍬</span>
-      <div>
-        <div style="font-size:0.85rem;font-weight:600;">Süssigkeiten heute</div>
-        <div style="font-size:0.78rem;color:var(--muted);">${(() => { const t=new Date().toDateString(); const n=state.sweetsLog.filter(e=>new Date(e.ts).toDateString()===t).length; return n===0?'Nichts geloggt':n+' Portion'+(n>1?'en':''); })()}</div>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;">
-      <span style="font-size:1.4rem;">⚖️</span>
-      <div>
-        <div style="font-size:0.85rem;font-weight:600;">Gewicht</div>
-        <div style="font-size:0.78rem;color:var(--muted);">${state.weightLog.length > 0 ? state.weightLog[0].kg.toFixed(1) + ' kg' : 'Noch nicht eingetragen'}</div>
-      </div>
-    </div>
-    ${challengeActive ? `
-    <div style="padding:10px 14px;background:linear-gradient(135deg,rgba(26,26,46,0.08),rgba(22,33,62,0.08));border-radius:10px;border-left:3px solid #f4c261;">
-      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:2px;">🏆 6-Wochen-Challenge</div>
-      <div style="font-weight:600;font-size:0.88rem;">Tag ${Math.min(Math.floor((new Date()-new Date(state.challenge.startDate))/86400000)+1,42)} von 42 · ${Math.max(0,42-Math.floor((new Date()-new Date(state.challenge.startDate))/86400000))} Tage übrig 🔥</div>
-    </div>` : ''}
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;">
-      <span style="font-size:1.4rem;">🏆</span>
-      <div>
-        <div style="font-size:0.85rem;font-weight:600;">Punkte gesamt</div>
-        <div style="font-size:0.78rem;color:var(--muted);">${state.totalPoints} Punkte · ${state.streak} Tage Streak</div>
-      </div>
-    </div>
-    ${(() => {
-      const todayEntry = state.gratitudeLog.find(e => new Date(e.ts).toDateString() === new Date().toDateString());
-      return todayEntry ? `
-        <div style="padding:10px 14px;background:linear-gradient(135deg,rgba(45,27,78,0.08),rgba(74,32,96,0.08));border-radius:10px;border-left:3px solid #9b59b6;">
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">🌟 Heute dankbar für</div>
-          <div style="font-size:0.85rem;color:var(--ink);font-style:italic;">"${todayEntry.text}"</div>
-        </div>` : '';
-    })()}
-  `;
+  const todayActs = state.activityLog.filter(e => new Date(e.ts).toDateString() === todayStr);
+  const todaySweets = state.sweetsLog.filter(e => new Date(e.ts).toDateString() === todayStr);
+  const lastSleep = state.sleepLog.length > 0 ? state.sleepLog[0] : null;
+  const gratEntry = state.gratitudeLog.find(e => new Date(e.ts).toDateString() === todayStr);
+
+  const tiles = document.getElementById('home-tiles');
+  tiles.innerHTML = '';
+
+  const TILES = [
+    {
+      icon: '💧', label: 'Wasser', section: 'water',
+      color: '#457b9d', bg: 'linear-gradient(135deg,#edf4f8,#d4e8f5)',
+      value: state.waterMl >= state.waterGoal ? '✓ Ziel!' : state.waterMl + ' ml',
+      sub: 'Ziel: ' + state.waterGoal + ' ml',
+      bar: waterPct, barColor: '#457b9d'
+    },
+    {
+      icon: '🏃', label: 'Aktivität', section: 'activity',
+      color: 'var(--accent)', bg: 'linear-gradient(135deg,#eef6f1,#d4ede0)',
+      value: todayActs.length > 0 ? todayActs.length + '×' : '—',
+      sub: todayActs.length > 0 ? todayActs.map(e=>e.name).join(', ') : 'Noch nichts',
+      bar: null
+    },
+    {
+      icon: '🍷', label: 'Alkohol', section: 'alcohol',
+      color: challengeActive ? '#f4c261' : drinkDays > state.alcMax ? 'var(--accent2)' : 'var(--accent)',
+      bg: challengeActive ? 'linear-gradient(135deg,#fdf9ec,#f9eecc)' : 'linear-gradient(135deg,#fdf8f8,#f5e8e8)',
+      value: challengeActive ? '🏆' : drinkDays + '/' + state.alcMax,
+      sub: challengeActive ? 'Challenge läuft' : 'Tage diese Woche',
+      bar: null
+    },
+    {
+      icon: '🍬', label: 'Süssigkeiten', section: 'sweets',
+      color: 'var(--accent2)', bg: 'linear-gradient(135deg,#fdf0ee,#fde0d8)',
+      value: todaySweets.length > 0 ? todaySweets.length + '×' : '—',
+      sub: todaySweets.length > 0 ? todaySweets.map(e=>e.name).slice(0,2).join(', ') : 'Heute nichts',
+      bar: null
+    },
+    {
+      icon: '🌙', label: 'Schlaf', section: 'sleep',
+      color: '#4a5568', bg: 'linear-gradient(135deg,#eeeef5,#dedefa)',
+      value: lastSleep && lastSleep.score !== null ? lastSleep.score + '/10' : '—',
+      sub: lastSleep && lastSleep.hours ? lastSleep.hours + ' Stunden' : 'Letzte Nacht',
+      bar: lastSleep && lastSleep.score ? lastSleep.score * 10 : null,
+      barColor: '#6b7faa'
+    },
+    {
+      icon: '⚖️', label: 'Gewicht', section: 'weight',
+      color: 'var(--accent)', bg: 'linear-gradient(135deg,#eef6f1,#d4ede0)',
+      value: state.weightLog.length > 0 ? state.weightLog[0].kg.toFixed(1) + ' kg' : '—',
+      sub: state.weighDay !== null ? 'Wiegetag: ' + ['So','Mo','Di','Mi','Do','Fr','Sa'][state.weighDay] : 'Trend',
+      bar: null
+    },
+    {
+      icon: '😊', label: 'Gefühl', section: 'feeling',
+      color: '#c9a84c', bg: 'linear-gradient(135deg,#fdf9ec,#f9eecc)',
+      value: (state.feelingLog.length > 0 && new Date(state.feelingLog[0].ts).toDateString() === todayStr)
+        ? (state.feelingLog[0].after !== null ? FEELINGS[state.feelingLog[0].after].emoji : FEELINGS[state.feelingLog[0].before] ? FEELINGS[state.feelingLog[0].before].emoji : '—')
+        : '—',
+      sub: 'Vor & nach Aktivität',
+      bar: null
+    },
+    {
+      icon: '🧘', label: 'Körper', section: 'body',
+      color: '#6b8f71', bg: 'linear-gradient(135deg,#f0f5f0,#dceadc)',
+      value: (state.bodyLog.length > 0 && new Date(state.bodyLog[0].ts).toDateString() === todayStr && state.bodyLog[0].feeling !== null)
+        ? BODY_SCALE[state.bodyLog[0].feeling].emoji : '—',
+      sub: 'Körper-Check',
+      bar: null
+    },
+    {
+      icon: '❤️', label: 'Kontakte', section: 'social',
+      color: '#c0392b', bg: 'linear-gradient(135deg,#fff5f5,#ffe0e0)',
+      value: (() => {
+        const week = getCurrentWeekKey ? getCurrentWeekKey() : '';
+        const wc = (state.socialContacts||[]).filter(c=>c.week===week);
+        const done = wc.filter(c=>c.done).length;
+        return wc.length ? done + '/' + wc.length : '—';
+      })(),
+      sub: (() => {
+        const week = getCurrentWeekKey ? getCurrentWeekKey() : '';
+        const wc = (state.socialContacts||[]).filter(c=>c.week===week);
+        return wc.length ? wc.map(c=>c.name).join(', ') : 'Diese Woche planen';
+      })(),
+      bar: null
+    },
+  ];
+
+  TILES.forEach(t => {
+    const tile = document.createElement('div');
+    tile.className = 'home-tile';
+    tile.style.background = t.bg;
+    tile.style.borderColor = 'transparent';
+    tile.onclick = () => showSection(t.section);
+    tile.innerHTML =
+      '<div>' +
+        '<div class="tile-icon">' + t.icon + '</div>' +
+        '<div class="tile-label">' + t.label + '</div>' +
+        '<div class="tile-value" style="color:' + t.color + ';">' + t.value + '</div>' +
+        '<div class="tile-sub">' + t.sub + '</div>' +
+      '</div>' +
+      (t.bar !== null ? '<div class="tile-bar" style="background:' + (t.barColor||'var(--accent)') + ';width:' + t.bar + '%;"></div>' : '');
+    tiles.appendChild(tile);
+  });
+
+  // Gratitude entry
+  if (gratEntry) {
+    const gt = document.createElement('div');
+    gt.style.cssText = 'grid-column:span 2;padding:14px 16px;background:linear-gradient(135deg,rgba(45,27,78,0.07),rgba(74,32,96,0.07));border-radius:20px;border:1.5px solid rgba(155,89,182,0.2);cursor:pointer;margin-top:0;';
+    gt.innerHTML = '<div style="font-size:0.7rem;color:#9b59b6;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🌟 Heute dankbar für</div><div style="font-size:0.88rem;color:var(--ink);font-style:italic;">&ldquo;' + gratEntry.text + '&rdquo;</div>';
+    tiles.appendChild(gt);
+  }
 }
+
 
 // =====================
 // FEELING
@@ -3518,6 +3736,81 @@ function renderVerlaufList(listId, emptyId, entries, rowFn) {
     div.style.flexWrap = 'wrap';
     div.innerHTML = rowFn(e);
     list.appendChild(div);
+  });
+}
+
+// =====================
+// SOCIAL CONTACTS
+// =====================
+function getCurrentWeekKey() {
+  const d = new Date();
+  const jan1 = new Date(d.getFullYear(), 0, 1);
+  const week = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return d.getFullYear() + '-W' + week;
+}
+
+function renderSocial() {
+  const list  = document.getElementById('social-list');
+  const empty = document.getElementById('social-empty');
+  const week  = getCurrentWeekKey();
+  const weekContacts = (state.socialContacts || []).filter(c => c.week === week);
+
+  list.innerHTML = '';
+  if (!weekContacts.length) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  weekContacts.forEach((c, idx) => {
+    const realIdx = state.socialContacts.indexOf(c);
+    const div = document.createElement('div');
+    div.style.cssText = `display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:2px solid ${c.done ? 'var(--accent)' : 'var(--border)'};background:${c.done ? '#eef6f1' : 'white'};transition:all 0.2s;`;
+    div.innerHTML = `
+      <button onclick="toggleSocialDone(${realIdx})"
+        style="width:28px;height:28px;border-radius:50%;border:2px solid ${c.done ? 'var(--accent)' : 'var(--border)'};background:${c.done ? 'var(--accent)' : 'white'};color:white;font-size:0.9rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+        ${c.done ? '✓' : ''}
+      </button>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:0.92rem;${c.done ? 'text-decoration:line-through;color:var(--muted);' : ''}">${c.name}</div>
+        <div style="font-size:0.75rem;color:var(--muted);">${c.how}</div>
+      </div>
+      <button onclick="deleteSocialContact(${realIdx})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0;">✕</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function addSocialContact() {
+  const name = document.getElementById('social-name-input').value.trim();
+  const how  = document.getElementById('social-how-input').value;
+  if (!name) { showToast('Bitte einen Namen eingeben.'); return; }
+  if (!state.socialContacts) state.socialContacts = [];
+  state.socialContacts.push({ name, how, done: false, week: getCurrentWeekKey(), ts: new Date().toISOString() });
+  document.getElementById('social-name-input').value = '';
+  saveState();
+  renderSocial();
+  showToast('❤️ ' + name + ' hinzugefügt.');
+}
+
+function toggleSocialDone(i) {
+  state.socialContacts[i].done = !state.socialContacts[i].done;
+  saveState();
+  renderSocial();
+  if (state.socialContacts[i].done) showToast('❤️ Gut gemacht!');
+}
+
+function deleteSocialContact(i) {
+  showConfirm('Kontakt entfernen?', 'Diesen Eintrag löschen?', () => {
+    state.socialContacts.splice(i, 1);
+    saveState();
+    renderSocial();
+  });
+}
+
+function resetSocialWeek() {
+  showConfirm('Neue Woche?', 'Die Liste wird für diese Woche zurückgesetzt.', () => {
+    // Keep old entries but mark as old week (they won't show)
+    saveState();
+    renderSocial();
+    showToast('Neue Woche, neue Kontakte! ❤️');
   });
 }
 
