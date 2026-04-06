@@ -245,8 +245,7 @@
     color: var(--accent2);
     border: 2px solid var(--accent2);
   }
-
-  .feeling-history {
+  .confirm-flex.open { display: flex !important; }  .feeling-history {
     margin-top: 14px;
     display: flex;
     flex-direction: column;
@@ -711,9 +710,6 @@
   <button onclick="showSection('verlauf')" id="nav-verlauf">
     <span class="nav-icon">📊</span><span class="nav-label">Verlauf</span>
   </button>
-  <button onclick="showSection('social')" id="nav-social">
-    <span class="nav-icon">❤️</span><span class="nav-label">Kontakte</span>
-  </button>
   <button onclick="showSection('rewards')" id="nav-rewards">
     <span class="nav-icon">🏆</span><span class="nav-label">Rewards</span>
   </button>
@@ -1012,68 +1008,72 @@
   </div>
 </div>
 
-<!-- SÜSSIGKEITEN -->
+<!-- SÜSSIGKEITEN (tagesbasiert wie Alkohol) -->
 <div id="section-sweets" class="section">
-
   <div class="card">
     <h2>Süssigkeiten 🍬</h2>
+    <p class="small-note" style="margin-bottom:14px;">Nicht wie viel – sondern an wie vielen Tagen.</p>
 
-    <!-- Quick-Log Buttons -->
-    <h3>Schnell hinzufügen</h3>
-    <div id="sweets-quick-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
-
-    <!-- Eigene eingeben -->
-    <h3>Eigene Süssigkeit</h3>
-    <div style="display:flex;gap:8px;margin-bottom:8px;">
-      <input type="text" id="sweets-custom-name" placeholder="Name (z.B. Muffin)"
-        style="flex:2;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
-      <input type="number" id="sweets-custom-kcal" placeholder="kcal" min="0" max="2000"
-        style="flex:1;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;text-align:center;">
-      <button onclick="logCustomSweet()" style="padding:8px 12px;background:var(--accent2);color:white;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">+</button>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+      <button class="chip active" id="swchip-heute"     onclick="selectSweetsDate('heute')">📅 Heute</button>
+      <button class="chip"        id="swchip-gestern"   onclick="selectSweetsDate('gestern')">Gestern</button>
+      <button class="chip"        id="swchip-vorgestern" onclick="selectSweetsDate('vorgestern')">Vorgestern</button>
     </div>
-    <p class="small-note">kcal ist optional – nur zur Orientierung.</p>
-  </div>
 
-  <!-- Tages- & Wochenübersicht -->
-  <div class="card">
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;margin-bottom:14px;">
-      <div>
-        <div id="sweets-today-count" style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent2);">0</div>
-        <div style="font-size:0.72rem;color:var(--muted);">Heute (Port.)</div>
+    <h3 style="margin-bottom:8px;">Diese Woche</h3>
+    <div id="sweets-week-dots" style="display:flex;gap:6px;margin-bottom:6px;"></div>
+    <div id="sweets-week-status" style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;"></div>
+
+    <div style="display:flex;gap:8px;">
+      <button onclick="toggleSweetsToday(true)" id="sweets-yes-btn"
+        style="flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.15s;">
+        🍬 Gehabt
+      </button>
+      <button onclick="toggleSweetsToday(false)" id="sweets-no-btn"
+        style="flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.15s;">
+        ✅ Keins
+      </button>
+    </div>
+
+    <hr class="divider">
+
+    <div class="alc-settings">
+      <div class="mini-field">
+        <label>Max. Tage / Woche</label>
+        <input type="number" id="sweets-max-input" value="3" min="1" max="7" onchange="setSweetsMax(this.value)">
       </div>
-      <div>
-        <div id="sweets-today-kcal" style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent2);">0</div>
-        <div style="font-size:0.72rem;color:var(--muted);">Heute (kcal)</div>
-      </div>
-      <div>
-        <div id="sweets-week-count" style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--muted);">0</div>
-        <div style="font-size:0.72rem;color:var(--muted);">Woche (Port.)</div>
+      <div class="mini-field">
+        <label>Joker / Monat</label>
+        <input type="number" id="sweets-joker-input" value="2" min="0" max="4" onchange="setSweetsJokerMax(this.value)">
       </div>
     </div>
+    <button class="alc-reset" style="margin-top:8px;" onclick="resetSweetsWeek()">Woche zurücksetzen</button>
+  </div>
+</div>
 
-    <!-- Wochenlimit -->
-    <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--muted);margin-bottom:4px;">
-      <span>Wochenlimit</span>
-      <span id="sweets-week-pct"></span>
-    </div>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar" id="sweets-week-bar" style="background:linear-gradient(90deg,var(--accent2),#f4a261);"></div>
-    </div>
-    <div class="goal-row" style="margin-top:10px;">
-      <label>Max. Portionen/Woche:</label>
-      <input type="number" id="sweets-week-max" value="7" min="1" max="50"
-        style="width:60px;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.9rem;text-align:center;"
-        onchange="setSweetsMax(this.value)">
+<!-- ERNÄHRUNG (kombiniert) -->
+<div id="section-nutrition" class="section">
+  <div style="padding:4px 4px 16px;">
+    <h1 style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);">🥗 Ernährung</h1>
+  </div>
+  <div class="card" style="cursor:pointer;" onclick="showSection('alcohol')">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h2 style="margin-bottom:4px;">🍷 Alkohol</h2>
+        <div id="nutrition-alc-status" style="font-size:0.82rem;color:var(--muted);"></div>
+      </div>
+      <span style="color:var(--muted);font-size:1.2rem;">›</span>
     </div>
   </div>
-
-  <!-- Verlauf heute -->
-  <div class="card">
-    <h2>Heute</h2>
-    <div id="sweets-today-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-    <p class="small-note" id="sweets-today-empty">Heute noch nichts geloggt. 💪</p>
+  <div class="card" style="cursor:pointer;" onclick="showSection('sweets')">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h2 style="margin-bottom:4px;">🍬 Süssigkeiten</h2>
+        <div id="nutrition-sweets-status" style="font-size:0.82rem;color:var(--muted);"></div>
+      </div>
+      <span style="color:var(--muted);font-size:1.2rem;">›</span>
+    </div>
   </div>
-
 </div>
 
 <!-- GEWICHT -->
@@ -1370,7 +1370,7 @@
   </div>
 
   <div class="card">
-    <h2>Meine Belohnungen 🎁</h2>
+    <h2>Meine Punkte 🎁</h2>
     <p class="small-note" style="margin-bottom:12px;">Definiere persönliche Ziele, die du dir gönnst wenn du Punkte erreichst.</p>
     <div id="custom-rewards-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
     <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
@@ -1386,6 +1386,17 @@
       </div>
       <button onclick="addCustomReward()" style="padding:8px 14px;background:var(--gold);color:white;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;">+ Hinzufügen</button>
     </div>
+  </div>
+
+  <!-- GEMEINSAME BELOHNUNGEN -->
+  <div class="card" style="background:linear-gradient(135deg,#fdf9ec,#f9eecc);border-color:transparent;">
+    <h2 style="color:#a07800;">🏆 Gemeinsame Belohnungen</h2>
+    <p style="font-size:0.85rem;color:var(--muted);line-height:1.5;margin-bottom:14px;">Eure kombinierten Punkte – für Belohnungen die ihr zusammen einlöst.</p>
+    <a id="shared-rewards-link" href="https://uderwart.github.io/vitalis-rewards" target="_blank"
+      style="display:block;padding:13px;background:#f4c261;color:white;border-radius:12px;text-align:center;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:700;text-decoration:none;">
+      🏆 Gemeinsame Belohnungen öffnen →
+    </a>
+    <p style="font-size:0.72rem;color:var(--muted);text-align:center;margin-top:8px;">Noch nicht verfügbar – kommt bald</p>
   </div>
 
   <div class="card">
@@ -1518,6 +1529,45 @@
     <h1 style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);">⚙️ Einstellungen</h1>
   </div>
 
+  <!-- PROFIL -->
+  <div class="card">
+    <h2>👤 Profil</h2>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;">Name</label>
+        <input type="text" id="profile-name" placeholder="Dein Name"
+          style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;"
+          onchange="saveProfile()">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;">Geburtsdatum</label>
+          <input type="date" id="profile-birthdate"
+            style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;"
+            onchange="saveProfile()">
+        </div>
+        <div>
+          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;">Geschlecht</label>
+          <select id="profile-gender"
+            style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;background:white;color:var(--ink);"
+            onchange="saveProfile()">
+            <option value="">—</option>
+            <option value="m">Männlich</option>
+            <option value="f">Weiblich</option>
+            <option value="d">Divers</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KONTAKTE -->
+  <div class="card">
+    <h2>❤️ Soziale Kontakte</h2>
+    <p class="small-note" style="margin-bottom:10px;">Wöchentliche Kontakt-Intentions-Liste</p>
+    <button class="log-btn secondary" onclick="showSection('social')">→ Kontakte öffnen</button>
+  </div>
+
   <div class="card">
     <h2>🫁 Achtsamkeitspausen</h2>
     <p class="small-note" style="margin-bottom:16px;line-height:1.5;">Solange die App offen ist, erscheint zu zufälligen Zeiten eine Atemübung.</p>
@@ -1571,6 +1621,83 @@
 
       <button class="log-btn secondary" onclick="triggerBreathingNow()">🫁 Jetzt starten (Test)</button>
     </div>
+  </div>
+
+  <!-- BUG REPORT -->
+  <div class="card">
+    <h2>🐛 Bug melden</h2>
+    <p class="small-note" style="margin-bottom:12px;line-height:1.5;">Was hat nicht funktioniert? Kurz beschreiben – wird lokal gespeichert.</p>
+    <textarea id="bug-text" placeholder="z.B. Wasser-Ziel wurde nicht gezählt…"
+      style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:80px;background:var(--bg);color:var(--ink);margin-bottom:8px;"></textarea>
+    <div style="display:flex;gap:8px;margin-bottom:6px;">
+      <select id="bug-device" style="flex:1;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;background:white;color:var(--ink);">
+        <option value="iPhone">📱 iPhone</option>
+        <option value="Android">📱 Android</option>
+        <option value="Desktop">💻 Desktop</option>
+      </select>
+      <select id="bug-severity" style="flex:1;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;background:white;color:var(--ink);">
+        <option value="minor">🟡 Minor</option>
+        <option value="major">🔴 Major</option>
+        <option value="idea">💡 Idee</option>
+      </select>
+    </div>
+    <button class="log-btn" onclick="submitBug()" style="margin-bottom:16px;">Bug speichern</button>
+
+    <!-- Bug list -->
+    <div id="bug-list"></div>
+  </div>
+
+  <!-- VERSION & ABOUT -->
+  <div class="card" style="text-align:center;padding:20px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:4px;">🌿 Vitalis</div>
+    <div style="font-size:0.82rem;color:var(--muted);">Version <strong id="app-version">1.0.0</strong></div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;margin-bottom:12px;">Alle Daten lokal auf deinem Gerät</div>
+    <button class="log-btn secondary" onclick="showSection('about')" style="width:auto;padding:8px 20px;">🌿 Über Vitalis & Quellen</button>
+  </div>
+</div>
+
+<!-- ACHTSAMKEIT -->
+<div id="section-mindfulness" class="section">
+
+  <div style="padding:4px 4px 16px;">
+    <h1 style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);">🫁 Achtsamkeit</h1>
+    <p style="font-size:0.82rem;color:var(--muted);margin-top:4px;">Atmen · Meditieren · Zur Ruhe kommen</p>
+  </div>
+
+  <div class="card">
+    <h2>Übungen</h2>
+    <div class="activity-list" id="mindfulness-list"></div>
+    <hr class="divider">
+    <h3>Eigene hinzufügen</h3>
+    <div class="add-activity-form">
+      <input type="text" id="new-mindfulness-name" placeholder="z.B. Body Scan, Visualisierung…">
+      <input type="number" id="new-mindfulness-min" placeholder="Min" min="1" max="120" style="width:70px;">
+      <button onclick="addMindfulnessExercise()">+</button>
+    </div>
+    <hr class="divider">
+
+    <!-- Link für gewählte Übung -->
+    <div id="mindfulness-link-area" style="display:none;margin-bottom:12px;">
+      <a id="mindfulness-link-btn" href="#" target="_blank"
+        style="display:block;padding:12px 16px;background:var(--bg);border-radius:12px;border:2px solid var(--border);font-size:0.88rem;font-weight:600;color:#457b9d;text-decoration:none;word-break:break-all;"></a>
+    </div>
+
+    <h3>Wann war das?</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+      <button class="chip active" id="mchip-heute"     onclick="selectMindfulnessDate('heute')">📅 Heute</button>
+      <button class="chip"        id="mchip-gestern"   onclick="selectMindfulnessDate('gestern')">Gestern</button>
+      <button class="chip"        id="mchip-vorgestern" onclick="selectMindfulnessDate('vorgestern')">Vorgestern</button>
+    </div>
+    <div style="font-size:0.78rem;color:var(--muted);margin:8px 0 12px;padding:8px 12px;background:var(--bg);border-radius:8px;" id="mindfulness-time-preview">
+      Bitte Übung und Zeitpunkt wählen.
+    </div>
+    <button class="log-btn" id="mindfulness-log-btn" onclick="logMindfulness()" disabled style="opacity:0.4;cursor:not-allowed;">✅ Übung loggen (+Punkte)</button>
+  </div>
+
+  <div class="card">
+    <h2>Heute geloggt</h2>
+    <div id="mindfulness-log-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="mindfulness-empty">Noch nichts geloggt.</p>
   </div>
 </div>
 
@@ -1700,6 +1827,7 @@ function loadState() {
     waterMl: 0,
     waterGoal: 2000,
     waterDays: 0,
+    lastWaterDate: null,
     alcMax: 3,         // Max Tage pro Woche
     jokerMax: 2,       // Joker pro Monat
     jokersUsed: 0,     // Joker diese Woche genutzt
@@ -1720,8 +1848,9 @@ function loadState() {
     heightCm: null,
     weighDay: null,
     customRewards: [],
-    sweetsLog: [],
-    sweetsWeekMax: 7,
+    sweetsMax: 3,
+    sweetsJokerMax: 2,
+    sweetsDaysLog: [],
     bodyLog: [],
     sleepLog: [],
     sleepCheckinSkipped: null,
@@ -1735,6 +1864,11 @@ function loadState() {
     breathingWindowStart: 10,
     breathingWindowEnd: 17,
     breathingLog: [],
+    bugReports: [],
+    profile: { name: '', birthdate: '', gender: '' },
+    mindfulnessExercises: null, // null = use defaults
+    mindfulnessLog: [],
+    selectedMindfulness: null,
     selectedActivity: null,
   };
   if (!raw) return defaults;
@@ -1746,7 +1880,29 @@ function saveState() {
   localStorage.setItem('vitalis_state', JSON.stringify(state));
 }
 
+// Daily water reset
+function checkDailyWaterReset() {
+  const todayStr = new Date().toDateString();
+  if (state.lastWaterDate && state.lastWaterDate !== todayStr) {
+    state.waterMl = 0;
+    showToast('💧 Neuer Tag – Wasserzähler zurückgesetzt.');
+  }
+  state.lastWaterDate = todayStr;
+  saveState();
+}
+
+// Check every minute if day has changed
+setInterval(() => {
+  const todayStr = new Date().toDateString();
+  if (state.lastWaterDate && state.lastWaterDate !== todayStr) {
+    checkDailyWaterReset();
+    renderHome();
+    if (document.getElementById('section-water')?.classList.contains('visible')) renderWater();
+  }
+}, 60000);
+
 let state = loadState();
+checkDailyWaterReset();
 
 // Migration: update old 'Spaziergang' to steps-based 'Gehen'
 if (state.activities) {
@@ -1772,7 +1928,7 @@ function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
   document.getElementById('section-' + id).classList.add('visible');
   document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('active'));
-  const navMap = { home: 'nav-home', verlauf: 'nav-verlauf', social: 'nav-social', rewards: 'nav-rewards', about: 'nav-about', settings: 'nav-settings' };
+  const navMap = { home: 'nav-home', verlauf: 'nav-verlauf', rewards: 'nav-rewards', about: 'nav-about', settings: 'nav-settings' };
   if (navMap[id]) document.getElementById(navMap[id]).classList.add('active');
   if (id === 'home') renderHome();
   if (id === 'feeling') renderFeeling();
@@ -1780,11 +1936,13 @@ function showSection(id) {
   if (id === 'activity') renderActivities();
   if (id === 'alcohol') renderAlcohol();
   if (id === 'sweets') renderSweets();
+  if (id === 'nutrition') renderNutrition();
   if (id === 'weight') renderWeight();
   if (id === 'sleep') renderSleep();
   if (id === 'body') renderBody();
   if (id === 'verlauf') renderVerlauf();
   if (id === 'social') renderSocial();
+  if (id === 'mindfulness') renderMindfulness();
   if (id === 'rewards') renderRewards();
   if (id === 'settings') renderSettings();
   if (id === 'about') {} // static
@@ -1812,7 +1970,8 @@ function renderHome() {
   const todayStr = now.toDateString();
 
   // Greeting + date
-  const greeting = hour < 12 ? 'Guten Morgen ☀️' : hour < 18 ? 'Guten Tag 👋' : 'Guten Abend 🌙';
+  const name = state.profile?.name ? ', ' + state.profile.name : '';
+  const greeting = hour < 12 ? 'Guten Morgen' + name + ' ☀️' : hour < 18 ? 'Guten Tag' + name + ' 👋' : 'Guten Abend' + name + ' 🌙';
   const greetEl = document.getElementById('home-greeting');
   if (greetEl) greetEl.textContent = greeting;
   const dateEl = document.getElementById('home-date');
@@ -1860,18 +2019,22 @@ function renderHome() {
       bar: null
     },
     {
-      icon: '🍷', label: 'Alkohol', section: 'alcohol',
-      color: challengeActive ? '#f4c261' : drinkDays > state.alcMax ? 'var(--accent2)' : 'var(--accent)',
-      bg: challengeActive ? 'linear-gradient(135deg,#fdf9ec,#f9eecc)' : 'linear-gradient(135deg,#fdf8f8,#f5e8e8)',
-      value: challengeActive ? '🏆' : drinkDays + '/' + state.alcMax,
-      sub: challengeActive ? 'Challenge läuft' : 'Tage diese Woche',
-      bar: null
-    },
-    {
-      icon: '🍬', label: 'Süssigkeiten', section: 'sweets',
-      color: 'var(--accent2)', bg: 'linear-gradient(135deg,#fdf0ee,#fde0d8)',
-      value: todaySweets.length > 0 ? todaySweets.length + '×' : '—',
-      sub: todaySweets.length > 0 ? todaySweets.map(e=>e.name).slice(0,2).join(', ') : 'Heute nichts',
+      icon: '🥗', label: 'Ernährung', section: 'nutrition',
+      color: 'var(--accent)', bg: 'linear-gradient(135deg,#eef6f1,#d4ede0)',
+      value: (() => {
+        const alcToday = (state.alcDaysLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        const swToday  = (state.sweetsDaysLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        if (!alcToday && !swToday) return '—';
+        const parts = [];
+        if (alcToday) parts.push(alcToday.drank ? '🍷' : '✓');
+        if (swToday)  parts.push(swToday.had    ? '🍬' : '✓');
+        return parts.join(' ');
+      })(),
+      sub: (() => {
+        const drinkDays = typeof getAlcDrinkDaysCount === 'function' ? getAlcDrinkDaysCount() : 0;
+        const sweetsDays = getSweetsDrinkDaysCount ? getSweetsDrinkDaysCount() : 0;
+        return `Alkohol ${drinkDays}/${state.alcMax||3} · Süss ${sweetsDays}/${state.sweetsMax||3}`;
+      })(),
       bar: null
     },
     {
@@ -1919,6 +2082,19 @@ function renderHome() {
         const week = getCurrentWeekKey ? getCurrentWeekKey() : '';
         const wc = (state.socialContacts||[]).filter(c=>c.week===week);
         return wc.length ? wc.map(c=>c.name).join(', ') : 'Diese Woche planen';
+      })(),
+      bar: null
+    },
+    {
+      icon: '🪷', label: 'Achtsamkeit', section: 'mindfulness',
+      color: '#5b7fa6', bg: 'linear-gradient(135deg,#eef2f8,#d8e4f0)',
+      value: (() => {
+        const ml = (state.mindfulnessLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+        return ml.length > 0 ? ml.length + '×' : '—';
+      })(),
+      sub: (() => {
+        const ml = (state.mindfulnessLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+        return ml.length > 0 ? ml.map(e=>e.name).join(', ') : 'Atmen & Meditieren';
       })(),
       bar: null
     },
@@ -2123,7 +2299,7 @@ function setWaterGoal(v) {
 
 function resetWater() {
   state.waterMl = 0;
-  state.waterDays = 0;
+  state.lastWaterDate = new Date().toDateString();
   saveState();
   renderWater();
   showToast('Wasser-Tracker zurückgesetzt.');
@@ -2163,6 +2339,10 @@ function renderActivities() {
     `;
 
     div.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:2px;margin-right:4px;">
+        <button onclick="moveActivity(event,${i},-1)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.7rem;padding:1px 4px;line-height:1;" ${i===0?'disabled':''}>▲</button>
+        <button onclick="moveActivity(event,${i},1)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.7rem;padding:1px 4px;line-height:1;" ${i===state.activities.length-1?'disabled':''}>▼</button>
+      </div>
       <span class="activity-icon" onclick="selectActivity(${i})" style="cursor:pointer;">${a.icon || '🏃'}</span>
       <div class="activity-info" onclick="selectActivity(${i})" style="cursor:pointer;flex:1;">
         <div class="name">${a.name}</div>
@@ -2177,11 +2357,23 @@ function renderActivities() {
         </div>
       </div>
       <div class="check" onclick="selectActivity(${i})" style="cursor:pointer;">${state.selectedActivity === i ? '✓' : ''}</div>
-      ${a.custom ? `<button class="del-activity" onclick="deleteActivity(event,${i})">✕</button>` : ''}
+      <button class="del-activity" onclick="deleteActivity(event,${i})">✕</button>
     `;
     list.appendChild(div);
   });
   renderActivityLog();
+}
+
+function moveActivity(e, i, dir) {
+  e.stopPropagation();
+  const arr = state.activities;
+  const j = i + dir;
+  if (j < 0 || j >= arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  if (state.selectedActivity === i) state.selectedActivity = j;
+  else if (state.selectedActivity === j) state.selectedActivity = i;
+  saveState();
+  renderActivities();
 }
 
 function updateActivityDuration(event, i) {
@@ -2268,16 +2460,14 @@ function deleteActivity(e, i) {
   e.stopPropagation();
   showConfirm(
     'Aktivität löschen?',
-    'Diese Aktivität löschen? Dein Streak wird zurückgesetzt.',
+    'Diese Aktivität entfernen? Sie kann über „Eigene hinzufügen" wiederhergestellt werden.',
     () => {
       state.activities.splice(i, 1);
       if (state.selectedActivity === i) state.selectedActivity = null;
-      state.streak = 0;
-      state.lastActiveDate = null;
-      document.getElementById('streak-header-num').textContent = 0;
+      else if (state.selectedActivity > i) state.selectedActivity--;
       saveState();
       renderActivities();
-      showToast('Aktivität gelöscht – Streak zurückgesetzt.');
+      showToast('Aktivität gelöscht.');
     }
   );
 }
@@ -2741,12 +2931,16 @@ function startChallenge() {
     }
   }
 
+  // Parse date safely (avoid UTC timezone shift on iOS)
+  const [y, m, d] = dateVal.split('-').map(Number);
+  const startDate = new Date(y, m - 1, d, 12, 0, 0); // noon local time
+
   showConfirm(
     '🏆 Challenge starten?',
     '42 Tage ohne Alkohol. Kein Joker, keine Ausnahme. Bist du bereit?',
     () => {
       state.challenge = {
-        startDate: new Date(dateVal).toISOString(),
+        startDate: startDate.toISOString(),
         log: [],
         completed: false,
         aborted: false,
@@ -3107,99 +3301,113 @@ const DEFAULT_SWEETS = [
   { icon:'🧁', name:'Muffin',     kcal:280 },
 ];
 
+// =====================
+// NUTRITION (combined)
+// =====================
+function renderNutrition() {
+  const drinkDays = typeof getAlcDrinkDaysCount === 'function' ? getAlcDrinkDaysCount() : 0;
+  const sweetsDays = getSweetsDrinkDaysCount();
+  const el1 = document.getElementById('nutrition-alc-status');
+  const el2 = document.getElementById('nutrition-sweets-status');
+  if (el1) el1.textContent = `${drinkDays} von ${state.alcMax||3} Tagen diese Woche`;
+  if (el2) el2.textContent = `${sweetsDays} von ${state.sweetsMax||3} Tagen diese Woche`;
+}
+
+// =====================
+// SWEETS (tagesbasiert)
+// =====================
+function getSweetsWeekStart() {
+  const d = new Date(); d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return d;
+}
+
+function getSweetsDrinkDaysCount() {
+  const weekStart = getSweetsWeekStart();
+  return (state.sweetsDaysLog||[]).filter(e => new Date(e.date) >= weekStart && e.had).length;
+}
+
 function renderSweets() {
-  document.getElementById('sweets-week-max').value = state.sweetsWeekMax;
+  const max = state.sweetsMax || 3;
+  document.getElementById('sweets-max-input').value = max;
+  document.getElementById('sweets-joker-input').value = state.sweetsJokerMax || 2;
 
-  // Quick-log buttons
-  const qgrid = document.getElementById('sweets-quick-grid');
-  qgrid.innerHTML = '';
-  DEFAULT_SWEETS.forEach(s => {
-    const btn = document.createElement('button');
-    btn.style.cssText = 'padding:10px 6px;border:2px solid var(--border);border-radius:12px;background:white;cursor:pointer;transition:all 0.15s;font-family:"DM Sans",sans-serif;';
-    btn.innerHTML = `<div style="font-size:1.5rem;">${s.icon}</div><div style="font-size:0.72rem;font-weight:600;color:var(--ink);margin-top:2px;">${s.name}</div><div style="font-size:0.68rem;color:var(--muted);">${s.kcal} kcal</div>`;
-    btn.onmouseenter = () => btn.style.borderColor = 'var(--accent2)';
-    btn.onmouseleave = () => btn.style.borderColor = 'var(--border)';
-    btn.onclick = () => logSweet(s.name, s.kcal, s.icon);
-    qgrid.appendChild(btn);
-  });
+  // Week dots Mo-So
+  const weekStart = getSweetsWeekStart();
+  const dots = document.getElementById('sweets-week-dots');
+  const days = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+  dots.innerHTML = '';
+  for (let d = 0; d < 7; d++) {
+    const day = new Date(weekStart); day.setDate(weekStart.getDate() + d);
+    const entry = (state.sweetsDaysLog||[]).find(e => new Date(e.date).toDateString() === day.toDateString());
+    const dot = document.createElement('div');
+    const isToday = day.toDateString() === new Date().toDateString();
+    const isFuture = day > new Date();
+    const color = !entry ? (isFuture?'var(--bg)':'var(--border)') : entry.had ? 'var(--accent2)' : 'var(--accent)';
+    dot.style.cssText = `width:34px;height:34px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:600;color:white;border:${isToday?'2px solid var(--ink)':'2px solid transparent'};`;
+    dot.textContent = days[d];
+    dots.appendChild(dot);
+  }
 
-  updateSweetsStats();
-}
+  const sweetsDays = getSweetsDrinkDaysCount();
+  const status = document.getElementById('sweets-week-status');
+  status.textContent = `${sweetsDays} von ${max} Tagen – ${sweetsDays <= max ? '👍 Im Limit' : '⚠️ Limit überschritten'}`;
 
-function updateSweetsStats() {
-  const today = new Date().toDateString();
-  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 6);
-
-  const todayLog  = state.sweetsLog.filter(e => new Date(e.ts).toDateString() === today);
-  const weekLog   = state.sweetsLog.filter(e => new Date(e.ts) >= weekAgo);
-
-  const todayKcal = todayLog.reduce((s, e) => s + (e.kcal || 0), 0);
-  const weekCount = weekLog.length;
-
-  document.getElementById('sweets-today-count').textContent = todayLog.length;
-  document.getElementById('sweets-today-kcal').textContent  = todayKcal;
-  document.getElementById('sweets-week-count').textContent  = weekCount;
-
-  const pct = Math.min(100, Math.round(weekCount / state.sweetsWeekMax * 100));
-  document.getElementById('sweets-week-bar').style.width = pct + '%';
-  document.getElementById('sweets-week-bar').style.background =
-    pct >= 100 ? 'var(--accent2)' : 'linear-gradient(90deg,var(--accent2),#f4a261)';
-  document.getElementById('sweets-week-pct').textContent = `${weekCount} / ${state.sweetsWeekMax} Portionen`;
-
-  // Today list
-  const list  = document.getElementById('sweets-today-list');
-  const empty = document.getElementById('sweets-today-empty');
-  list.innerHTML = '';
-  if (!todayLog.length) { empty.style.display = ''; return; }
-  empty.style.display = 'none';
-  [...todayLog].reverse().forEach((e, ri) => {
-    const idx = state.sweetsLog.indexOf(e);
-    const d   = new Date(e.ts);
-    const time = d.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
-    const div = document.createElement('div');
-    div.className = 'activity-log-entry';
-    div.innerHTML = `
-      <span>${e.icon || '🍬'} ${e.name}</span>
-      <span style="color:var(--muted);font-size:0.78rem;">${e.kcal ? e.kcal+' kcal' : '–'}</span>
-      <span style="color:var(--muted);font-size:0.78rem;">${time}</span>
-      <button onclick="deleteSweetEntry(${idx})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;">✕</button>
-    `;
-    list.appendChild(div);
-  });
-}
-
-function logSweet(name, kcal, icon) {
-  state.sweetsLog.unshift({ name, kcal, icon, ts: new Date().toISOString() });
-  saveState();
-  updateSweetsStats();
-  const weekLog = state.sweetsLog.filter(e => new Date(e.ts) >= (() => { const d=new Date(); d.setDate(d.getDate()-6); return d; })());
-  if (weekLog.length > state.sweetsWeekMax) {
-    showToast(`⚠️ ${name} – Wochenlimit überschritten!`);
-  } else {
-    showToast(`${icon} ${name} geloggt.`);
+  // Button states
+  const todayStr = new Date().toDateString();
+  const todayEntry = (state.sweetsDaysLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+  const yesBtn = document.getElementById('sweets-yes-btn');
+  const noBtn  = document.getElementById('sweets-no-btn');
+  if (yesBtn) {
+    yesBtn.style.background = todayEntry?.had ? 'var(--accent2)' : 'white';
+    yesBtn.style.color      = todayEntry?.had ? 'white' : '';
+    yesBtn.style.borderColor= todayEntry?.had ? 'var(--accent2)' : 'var(--border)';
+  }
+  if (noBtn) {
+    noBtn.style.background = (todayEntry && !todayEntry.had) ? 'var(--accent)' : 'white';
+    noBtn.style.color      = (todayEntry && !todayEntry.had) ? 'white' : '';
+    noBtn.style.borderColor= (todayEntry && !todayEntry.had) ? 'var(--accent)' : 'var(--border)';
   }
 }
 
-function logCustomSweet() {
-  const name = document.getElementById('sweets-custom-name').value.trim();
-  const kcal = parseInt(document.getElementById('sweets-custom-kcal').value) || 0;
-  if (!name) { showToast('Bitte Name eingeben.'); return; }
-  logSweet(name, kcal || null, '🍬');
-  document.getElementById('sweets-custom-name').value = '';
-  document.getElementById('sweets-custom-kcal').value = '';
+function selectSweetsDate(key) {
+  ['heute','gestern','vorgestern'].forEach(k => {
+    const el = document.getElementById('swchip-' + k);
+    if (el) el.classList.toggle('active', k === key);
+  });
+}
+
+function toggleSweetsToday(had) {
+  const key = document.getElementById('swchip-gestern')?.classList.contains('active') ? 'gestern'
+    : document.getElementById('swchip-vorgestern')?.classList.contains('active') ? 'vorgestern' : 'heute';
+  const targetDate = getDateFromKey(key);
+  const targetStr  = targetDate.toDateString();
+  if (!state.sweetsDaysLog) state.sweetsDaysLog = [];
+  const existing = state.sweetsDaysLog.find(e => new Date(e.date).toDateString() === targetStr);
+  if (existing) { existing.had = had; }
+  else { targetDate.setHours(12,0,0,0); state.sweetsDaysLog.push({ date: targetDate.toISOString(), had }); }
+  saveState();
+  renderSweets();
+  const label = targetStr === new Date().toDateString() ? 'Heute' : key === 'gestern' ? 'Gestern' : 'Vorgestern';
+  showToast(had ? `🍬 ${label} geloggt.` : `✅ ${label} ohne Süssigkeiten!`);
 }
 
 function setSweetsMax(v) {
-  state.sweetsWeekMax = Math.max(1, parseInt(v) || 7);
-  saveState();
-  updateSweetsStats();
+  state.sweetsMax = Math.max(1, parseInt(v) || 3);
+  saveState(); renderSweets();
 }
 
-function deleteSweetEntry(i) {
-  showConfirm('Eintrag löschen?', 'Diesen Süssigkeiten-Eintrag wirklich entfernen?', () => {
-    state.sweetsLog.splice(i, 1);
-    saveState();
-    updateSweetsStats();
+function setSweetsJokerMax(v) {
+  state.sweetsJokerMax = Math.max(0, parseInt(v) || 2);
+  saveState();
+}
+
+function resetSweetsWeek() {
+  showConfirm('Woche zurücksetzen?', 'Alle Süssigkeiten-Einträge dieser Woche löschen?', () => {
+    const weekStart = getSweetsWeekStart();
+    state.sweetsDaysLog = (state.sweetsDaysLog||[]).filter(e => new Date(e.date) < weekStart);
+    saveState(); renderSweets();
+    showToast('Neue Woche! 💪');
   });
 }
 
@@ -4158,6 +4366,217 @@ function renderVerlaufList(listId, emptyId, entries, rowFn) {
 }
 
 // =====================
+// MINDFULNESS
+// =====================
+const DEFAULT_MINDFULNESS = [
+  { id:'box',      icon:'🫁', name:'Box Breathing',       min:3,  ptsPerMin:3, custom:false, link:'' },
+  { id:'478',      icon:'🫁', name:'4-7-8 Atmung',        min:5,  ptsPerMin:3, custom:false, link:'' },
+  { id:'424',      icon:'🫁', name:'Sama Vritti (4-2-4)', min:5,  ptsPerMin:3, custom:false, link:'' },
+  { id:'coherent', icon:'🫁', name:'Kohärente Atmung',    min:5,  ptsPerMin:3, custom:false, link:'' },
+  { id:'med5',     icon:'🧘', name:'Meditation 5 Min',    min:5,  ptsPerMin:4, custom:false, link:'' },
+  { id:'med10',    icon:'🧘', name:'Meditation 10 Min',   min:10, ptsPerMin:4, custom:false, link:'' },
+  { id:'med20',    icon:'🧘', name:'Meditation 20 Min',   min:20, ptsPerMin:4, custom:false, link:'' },
+];
+
+function getMindfulnessExercises() {
+  if (!state.mindfulnessExercises || !state.mindfulnessExercises.length)
+    state.mindfulnessExercises = JSON.parse(JSON.stringify(DEFAULT_MINDFULNESS));
+  return state.mindfulnessExercises;
+}
+
+let selectedMindfulnessDate = new Date().toDateString();
+
+function selectMindfulnessDate(key) {
+  ['heute','gestern','vorgestern'].forEach(k => {
+    const el = document.getElementById('mchip-' + k);
+    if (el) el.classList.toggle('active', k === key);
+  });
+  selectedMindfulnessDate = getDateFromKey(key).toDateString();
+  updateMindfulnessPreview();
+}
+
+function updateMindfulnessPreview() {
+  const i = state.selectedMindfulness;
+  const ex = getMindfulnessExercises();
+  const preview = document.getElementById('mindfulness-time-preview');
+  if (i === null || i === undefined || !ex[i]) {
+    if (preview) preview.textContent = 'Bitte Übung wählen.';
+    return;
+  }
+  const e = ex[i];
+  const dateLabel = selectedMindfulnessDate === new Date().toDateString() ? 'Heute'
+    : selectedMindfulnessDate === (() => { const d=new Date(); d.setDate(d.getDate()-1); return d.toDateString(); })() ? 'Gestern' : 'Vorgestern';
+  if (preview) preview.innerHTML = `⏱ <strong>${dateLabel}</strong> · ${e.name} · ${e.min} Min · +${e.min * e.ptsPerMin} Punkte`;
+  const btn = document.getElementById('mindfulness-log-btn');
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+}
+
+function renderMindfulness() {
+  const list = document.getElementById('mindfulness-list');
+  if (!list) return;
+  const ex = getMindfulnessExercises();
+  list.innerHTML = '';
+
+  ex.forEach((a, i) => {
+    const pts = a.min * (a.ptsPerMin || 3);
+    const div = document.createElement('div');
+    div.className = 'activity-item' + (state.selectedMindfulness === i ? ' selected' : '');
+    div.innerHTML = `
+      <span class="activity-icon" onclick="selectMindfulnessEx(${i})" style="cursor:pointer;">${a.icon||'🧘'}</span>
+      <div class="activity-info" onclick="selectMindfulnessEx(${i})" style="cursor:pointer;flex:1;">
+        <div class="name">${a.name}</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;">
+          <input type="number" value="${a.min}" min="1" max="120"
+            style="width:50px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.78rem;text-align:center;"
+            onclick="event.stopPropagation()" onchange="updateMindfulnessDur(event,${i})">
+          <span style="font-size:0.72rem;color:var(--muted);">Min</span>
+          <span style="font-size:0.72rem;color:var(--muted);">·</span>
+          <input type="number" value="${a.ptsPerMin||3}" min="1" max="20"
+            style="width:40px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.78rem;text-align:center;"
+            onclick="event.stopPropagation()" onchange="updateMindfulnessPts(event,${i})">
+          <span style="font-size:0.72rem;color:var(--muted);">Pkt/Min</span>
+          <span style="font-size:0.72rem;color:var(--gold);font-weight:600;">= ${pts} Pkt</span>
+        </div>
+        <div style="margin-top:6px;display:${state.selectedMindfulness===i?'flex':'none'};align-items:center;gap:6px;" onclick="event.stopPropagation()">
+          <input type="url" value="${a.link||''}" placeholder="🔗 Link (optional)"
+            style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.75rem;color:var(--muted);"
+            onchange="updateMindfulnessLink(${i}, this.value)" onclick="event.stopPropagation()">
+        </div>
+      </div>
+      <div class="check" onclick="selectMindfulnessEx(${i})" style="cursor:pointer;">${state.selectedMindfulness === i ? '✓' : ''}</div>
+      ${a.custom ? `<button class="del-activity" onclick="deleteMindfulnessEx(event,${i})">✕</button>` : ''}
+    `;
+    list.appendChild(div);
+  });
+  renderMindfulnessLog();
+}
+
+function selectMindfulnessEx(i) {
+  state.selectedMindfulness = state.selectedMindfulness === i ? null : i;
+  saveState();
+  renderMindfulness();
+  if (state.selectedMindfulness !== null) {
+    updateMindfulnessPreview();
+    showMindfulnessLink(state.selectedMindfulness);
+  } else {
+    document.getElementById('mindfulness-link-area').style.display = 'none';
+    const btn = document.getElementById('mindfulness-log-btn');
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
+  }
+}
+
+function showMindfulnessLink(i) {
+  const area = document.getElementById('mindfulness-link-area');
+  const btn  = document.getElementById('mindfulness-link-btn');
+  const ex = getMindfulnessExercises();
+  const a = ex[i];
+  if (a && a.link) {
+    const label = a.link.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    btn.href = a.link;
+    btn.textContent = '🔗 ' + label;
+    area.style.display = '';
+  } else {
+    area.style.display = 'none';
+  }
+}
+
+function updateMindfulnessDur(e, i) {
+  e.stopPropagation();
+  getMindfulnessExercises()[i].min = parseInt(e.target.value) || 5;
+  saveState(); renderMindfulness();
+}
+
+function updateMindfulnessPts(e, i) {
+  e.stopPropagation();
+  getMindfulnessExercises()[i].ptsPerMin = parseInt(e.target.value) || 3;
+  saveState(); renderMindfulness();
+}
+
+function updateMindfulnessLink(i, url) {
+  getMindfulnessExercises()[i].link = url.trim();
+  saveState();
+  if (state.selectedMindfulness === i) showMindfulnessLink(i);
+}
+
+function addMindfulnessExercise() {
+  const name = document.getElementById('new-mindfulness-name').value.trim();
+  const min  = parseInt(document.getElementById('new-mindfulness-min').value) || 10;
+  if (!name) { showToast('Bitte Name eingeben.'); return; }
+  getMindfulnessExercises().push({ id:'custom_'+Date.now(), icon:'🧘', name, min, ptsPerMin:3, custom:true, link:'' });
+  document.getElementById('new-mindfulness-name').value = '';
+  document.getElementById('new-mindfulness-min').value = '';
+  saveState(); renderMindfulness();
+}
+
+function deleteMindfulnessEx(e, i) {
+  e.stopPropagation();
+  showConfirm('Übung löschen?', 'Diese Achtsamkeitsübung entfernen?', () => {
+    getMindfulnessExercises().splice(i, 1);
+    if (state.selectedMindfulness === i) state.selectedMindfulness = null;
+    saveState(); renderMindfulness();
+  });
+}
+
+function logMindfulness() {
+  const i = state.selectedMindfulness;
+  const ex = getMindfulnessExercises();
+  if (i === null || i === undefined || !ex[i]) { showToast('Bitte Übung wählen.'); return; }
+  const a = ex[i];
+  const pts = a.min * (a.ptsPerMin || 3);
+  const d = getDateFromKey(
+    document.getElementById('mchip-gestern')?.classList.contains('active') ? 'gestern' :
+    document.getElementById('mchip-vorgestern')?.classList.contains('active') ? 'vorgestern' : 'heute'
+  );
+  d.setHours(new Date().getHours(), new Date().getMinutes(), 0, 0);
+  if (!state.mindfulnessLog) state.mindfulnessLog = [];
+  state.mindfulnessLog.unshift({ name: a.name, icon: a.icon||'🧘', min: a.min, pts, ts: d.toISOString() });
+  addPoints(pts, a.icon + ' ' + a.name);
+  saveState();
+  renderMindfulness();
+  showToast('✅ ' + a.name + ' geloggt! +' + pts + ' Punkte');
+}
+
+function renderMindfulnessLog() {
+  const list  = document.getElementById('mindfulness-log-list');
+  const empty = document.getElementById('mindfulness-empty');
+  if (!list) return;
+  list.innerHTML = '';
+  const todayStr = new Date().toDateString();
+  const entries = (state.mindfulnessLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+  if (!entries.length) { if (empty) empty.style.display=''; return; }
+  if (empty) empty.style.display='none';
+  entries.forEach((e, i) => {
+    const t = new Date(e.ts);
+    const timeStr = t.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const div = document.createElement('div');
+    div.className = 'activity-log-entry';
+    div.style.cssText = 'border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;';
+    div.innerHTML = `
+      <span style="font-size:1.2rem;">${e.icon||'🧘'}</span>
+      <span style="flex:1;font-weight:600;font-size:0.88rem;">${e.name} · ${e.min} Min</span>
+      <span style="font-size:0.75rem;color:var(--muted);">${timeStr}</span>
+      <span class="pts">+${e.pts}</span>
+      <button onclick="deleteMindfulnessLog(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0;">✕</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function deleteMindfulnessLog(i) {
+  showConfirm('Eintrag löschen?', 'Diesen Eintrag entfernen?', () => {
+    const todayStr = new Date().toDateString();
+    const todayEntries = (state.mindfulnessLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+    const entry = todayEntries[i];
+    const idx = state.mindfulnessLog.indexOf(entry);
+    if (idx > -1) state.mindfulnessLog.splice(idx, 1);
+    state.totalPoints = calcPoints();
+    saveState();
+    renderMindfulness();
+    showToast('Eintrag gelöscht.');
+  });
+}
+
+// =====================
 // SOCIAL CONTACTS
 // =====================
 function getCurrentWeekKey() {
@@ -4361,6 +4780,55 @@ function closeNap() {
   document.getElementById('nap-overlay-btn').onclick = abortNap;
 }
 
+const APP_VERSION = '1.0.0';
+
+// =====================
+// BUG REPORT
+// =====================
+function submitBug() {
+  const text     = document.getElementById('bug-text').value.trim();
+  const device   = document.getElementById('bug-device').value;
+  const severity = document.getElementById('bug-severity').value;
+  if (!text) { showToast('Bitte Bug beschreiben.'); return; }
+  if (!state.bugReports) state.bugReports = [];
+  state.bugReports.unshift({
+    ts: new Date().toISOString(),
+    text, device, severity
+  });
+  document.getElementById('bug-text').value = '';
+  saveState();
+  renderBugList();
+  showToast('🐛 Bug gespeichert. Danke!');
+}
+
+function renderBugList() {
+  const el = document.getElementById('bug-list');
+  if (!el) return;
+  const bugs = state.bugReports || [];
+  if (!bugs.length) { el.innerHTML = '<p class="small-note">Noch keine Bugs gemeldet.</p>'; return; }
+  const icons = { minor: '🟡', major: '🔴', idea: '💡' };
+  el.innerHTML = bugs.map((b, i) => {
+    const d = new Date(b.ts);
+    const ds = d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    return `<div style="padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:6px;border-left:3px solid ${b.severity==='major'?'var(--accent2)':b.severity==='idea'?'var(--gold)':'#f4c261'};">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:0.82rem;font-weight:600;">${icons[b.severity]||'🟡'} ${b.device}</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:0.72rem;color:var(--muted);">${ds}</span>
+          <button onclick="deleteBug(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;padding:0;">✕</button>
+        </div>
+      </div>
+      <div style="font-size:0.82rem;color:var(--ink);">${b.text}</div>
+    </div>`;
+  }).join('');
+}
+
+function deleteBug(i) {
+  state.bugReports.splice(i, 1);
+  saveState();
+  renderBugList();
+}
+
 // =====================
 // BREATHING
 // =====================
@@ -4379,7 +4847,31 @@ let breathTotalRounds = 0;
 let breathRunning = false;
 let breathStarted = false;
 
+function saveProfile() {
+  if (!state.profile) state.profile = {};
+  state.profile.name      = document.getElementById('profile-name')?.value.trim() || '';
+  state.profile.birthdate = document.getElementById('profile-birthdate')?.value || '';
+  state.profile.gender    = document.getElementById('profile-gender')?.value || '';
+  saveState();
+  // Update header greeting if name set
+  renderHome();
+}
+
 function renderSettings() {
+  // Profile
+  if (state.profile) {
+    const n = document.getElementById('profile-name');
+    const b = document.getElementById('profile-birthdate');
+    const g = document.getElementById('profile-gender');
+    if (n) n.value = state.profile.name || '';
+    if (b) b.value = state.profile.birthdate || '';
+    if (g) g.value = state.profile.gender || '';
+  }
+
+  const vEl = document.getElementById('app-version');
+  if (vEl) vEl.textContent = APP_VERSION;
+  renderBugList();
+
   const s = state;
   const toggle = document.getElementById('breathing-toggle');
   const knob   = document.getElementById('breathing-knob');
@@ -4586,14 +5078,15 @@ function closeBreathing() {
 function showConfirm(title, msg, onConfirm) {
   document.getElementById('confirm-title').textContent = title;
   document.getElementById('confirm-msg').textContent = msg;
-  document.getElementById('confirm-overlay').style.display = 'flex';
+  const el = document.getElementById('confirm-overlay');
+  el.classList.add('open');
   document.getElementById('confirm-ok').onclick = () => {
     hideConfirm();
     onConfirm();
   };
 }
 function hideConfirm() {
-  document.getElementById('confirm-overlay').style.display = 'none';
+  document.getElementById('confirm-overlay').classList.remove('open');
 }
 
 // =====================
@@ -4606,7 +5099,7 @@ document.getElementById('streak-header-num').textContent = state.streak;
 scheduleBreathing();
 </script>
 <!-- CONFIRM MODAL -->
-<div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;padding:20px;">
+<div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;padding:20px;" class="confirm-flex">
   <div style="background:var(--card);border-radius:18px;padding:24px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
     <div id="confirm-title" style="font-family:'DM Serif Display',serif;font-size:1.15rem;margin-bottom:8px;"></div>
     <div id="confirm-msg" style="font-size:0.87rem;color:var(--muted);line-height:1.5;margin-bottom:20px;"></div>
