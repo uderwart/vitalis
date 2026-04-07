@@ -2624,7 +2624,12 @@ function selectActivity(i) {
   renderActivities();
   if (state.selectedActivity !== null) {
     showActivityLink(state.selectedActivity);
-    enableLogBtn();
+    // Auto-select Ganztags/Heute if no time chosen yet
+    if (!selectedActivityTime) {
+      selectTimeSlot('ganztags');
+    } else {
+      enableLogBtn();
+    }
   } else {
     document.getElementById('activity-link-area').style.display = 'none';
   }
@@ -2865,6 +2870,9 @@ function renderActivityLog() {
 
     // Detail panel
     const detail = document.createElement('div');
+    const tsDate = t.toISOString().split('T')[0];
+    const tsTime = String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0');
+
     detail.id = `activity-detail-${i}`;
     detail.style.cssText = 'display:none;padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);';
     detail.innerHTML = `
@@ -2874,15 +2882,23 @@ function renderActivityLog() {
           <div style="font-size:0.9rem;font-weight:600;">${e.icon} ${e.name}</div>
         </div>
         <div>
-          <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">Datum & Zeit</label>
-          <div style="font-size:0.82rem;">${dateStr}</div>
-        </div>
-        <div>
           <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">${e.label?.includes('Schritte') ? 'Schritte' : 'Minuten'}</label>
           <input type="number" value="${e.label?.includes('Schritte') ? parseInt(e.label) : e.min}"
             min="1" max="${e.label?.includes('Schritte') ? 100000 : 300}"
             style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;"
             onchange="editActivityLogField(${i},'min',this.value)">
+        </div>
+        <div>
+          <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">Datum</label>
+          <input type="date" value="${tsDate}" max="${new Date().toISOString().split('T')[0]}"
+            style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.88rem;"
+            onchange="editActivityLogField(${i},'date',this.value)">
+        </div>
+        <div>
+          <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">Uhrzeit</label>
+          <input type="time" value="${tsTime}"
+            style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.88rem;"
+            onchange="editActivityLogField(${i},'time',this.value)">
         </div>
         <div>
           <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">Punkte</label>
@@ -2910,18 +2926,31 @@ function renderActivityLog() {
 function editActivityLogField(i, field, val) {
   const entry = state.activityLog[i];
   if (!entry) return;
-  const num = parseInt(val);
-  if (isNaN(num) || num < 0) return;
-  if (field === 'min') {
-    entry.min = num;
-    if (entry.label?.includes('Schritte')) {
-      entry.label = `${num.toLocaleString('de-DE')} Schritte`;
-      entry.pts = Math.round(num / 1000) * 10;
-    } else {
-      entry.pts = num * (entry.ptsPerMin || 1);
+  if (field === 'date') {
+    const [y, m, d] = val.split('-').map(Number);
+    const existing = new Date(entry.ts);
+    const newDate = new Date(y, m-1, d, existing.getHours(), existing.getMinutes(), 0, 0);
+    entry.ts = newDate.toISOString();
+  } else if (field === 'time') {
+    const [h, m] = val.split(':').map(Number);
+    const existing = new Date(entry.ts);
+    existing.setHours(h, m, 0, 0);
+    entry.ts = existing.toISOString();
+  } else {
+    const num = parseInt(val);
+    if (isNaN(num) || num < 0) return;
+    if (field === 'min') {
+      entry.min = num;
+      if (entry.label?.includes('Schritte')) {
+        entry.label = `${num.toLocaleString('de-DE')} Schritte`;
+        entry.pts = Math.round(num / 1000) * 10;
+      } else {
+        entry.label = num + ' min';
+        entry.pts = num * (entry.ptsPerMin || 1);
+      }
     }
+    if (field === 'pts') entry.pts = num;
   }
-  if (field === 'pts') entry.pts = num;
   state.totalPoints = calcPoints();
   const el = document.getElementById('total-points');
   if (el) el.textContent = state.totalPoints;
