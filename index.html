@@ -2509,6 +2509,7 @@ function deleteFeelingEntry(i) {
     state.feelingLog.splice(i, 1);
     saveState();
     renderFeelingHistory();
+    showToast('Eintrag gelöscht.');
   });
 }
 
@@ -3016,6 +3017,21 @@ function deleteActivityLog(i) {
   showConfirm('Eintrag löschen?', 'Eintrag entfernen? Punkte werden entsprechend angepasst.', () => {
     state.activityLog.splice(i, 1);
     if (state.activitiesLogged > 0) state.activitiesLogged--;
+
+    // If no more entries today, roll back lastActiveDate and streak
+    const todayStr = new Date().toDateString();
+    const stillTodayAct  = state.activityLog.some(e => new Date(e.ts).toDateString() === todayStr);
+    const stillTodayMind = (state.mindfulnessLog||[]).some(e => new Date(e.ts).toDateString() === todayStr);
+    if (!stillTodayAct && !stillTodayMind && state.lastActiveDate === todayStr) {
+      // Find previous active day
+      const prev = [...state.activityLog, ...(state.mindfulnessLog||[])]
+        .map(e => new Date(e.ts).toDateString())
+        .filter(d => d !== todayStr)
+        .sort((a,b) => new Date(b) - new Date(a))[0] || null;
+      state.lastActiveDate = prev;
+      if (state.streak > 0) state.streak--;
+    }
+
     state.totalPoints = calcPoints();
     const el = document.getElementById('total-points');
     if (el) el.textContent = state.totalPoints;
@@ -3596,23 +3612,22 @@ function applyStreakJoker(monthKey, jokerDate) {
 }
 
 function getActiveDaysCount() {
-  // Count unique days with any activity, mindfulness, or water goal
   const days = new Set();
   state.activityLog.forEach(e => days.add(new Date(e.ts).toDateString()));
   (state.mindfulnessLog||[]).forEach(e => days.add(new Date(e.ts).toDateString()));
-  // Add days where water goal was reached (approximated via waterDays)
   return days.size;
 }
 
 function getDaysSinceStart() {
-  // Days since first activity
   const allDates = [
     ...state.activityLog.map(e => new Date(e.ts)),
     ...(state.mindfulnessLog||[]).map(e => new Date(e.ts)),
   ];
   if (!allDates.length) return 0;
   const first = new Date(Math.min(...allDates));
-  return Math.floor((new Date() - first) / 86400000) + 1;
+  first.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.floor((today - first) / 86400000) + 1;
 }
 
 function checkStreak() {
@@ -3662,7 +3677,7 @@ function renderRewards() {
   const el4 = document.getElementById('streak-joker-btn');
   const el5 = document.getElementById('streak-joker-status');
   if (el1) el1.textContent = activeDays;
-  if (el2) el2.textContent = 'von ' + totalDays + (totalDays === 1 ? ' Tag' : ' Tagen') + ' aktiv';
+  if (el2) el2.textContent = totalDays === 0 ? 'noch nichts geloggt' : 'von ' + totalDays + (totalDays === 1 ? ' Tag' : ' Tagen') + ' aktiv';
   if (el3) el3.textContent = jokersLeft;
   if (el3) el3.style.color = jokersLeft > 0 ? 'var(--gold)' : 'var(--muted)';
   if (el4) { el4.disabled = jokersLeft <= 0; el4.style.opacity = jokersLeft > 0 ? '1' : '0.4'; }
@@ -4248,6 +4263,8 @@ function editSleepEntry(i, field, val) {
   if (state.sleepLog[i]) {
     state.sleepLog[i][field] = field === 'score' ? parseInt(val) : val;
     saveState();
+    renderSleepLog();
+    showToast('✅ Schlaf-Eintrag aktualisiert.');
   }
 }
 
@@ -4256,6 +4273,8 @@ function deleteSleepEntry(i) {
     state.sleepLog.splice(i, 1);
     saveState();
     renderSleepLog();
+    drawSleepChart();
+    showToast('Eintrag gelöscht.');
   });
 }
 
@@ -4458,6 +4477,8 @@ function editBodyEntry(i, field, val) {
   if (state.bodyLog[i]) {
     state.bodyLog[i][field] = parseInt(val);
     saveState();
+    renderBodyLog();
+    showToast('✅ Körper-Eintrag aktualisiert.');
   }
 }
 
@@ -4466,6 +4487,7 @@ function deleteBodyEntry(i) {
     state.bodyLog.splice(i, 1);
     saveState();
     renderBodyLog();
+    showToast('Eintrag gelöscht.');
   });
 }
 
@@ -4612,6 +4634,7 @@ function deleteWeightEntry(i) {
     state.weightLog.splice(i, 1);
     saveState();
     renderWeight();
+    showToast('Eintrag gelöscht.');
   });
 }
 
@@ -5131,7 +5154,22 @@ function deleteMindfulnessLog(i) {
     const entry = todayEntries[i];
     const idx = state.mindfulnessLog.indexOf(entry);
     if (idx > -1) state.mindfulnessLog.splice(idx, 1);
+
+    // Streak-Korrektur wenn heute letzter Eintrag gelöscht
+    const stillTodayAct  = state.activityLog.some(e => new Date(e.ts).toDateString() === todayStr);
+    const stillTodayMind = (state.mindfulnessLog||[]).some(e => new Date(e.ts).toDateString() === todayStr);
+    if (!stillTodayAct && !stillTodayMind && state.lastActiveDate === todayStr) {
+      const prev = [...state.activityLog, ...(state.mindfulnessLog||[])]
+        .map(e => new Date(e.ts).toDateString())
+        .filter(d => d !== todayStr)
+        .sort((a,b) => new Date(b) - new Date(a))[0] || null;
+      state.lastActiveDate = prev;
+      if (state.streak > 0) state.streak--;
+    }
+
     state.totalPoints = calcPoints();
+    const streakEl = document.getElementById('streak-header-num');
+    if (streakEl) streakEl.textContent = state.streak;
     saveState();
     renderMindfulness();
     showToast('Eintrag gelöscht.');
