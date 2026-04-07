@@ -1369,6 +1369,25 @@
     </div>
   </div>
 
+  <!-- AKTIV-QUOTE + JOKER -->
+  <div class="card" style="padding:16px 20px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div style="text-align:center;padding:12px;background:var(--bg);border-radius:12px;">
+        <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--accent);" id="active-days-num">0</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;" id="active-days-label">von 0 Tagen aktiv</div>
+      </div>
+      <div style="text-align:center;padding:12px;background:var(--bg);border-radius:12px;">
+        <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--gold);" id="streak-joker-num">2</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Joker übrig</div>
+      </div>
+    </div>
+    <button onclick="useStreakJoker()" id="streak-joker-btn"
+      style="width:100%;padding:11px;border-radius:12px;border:2px solid var(--gold);background:transparent;color:var(--gold);font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;">
+      🃏 Joker einsetzen – Streak retten
+    </button>
+    <p class="small-note" style="margin-top:8px;text-align:center;" id="streak-joker-status"></p>
+  </div>
+
   <div class="card">
     <h2>Nächste Belohnung</h2>
     <div id="next-badge-name" style="font-weight:600;margin-bottom:6px;"></div>
@@ -1554,8 +1573,11 @@
     <p style="font-size:0.88rem;line-height:1.7;color:var(--ink);margin-bottom:12px;">
       Vitalis basiert auf einer einfachen Idee: <strong>Bewusstsein schlägt Kontrolle.</strong> Wer seinen Körper beobachtet statt ihn zu kontrollieren, entwickelt langfristig gesündere Gewohnheiten als jemand der Kalorien zählt und Regeln befolgt.
     </p>
-    <p style="font-size:0.88rem;line-height:1.7;color:var(--ink);">
+    <p style="font-size:0.88rem;line-height:1.7;color:var(--ink);margin-bottom:12px;">
       Die App misst nicht was du essen darfst, sondern hilft dir wahrzunehmen wie du dich fühlst – vor und nach dem Essen, nach dem Schlafen, nach der Bewegung. Aus diesem Bewusstsein entsteht Veränderung. Von innen, nicht von außen.
+    </p>
+    <p style="font-size:0.88rem;line-height:1.7;color:var(--ink);">
+      <strong>Kontinuität schlägt Perfektion.</strong> Ein verpasster Tag ist kein Versagen – er ist menschlich. Deshalb gibt es Joker für den Streak: nicht um zu schummeln, sondern weil das Leben manchmal dazwischenkommt. Was zählt ist der Gesamteinsatz über Zeit, nicht die letzte Unterbrechung.
     </p>
   </div>
 
@@ -1844,6 +1866,24 @@
 </main>
 
 <!-- POWER NAP OVERLAY -->
+<!-- GEFÜHL OVERLAY -->
+<div id="feeling-overlay" style="display:none;position:fixed;inset:0;z-index:2500;background:rgba(0,0,0,0.5);flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:var(--card);border-radius:24px;padding:24px;width:100%;max-width:360px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--ink);margin-bottom:4px;" id="feeling-overlay-title">Wie fühlst du dich?</div>
+    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:20px;" id="feeling-overlay-sub"></div>
+    <div class="vitalis-slider-wrap">
+      <div class="vitalis-slider-value" id="feeling-overlay-val">5</div>
+      <div class="vitalis-slider-desc" id="feeling-overlay-desc">okay</div>
+      <input type="range" id="feeling-overlay-slider" min="1" max="10" value="5"
+        oninput="updateSlider('feeling-overlay', this.value)">
+      <div class="slider-labels"><span>😩 Miserabel</span><span>😄 Super</span></div>
+    </div>
+    <button onclick="saveFeelingOverlay()" class="log-btn" style="width:100%;margin-top:8px;">💾 Speichern</button>
+    <button onclick="closeFeelingOverlay()" style="width:100%;margin-top:8px;background:none;border:none;font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--muted);cursor:pointer;">Überspringen</button>
+  </div>
+</div>
+
+<!-- POWER NAP OVERLAY -->
 <div id="nap-overlay" style="display:none;position:fixed;inset:0;z-index:3000;background:linear-gradient(135deg,#0a0a1a,#1a1a3e);flex-direction:column;align-items:center;justify-content:center;padding:30px;">
   <div style="text-align:center;color:white;width:100%;max-width:360px;">
     <div style="font-size:3rem;margin-bottom:8px;" id="nap-overlay-icon">💤</div>
@@ -1978,6 +2018,9 @@ function loadState() {
     totalPoints: 0,
     streak: 0,
     lastActiveDate: null,
+    streakJokersUsed: 0,
+    streakJokersUsedMonth: null, // YYYY-MM
+    activeDaysLog: [], // [{date}] all days with any activity
     activitiesLogged: 0,
     earnedBadges: [],
     pointsLog: [],
@@ -2827,7 +2870,7 @@ function logSelectedActivity() {
     : a.min * (a.ptsPerMin || 1);
   const label = isSteps ? `${(a.stepsDefault||5000).toLocaleString('de-DE')} Schritte` : `${a.min} min`;
   const ts = selectedActivityTime;
-  state.activityLog.unshift({ name: a.name, icon: a.icon || '🏃', min: a.min, pts, label, ts, ptsPerMin: a.ptsPerMin||1, steps: isSteps, stepsDefault: a.stepsDefault });
+  state.activityLog.unshift({ name: a.name, icon: a.icon || '🏃', min: a.min, pts, label, ts, ptsPerMin: a.ptsPerMin||1, steps: isSteps, stepsDefault: a.stepsDefault, feeling: {} });
   if (state.activityLog.length > 200) state.activityLog.pop();
   state.activitiesLogged++;
   addPoints(pts, '🏃 ' + a.name);
@@ -2837,6 +2880,8 @@ function logSelectedActivity() {
   renderActivities();
   checkBadges();
   showToast(`✅ ${a.name} geloggt! +${pts} Punkte`);
+  // Ask for before-feeling
+  setTimeout(() => showFeelingOverlay({ type: 'activity', logIndex: 0, phase: 'before' }), 400);
 }
 
 function renderActivityLog() {
@@ -2909,6 +2954,14 @@ function renderActivityLog() {
         </div>
       </div>
       <button onclick="deleteActivityLog(${i})" class="log-btn danger" style="width:100%;padding:10px;">🗑 Eintrag löschen</button>
+      <div style="margin-top:8px;display:flex;gap:8px;">
+        <button onclick="showFeelingOverlay({type:'activity',logIndex:${i},phase:'before'})" class="log-btn secondary" style="flex:1;padding:8px;font-size:0.8rem;">
+          😊 Vorher${e.feeling?.before ? ' (' + e.feeling.before + ')' : ''}
+        </button>
+        <button onclick="showFeelingOverlay({type:'activity',logIndex:${i},phase:'after'})" class="log-btn secondary" style="flex:1;padding:8px;font-size:0.8rem;">
+          😊 Nachher${e.feeling?.after ? ' (' + e.feeling.after + ')' : ''}
+        </button>
+      </div>
     `;
 
     summary.onclick = () => {
@@ -3500,6 +3553,68 @@ function addPoints(pts, reason) {
   checkBadges();
 }
 
+function getStreakJokersThisMonth() {
+  const monthKey = new Date().toISOString().slice(0, 7); // YYYY-MM
+  if (state.streakJokersUsedMonth !== monthKey) return 0;
+  return state.streakJokersUsed || 0;
+}
+
+function useStreakJoker() {
+  const monthKey = new Date().toISOString().slice(0, 7);
+  const used = getStreakJokersThisMonth();
+  if (used >= 2) { showToast('Keine Joker mehr diesen Monat.'); return; }
+
+  const today = new Date().toDateString();
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yStr = yesterday.toDateString();
+
+  // Only useful if yesterday was missed
+  if (state.lastActiveDate === today) { showToast('Du warst heute schon aktiv – kein Joker nötig!'); return; }
+  if (state.lastActiveDate !== yStr) {
+    // More than one day missed
+    showConfirm('Joker einsetzen?', 'Den gestrigen Tag als Joker-Tag markieren und Streak retten?', () => {
+      applyStreakJoker(monthKey, yesterday);
+    });
+    return;
+  }
+  showConfirm('🃏 Joker einsetzen?', 'Gestrigen Tag überbrücken – Streak läuft weiter. ' + (2-used) + ' Joker übrig diesen Monat.', () => {
+    applyStreakJoker(monthKey, yesterday);
+  });
+}
+
+function applyStreakJoker(monthKey, jokerDate) {
+  if (state.streakJokersUsedMonth !== monthKey) {
+    state.streakJokersUsed = 0;
+    state.streakJokersUsedMonth = monthKey;
+  }
+  state.streakJokersUsed++;
+  state.lastActiveDate = new Date().toDateString();
+  // Don't increment streak – just keep it alive
+  saveState();
+  renderRewards();
+  showToast('🃏 Joker eingesetzt! Streak gerettet.');
+}
+
+function getActiveDaysCount() {
+  // Count unique days with any activity, mindfulness, or water goal
+  const days = new Set();
+  state.activityLog.forEach(e => days.add(new Date(e.ts).toDateString()));
+  (state.mindfulnessLog||[]).forEach(e => days.add(new Date(e.ts).toDateString()));
+  // Add days where water goal was reached (approximated via waterDays)
+  return days.size;
+}
+
+function getDaysSinceStart() {
+  // Days since first activity
+  const allDates = [
+    ...state.activityLog.map(e => new Date(e.ts)),
+    ...(state.mindfulnessLog||[]).map(e => new Date(e.ts)),
+  ];
+  if (!allDates.length) return 0;
+  const first = new Date(Math.min(...allDates));
+  return Math.floor((new Date() - first) / 86400000) + 1;
+}
+
 function checkStreak() {
   const today = new Date().toDateString();
   if (state.lastActiveDate !== today) {
@@ -3536,6 +3651,22 @@ function renderRewards() {
   document.getElementById('total-points').textContent = state.totalPoints;
   document.getElementById('streak-num').textContent = state.streak;
   document.getElementById('streak-header-num').textContent = state.streak;
+
+  // Active days + joker
+  const activeDays = getActiveDaysCount();
+  const totalDays  = getDaysSinceStart();
+  const jokersLeft = 2 - getStreakJokersThisMonth();
+  const el1 = document.getElementById('active-days-num');
+  const el2 = document.getElementById('active-days-label');
+  const el3 = document.getElementById('streak-joker-num');
+  const el4 = document.getElementById('streak-joker-btn');
+  const el5 = document.getElementById('streak-joker-status');
+  if (el1) el1.textContent = activeDays;
+  if (el2) el2.textContent = 'von ' + totalDays + (totalDays === 1 ? ' Tag' : ' Tagen') + ' aktiv';
+  if (el3) el3.textContent = jokersLeft;
+  if (el3) el3.style.color = jokersLeft > 0 ? 'var(--gold)' : 'var(--muted)';
+  if (el4) { el4.disabled = jokersLeft <= 0; el4.style.opacity = jokersLeft > 0 ? '1' : '0.4'; }
+  if (el5) el5.textContent = jokersLeft > 0 ? jokersLeft + ' von 2 Jokern diesen Monat verfügbar' : 'Keine Joker mehr diesen Monat';
 
   // Next badge – nimm den, bei dem Punkte-Fortschritt am weitesten ist (nur Punkte-basierte Badges)
   const unearned = BADGES.filter(b => !state.earnedBadges.includes(b.id));
@@ -4947,11 +5078,12 @@ function logMindfulness() {
   );
   d.setHours(new Date().getHours(), new Date().getMinutes(), 0, 0);
   if (!state.mindfulnessLog) state.mindfulnessLog = [];
-  state.mindfulnessLog.unshift({ name: a.name, icon: a.icon||'🧘', min: a.min, pts, ts: d.toISOString() });
+  state.mindfulnessLog.unshift({ name: a.name, icon: a.icon||'🧘', min: a.min, pts, ts: d.toISOString(), feeling: {} });
   addPoints(pts, a.icon + ' ' + a.name);
   saveState();
   renderMindfulness();
   showToast('✅ ' + a.name + ' geloggt! +' + pts + ' Punkte');
+  setTimeout(() => showFeelingOverlay({ type: 'mindfulness', logIndex: 0, phase: 'before' }), 400);
 }
 
 function renderMindfulnessLog() {
@@ -4963,18 +5095,30 @@ function renderMindfulnessLog() {
   const entries = (state.mindfulnessLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
   if (!entries.length) { if (empty) empty.style.display=''; return; }
   if (empty) empty.style.display='none';
-  entries.forEach((e, i) => {
+  entries.forEach((e, idx) => {
     const t = new Date(e.ts);
     const timeStr = t.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const realIdx = (state.mindfulnessLog||[]).indexOf(e);
     const div = document.createElement('div');
-    div.className = 'activity-log-entry';
-    div.style.cssText = 'border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;';
+    div.style.cssText = 'border:2px solid var(--border);border-radius:12px;padding:10px 12px;';
     div.innerHTML = `
-      <span style="font-size:1.2rem;">${e.icon||'🧘'}</span>
-      <span style="flex:1;font-weight:600;font-size:0.88rem;">${e.name} · ${e.min} Min</span>
-      <span style="font-size:0.75rem;color:var(--muted);">${timeStr}</span>
-      <span class="pts">+${e.pts}</span>
-      <button onclick="deleteMindfulnessLog(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0;">✕</button>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:${e.feeling?.before||e.feeling?.after?'8px':'0'};">
+        <span style="font-size:1.2rem;">${e.icon||'🧘'}</span>
+        <span style="flex:1;font-weight:600;font-size:0.88rem;">${e.name} · ${e.min} Min</span>
+        <span style="font-size:0.75rem;color:var(--muted);">${timeStr}</span>
+        <span class="pts">+${e.pts}</span>
+        <button onclick="deleteMindfulnessLog(${idx})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0;">✕</button>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="showFeelingOverlay({type:'mindfulness',logIndex:${realIdx},phase:'before'})"
+          style="flex:1;padding:6px;border:1px solid var(--border);border-radius:8px;background:${e.feeling?.before?'var(--bg)':'white'};font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;">
+          😊 Vorher${e.feeling?.before ? ' · ' + e.feeling.before : ''}
+        </button>
+        <button onclick="showFeelingOverlay({type:'mindfulness',logIndex:${realIdx},phase:'after'})"
+          style="flex:1;padding:6px;border:1px solid var(--border);border-radius:8px;background:${e.feeling?.after?'var(--bg)':'white'};font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;">
+          😊 Nachher${e.feeling?.after ? ' · ' + e.feeling.after : ''}
+        </button>
+      </div>
     `;
     list.appendChild(div);
   });
@@ -5365,7 +5509,41 @@ function deleteBug(i) {
 }
 
 // =====================
-// BREATHING
+// FEELING OVERLAY
+// =====================
+let feelingOverlayContext = null; // { type: 'activity'|'mindfulness', logIndex: i, phase: 'before'|'after' }
+
+function showFeelingOverlay(context) {
+  feelingOverlayContext = context;
+  const overlay = document.getElementById('feeling-overlay');
+  overlay.style.display = 'flex';
+  initSlider('feeling-overlay', 5);
+  document.getElementById('feeling-overlay-title').textContent =
+    context.phase === 'before' ? 'Wie fühlst du dich?' : 'Wie fühlst du dich jetzt?';
+  document.getElementById('feeling-overlay-sub').textContent =
+    context.phase === 'before'
+      ? 'Vor der ' + (context.type === 'mindfulness' ? 'Übung' : 'Aktivität')
+      : 'Nach der ' + (context.type === 'mindfulness' ? 'Übung' : 'Aktivität');
+}
+
+function saveFeelingOverlay() {
+  if (!feelingOverlayContext) { closeFeelingOverlay(); return; }
+  const val = parseInt(document.getElementById('feeling-overlay-slider').value || 5);
+  const { type, logIndex, phase } = feelingOverlayContext;
+  const log = type === 'mindfulness' ? state.mindfulnessLog : state.activityLog;
+  if (log[logIndex]) {
+    if (!log[logIndex].feeling) log[logIndex].feeling = {};
+    log[logIndex].feeling[phase] = val;
+  }
+  saveState();
+  closeFeelingOverlay();
+  showToast('😊 Gefühl gespeichert!');
+}
+
+function closeFeelingOverlay() {
+  document.getElementById('feeling-overlay').style.display = 'none';
+  feelingOverlayContext = null;
+}
 // =====================
 const TECHNIQUES = {
   'box':      { name: 'Box Breathing',      desc: '4s ein · 4s halten · 4s aus · 4s halten', phases: [{l:'Einatmen',d:4},{l:'Halten',d:4},{l:'Ausatmen',d:4},{l:'Halten',d:4}] },
