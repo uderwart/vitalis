@@ -772,6 +772,7 @@
   <div class="card">
     <h2>Wie fühlst du dich?</h2>
 
+    <!-- VOR -->
     <h3 style="margin-bottom:8px;">VOR der Aktivität</h3>
     <div class="vitalis-slider-wrap">
       <div class="vitalis-slider-value" id="feeling-before-val">5</div>
@@ -780,10 +781,17 @@
         oninput="updateSlider('feeling-before', this.value)">
       <div class="slider-labels"><span>😩 Miserabel</span><span>😄 Super</span></div>
     </div>
+    <button class="log-btn secondary" onclick="logFeelingBefore()" style="margin-bottom:0;">
+      💾 Vor-Gefühl speichern
+    </button>
 
     <hr class="divider">
 
+    <!-- NACH -->
     <h3 style="margin-bottom:8px;">NACH der Aktivität</h3>
+    <div id="feeling-after-pending" style="display:none;padding:8px 12px;background:var(--bg);border-radius:10px;border-left:3px solid var(--accent);margin-bottom:10px;font-size:0.82rem;color:var(--muted);">
+      ⏳ Vor-Gefühl gespeichert – trage nach der Aktivität den Nachher-Wert ein.
+    </div>
     <div class="vitalis-slider-wrap">
       <div class="vitalis-slider-value" id="feeling-after-val">5</div>
       <div class="vitalis-slider-desc" id="feeling-after-desc">okay</div>
@@ -791,8 +799,14 @@
         oninput="updateSlider('feeling-after', this.value)">
       <div class="slider-labels"><span>😩 Miserabel</span><span>😄 Super</span></div>
     </div>
-
-    <button class="log-btn" onclick="logFeeling()">Gefühl speichern</button>
+    <div style="display:flex;gap:8px;">
+      <button class="log-btn secondary" onclick="logFeelingAfter()" style="flex:1;">
+        💾 Nach-Gefühl ergänzen
+      </button>
+      <button class="log-btn" onclick="logFeelingBoth()" style="flex:1;">
+        ✅ Beide speichern
+      </button>
+    </div>
   </div>
 
   <div class="card">
@@ -993,7 +1007,16 @@
       <button class="alc-reset" style="margin-top:8px;" onclick="resetAlcWeek()">Woche zurücksetzen</button>
     </div>
 
-    <!-- Challenge starten -->
+    <!-- Wochenverlauf -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleAlcHistory()">
+        <h2 style="margin:0;">📅 Wochenverlauf</h2>
+        <span id="alc-history-icon" style="color:var(--muted);font-size:0.9rem;">▼</span>
+      </div>
+      <div id="alc-history-body" style="display:none;margin-top:12px;">
+        <div id="alc-history-list"></div>
+      </div>
+    </div>
     <div class="card" id="challenge-start-card">
       <h2>🏆 6-Wochen-Challenge</h2>
       <p class="small-note" style="margin-bottom:14px;line-height:1.5;">42 Tage ohne Alkohol. Kein Joker, keine Ausnahme. Einmal pro Jahr.</p>
@@ -1355,17 +1378,31 @@
     <div class="next-badge-info" id="next-badge-info"></div>
   </div>
 
+  <!-- PUNKTE-LOG -->
   <div class="card">
-    <h2>Wie verdiene ich Punkte?</h2>
-    <div style="display:flex;flex-direction:column;gap:7px;font-size:0.84rem;">
-      <div style="display:flex;justify-content:space-between;"><span>💧 Wasser (pro Portion)</span><span style="color:var(--gold);font-weight:600;">+5</span></div>
-      <div style="display:flex;justify-content:space-between;"><span>💧 Tagesziel Wasser erreicht</span><span style="color:var(--gold);font-weight:600;">+30</span></div>
-      <div style="display:flex;justify-content:space-between;"><span>🏃 Aktivität (Minuten × Pkt/Min)</span><span style="color:var(--gold);font-weight:600;">individuell</span></div>
-      <div style="display:flex;justify-content:space-between;"><span>🔥 Streak-Tag</span><span style="color:var(--gold);font-weight:600;">+20</span></div>
-      <div style="display:flex;justify-content:space-between;"><span>✅ Nüchtern-Tag</span><span style="color:var(--gold);font-weight:600;">+15</span></div>
-      <div style="display:flex;justify-content:space-between;"><span>🍷 Woche im Limit</span><span style="color:var(--gold);font-weight:600;">+50</span></div>
-      <div style="display:flex;justify-content:space-between;"><span>🏆 Challenge-Tag clean</span><span style="color:var(--gold);font-weight:600;">+10</span></div>
-      <div style="display:flex;justify-content:space-between;"><span>🏅 Badge freischalten</span><span style="color:var(--gold);font-weight:600;">→ siehe Badges</span></div>
+    <h2>📋 Punkte-Verlauf</h2>
+    <div id="points-log-list" style="display:flex;flex-direction:column;gap:4px;"></div>
+    <p class="small-note" id="points-log-empty">Noch keine Punkte gesammelt.</p>
+  </div>
+
+  <!-- WIE VERDIENE ICH PUNKTE -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="togglePointsInfo()">
+      <h2 style="margin:0;">Wie verdiene ich Punkte?</h2>
+      <span id="points-info-icon" style="color:var(--muted);font-size:0.9rem;">▼</span>
+    </div>
+    <div id="points-info-body" style="display:none;margin-top:12px;">
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:0.84rem;">
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>💧 Tagesziel Wasser erreicht</span><span style="color:var(--gold);font-weight:600;">+30</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🏃 Aktivität (Min × Pkt/Min)</span><span style="color:var(--gold);font-weight:600;">individuell</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🪷 Achtsamkeit (Min × Pkt/Min)</span><span style="color:var(--gold);font-weight:600;">individuell</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🔥 Streak-Tag</span><span style="color:var(--gold);font-weight:600;">+20</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>✅ Nüchtern-Tag (Vorwoche)</span><span style="color:var(--gold);font-weight:600;">+15</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🍷 Woche im Alkohol-Limit</span><span style="color:var(--gold);font-weight:600;">+50</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🏆 Challenge-Tag clean</span><span style="color:var(--gold);font-weight:600;">+10</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>🏅 Badge freischalten</span><span style="color:var(--gold);font-weight:600;">individuell</span></div>
+      </div>
+      <p class="small-note" style="margin-top:10px;">Alkohol-Punkte werden erst nach Abschluss der Woche (Sonntag) gutgeschrieben.</p>
     </div>
   </div>
 
@@ -1402,6 +1439,62 @@
   <div class="card">
     <h2>Badges 🏅</h2>
     <div id="badges-grid"></div>
+  </div>
+
+  <!-- 90-TAGE-GEWOHNHEIT -->
+  <div class="card" style="background:linear-gradient(135deg,#f0f4ff,#e0e8ff);border-color:transparent;">
+    <h2 style="color:#3a5bc7;">🌱 90-Tage-Gewohnheit</h2>
+    <p style="font-size:0.82rem;color:var(--muted);line-height:1.5;margin-bottom:14px;">Eine bewusste Entscheidung. Kein Druck – aber Beständigkeit. Nach ~66 Tagen ist die Gewohnheit neuronal verankert.</p>
+
+    <div id="habit-active-card" style="display:none;">
+      <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:#3a5bc7;margin-bottom:4px;" id="habit-name-display"></div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;" id="habit-date-display"></div>
+
+      <!-- Fortschritt -->
+      <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--muted);margin-bottom:4px;">
+        <span id="habit-days-label">Tag 0 von 90</span>
+        <span id="habit-pct-label">0%</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.6);border-radius:20px;height:8px;margin-bottom:12px;overflow:hidden;">
+        <div id="habit-progress-bar" style="height:100%;background:linear-gradient(90deg,#3a5bc7,#6b8dd6);border-radius:20px;width:0%;transition:width 0.5s;"></div>
+      </div>
+
+      <!-- Milestone -->
+      <div id="habit-milestone" style="display:none;padding:8px 12px;background:rgba(58,91,199,0.1);border-radius:10px;font-size:0.82rem;color:#3a5bc7;margin-bottom:12px;"></div>
+
+      <!-- Heute abhaken -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button onclick="logHabitDay(true)" id="habit-yes-btn"
+          style="flex:1;padding:11px;border-radius:12px;border:2px solid rgba(58,91,199,0.3);background:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.15s;">
+          ✅ Heute geschafft
+        </button>
+        <button onclick="logHabitDay(false)" id="habit-no-btn"
+          style="flex:1;padding:11px;border-radius:12px;border:2px solid var(--border);background:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.15s;">
+          ○ Nicht heute
+        </button>
+      </div>
+
+      <!-- Letzte 7 Tage -->
+      <div style="display:flex;gap:5px;margin-bottom:12px;" id="habit-dots"></div>
+
+      <button onclick="stopHabit()" class="alc-reset">Gewohnheit beenden</button>
+    </div>
+
+    <div id="habit-setup-card">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Meine Gewohnheit</label>
+        <input type="text" id="habit-name-input" placeholder="z.B. Täglich 30 Min bewegen"
+          style="width:100%;padding:10px 14px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Startdatum</label>
+        <input type="date" id="habit-start-input"
+          style="width:100%;padding:10px 12px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;">
+      </div>
+      <button onclick="startHabit()" class="log-btn" style="width:100%;background:#3a5bc7;border-color:#3a5bc7;">
+        🌱 90-Tage-Commitment starten
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1512,6 +1605,33 @@
         <p style="font-size:0.75rem;color:#6b8f71;margin-top:4px;font-style:italic;">Gollwitzer (1999) · Implementation Intentions</p>
       </div>
 
+      <div style="border-left:3px solid #3a5bc7;padding-left:12px;">
+        <div style="font-weight:600;font-size:0.88rem;margin-bottom:3px;">Gewohnheitsbildung braucht Zeit</div>
+        <p style="font-size:0.82rem;line-height:1.6;color:var(--ink);">Der Mythos „21 Tage für eine neue Gewohnheit" geht auf eine Fehlinterpretation zurück. Die bisher größte Studie zur Gewohnheitsbildung zeigt: im Durchschnitt dauert es 66 Tage – mit einer Spannbreite von 18 bis 254 Tagen je nach Komplexität. Entscheidend ist Beständigkeit, nicht Perfektion. Ein einzelner ausgelassener Tag hat nachweislich keinen messbaren Einfluss auf die Gewohnheitsbildung.</p>
+        <p style="font-size:0.75rem;color:#3a5bc7;margin-top:4px;font-style:italic;">Lally et al. (2010) · How are habits formed, UCL</p>
+      </div>
+
+      <div style="border-left:3px solid #8b6ba8;padding-left:12px;">
+        <div style="font-weight:600;font-size:0.88rem;margin-bottom:3px;">Bewusstes Eintragen als Gesundheitsverhalten</div>
+        <p style="font-size:0.82rem;line-height:1.6;color:var(--ink);">Das manuelle Erfassen von Gesundheitsdaten ist kein Umweg – es ist selbst ein wirksames Werkzeug. Wer sein Verhalten aktiv beobachtet und aufschreibt, verändert es. Dieser sogenannte Selbstbeobachtungseffekt (Self-Monitoring) ist einer der robustesten Befunde der Verhaltensforschung: allein die Tatsache, etwas zu messen, beeinflusst das gemessene Verhalten positiv – ohne weitere Intervention.</p>
+        <p style="font-size:0.75rem;color:#8b6ba8;margin-top:4px;font-style:italic;">Burke et al. (2011) · Michie et al. (2009) · Kanfer (1970)</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏆 Wie verdiene ich Punkte?</h2>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:0.84rem;">
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>💧 Wasser (pro Portion)</span><span style="color:var(--gold);font-weight:600;">+5</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>💧 Tagesziel Wasser erreicht</span><span style="color:var(--gold);font-weight:600;">+30</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🏃 Aktivität (Min × Pkt/Min)</span><span style="color:var(--gold);font-weight:600;">individuell</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🪷 Achtsamkeit (Min × Pkt/Min)</span><span style="color:var(--gold);font-weight:600;">individuell</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🔥 Streak-Tag</span><span style="color:var(--gold);font-weight:600;">+20</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>✅ Nüchtern-Tag</span><span style="color:var(--gold);font-weight:600;">+15</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🍷 Woche im Alkohol-Limit</span><span style="color:var(--gold);font-weight:600;">+50</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🏆 Challenge-Tag clean</span><span style="color:var(--gold);font-weight:600;">+10</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>🏅 Badge freischalten</span><span style="color:var(--gold);font-weight:600;">→ Rewards</span></div>
     </div>
   </div>
 
@@ -1647,12 +1767,32 @@
     <div id="bug-list"></div>
   </div>
 
+  <!-- DATENSICHERUNG -->
+  <div class="card">
+    <h2>💾 Datensicherung</h2>
+    <p class="small-note" style="margin-bottom:14px;line-height:1.5;">Exportiere alle Daten als JSON-Datei und importiere sie auf einem anderen Gerät.</p>
+
+    <button onclick="exportData()" class="log-btn" style="width:100%;margin-bottom:10px;">
+      📤 Daten exportieren
+    </button>
+
+    <div style="position:relative;">
+      <button onclick="document.getElementById('import-file').click()" class="log-btn secondary" style="width:100%;">
+        📥 Daten importieren
+      </button>
+      <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(this)">
+    </div>
+    <p class="small-note" style="margin-top:8px;">⚠️ Import überschreibt alle bestehenden Daten.</p>
+  </div>
+
   <!-- VERSION & ABOUT -->
   <div class="card" style="text-align:center;padding:20px;">
     <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:4px;">🌿 Vitalis</div>
     <div style="font-size:0.82rem;color:var(--muted);">Version <strong id="app-version">1.0.0</strong></div>
-    <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;margin-bottom:12px;">Alle Daten lokal auf deinem Gerät</div>
-    <button class="log-btn secondary" onclick="showSection('about')" style="width:auto;padding:8px 20px;">🌿 Über Vitalis & Quellen</button>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;margin-bottom:16px;">Alle Daten lokal auf deinem Gerät</div>
+    <button class="log-btn secondary" onclick="showSection('about')" style="width:auto;padding:8px 20px;margin-bottom:10px;">🌿 Über Vitalis & Quellen</button>
+    <hr class="divider">
+    <button onclick="resetAllData()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--accent2);background:transparent;color:var(--accent2);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">🗑 Alle Daten zurücksetzen (Test)</button>
   </div>
 </div>
 
@@ -1840,6 +1980,8 @@ function loadState() {
     lastActiveDate: null,
     activitiesLogged: 0,
     earnedBadges: [],
+    pointsLog: [],
+    habit90: null, // { name, startDate, log: [{date, done}], completed }
     feelingLog: [],
     activityLog: [],
     activities: DEFAULT_ACTIVITIES,
@@ -1883,13 +2025,24 @@ function saveState() {
 // Daily water reset
 function checkDailyWaterReset() {
   const todayStr = new Date().toDateString();
-  if (state.lastWaterDate && state.lastWaterDate !== todayStr) {
-    state.waterMl = 0;
-    showToast('💧 Neuer Tag – Wasserzähler zurückgesetzt.');
+  if (!state.lastWaterDate) {
+    // Erster Start – kein Reset nötig, nur Datum setzen
+    state.lastWaterDate = todayStr;
+    saveState();
+    return;
   }
-  state.lastWaterDate = todayStr;
-  saveState();
+  if (state.lastWaterDate !== todayStr) {
+    // Echter Tageswechsel
+    state.waterMl = 0;
+    state.lastWaterDate = todayStr;
+    saveState();
+    // Toast erst nach DOM-Ready
+    if (state.waterMl > 0 || state.waterDays > 0) setTimeout(() => showToast('💧 Neuer Tag – Wasserzähler zurückgesetzt.'), 500);
+  }
 }
+
+let state = loadState();
+checkDailyWaterReset();
 
 // Check every minute if day has changed
 setInterval(() => {
@@ -1900,9 +2053,6 @@ setInterval(() => {
     if (document.getElementById('section-water')?.classList.contains('visible')) renderWater();
   }
 }, 60000);
-
-let state = loadState();
-checkDailyWaterReset();
 
 // Migration: update old 'Spaziergang' to steps-based 'Gehen'
 if (state.activities) {
@@ -2055,17 +2205,22 @@ function renderHome() {
     {
       icon: '😊', label: 'Gefühl', section: 'feeling',
       color: '#c9a84c', bg: 'linear-gradient(135deg,#fdf9ec,#f9eecc)',
-      value: (state.feelingLog.length > 0 && new Date(state.feelingLog[0].ts).toDateString() === todayStr)
-        ? (state.feelingLog[0].after !== null ? FEELINGS[state.feelingLog[0].after].emoji : FEELINGS[state.feelingLog[0].before] ? FEELINGS[state.feelingLog[0].before].emoji : '—')
-        : '—',
+      value: (() => {
+        const f = state.feelingLog.find(e => new Date(e.ts).toDateString() === todayStr);
+        if (!f) return '—';
+        if (f.before !== null && f.after !== null) return f.before + '→' + f.after;
+        if (f.before !== null) return f.before + '→⏳';
+        if (f.after !== null) return '→' + f.after;
+        return '—';
+      })(),
       sub: 'Vor & nach Aktivität',
       bar: null
     },
     {
       icon: '🧘', label: 'Körper', section: 'body',
       color: '#6b8f71', bg: 'linear-gradient(135deg,#f0f5f0,#dceadc)',
-      value: (state.bodyLog.length > 0 && new Date(state.bodyLog[0].ts).toDateString() === todayStr && state.bodyLog[0].feeling !== null)
-        ? BODY_SCALE[state.bodyLog[0].feeling].emoji : '—',
+      value: (state.bodyLog.length > 0 && new Date(state.bodyLog[0].ts).toDateString() === todayStr)
+        ? (state.bodyLog[0].feeling || '—') : '—',
       sub: 'Körper-Check',
       bar: null
     },
@@ -2158,25 +2313,73 @@ function initSlider(id, val) {
 // FEELING
 // =====================
 function renderFeeling() {
-  initSlider('feeling-before', feelingBefore !== null ? feelingBefore : 5);
-  initSlider('feeling-after',  feelingAfter  !== null ? feelingAfter  : 5);
+  initSlider('feeling-before', 5);
+  initSlider('feeling-after', 5);
+  // Show pending hint if there's an open before-entry today
+  const todayStr = new Date().toDateString();
+  const pending = state.feelingLog.find(e =>
+    new Date(e.ts).toDateString() === todayStr && e.before !== null && e.after === null
+  );
+  const hint = document.getElementById('feeling-after-pending');
+  if (hint) hint.style.display = pending ? '' : 'none';
   renderFeelingHistory();
 }
 
-function logFeeling() {
+function logFeelingBefore() {
+  const before = parseInt(document.getElementById('feeling-before-slider')?.value || 5);
+  const entry = { ts: new Date().toISOString(), before, after: null };
+  state.feelingLog.unshift(entry);
+  if (state.feelingLog.length > 200) state.feelingLog.pop();
+  saveState();
+  initSlider('feeling-before', 5);
+  renderFeelingHistory();
+  const hint = document.getElementById('feeling-after-pending');
+  if (hint) hint.style.display = '';
+  showToast('😊 Vor-Gefühl gespeichert!');
+}
+
+function logFeelingAfter() {
+  const after = parseInt(document.getElementById('feeling-after-slider')?.value || 5);
+  // Find most recent entry without after value today
+  const todayStr = new Date().toDateString();
+  const pending = state.feelingLog.find(e =>
+    new Date(e.ts).toDateString() === todayStr && e.before !== null && e.after === null
+  );
+  if (pending) {
+    pending.after = after;
+    saveState();
+    renderFeelingHistory();
+    initSlider('feeling-after', 5);
+    const hint = document.getElementById('feeling-after-pending');
+    if (hint) hint.style.display = 'none';
+    showToast('😊 Nach-Gefühl ergänzt!');
+  } else {
+    // No pending entry – save as standalone after-only entry
+    state.feelingLog.unshift({ ts: new Date().toISOString(), before: null, after });
+    if (state.feelingLog.length > 200) state.feelingLog.pop();
+    saveState();
+    initSlider('feeling-after', 5);
+    renderFeelingHistory();
+    showToast('😊 Nach-Gefühl gespeichert!');
+  }
+}
+
+function logFeelingBoth() {
   const before = parseInt(document.getElementById('feeling-before-slider')?.value || 5);
   const after  = parseInt(document.getElementById('feeling-after-slider')?.value  || 5);
-  const entry = { ts: new Date().toISOString(), before, after };
-  state.feelingLog.unshift(entry);
-  if (state.feelingLog.length > 20) state.feelingLog.pop();
-  feelingBefore = null; feelingAfter = null;
+  state.feelingLog.unshift({ ts: new Date().toISOString(), before, after });
+  if (state.feelingLog.length > 200) state.feelingLog.pop();
+  saveState();
   initSlider('feeling-before', 5);
   initSlider('feeling-after', 5);
-  saveState();
   renderFeelingHistory();
-  checkStreak();
-  showToast('✅ Gefühl gespeichert!');
+  const hint = document.getElementById('feeling-after-pending');
+  if (hint) hint.style.display = 'none';
+  showToast('✅ Beide Gefühle gespeichert!');
 }
+
+// Keep old logFeeling as alias for both
+function logFeeling() { logFeelingBoth(); }
 
 function renderFeelingHistory() {
   const list = document.getElementById('feeling-history');
@@ -2191,13 +2394,14 @@ function renderFeelingHistory() {
     const time = feelingFilter === 'heute'
       ? d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})
       : d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
-    const before = e.before !== null ? e.before : '–';
-    const after  = e.after  !== null ? e.after  : '–';
+    const before = e.before !== null ? e.before : '—';
+    const after  = e.after  !== null ? e.after  : '—';
     const color  = (v) => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
+    const isOpen = e.after === null && e.before !== null;
     const uid = 'fe-' + i;
 
     const outer = document.createElement('div');
-    outer.style.cssText = 'border:2px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2px;';
+    outer.style.cssText = `border:2px solid ${isOpen ? 'var(--accent)' : 'var(--border)'};border-radius:12px;overflow:hidden;margin-bottom:2px;`;
 
     const summary = document.createElement('div');
     summary.className = 'feeling-entry';
@@ -2206,6 +2410,7 @@ function renderFeelingHistory() {
       <span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(before)};">${before}</span>
       <span class="arrow">→</span>
       <span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(after)};">${after}</span>
+      ${isOpen ? '<span style="font-size:0.7rem;color:var(--accent);margin-left:4px;">⏳</span>' : ''}
       <span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${time}</span>
       <span id="${uid}-icon" style="color:var(--muted);font-size:0.8rem;margin-left:6px;">▼</span>
     `;
@@ -2524,7 +2729,8 @@ function selectDateChip(when) {
   if (when === 'gestern')    d.setDate(d.getDate()-1);
   if (when === 'vorgestern') d.setDate(d.getDate()-2);
   selectedActivityDate = d.toDateString();
-  updatePreview();
+  // Auto-select Ganztags so button becomes active
+  selectTimeSlot('ganztags');
 }
 
 function activateDateCustom() {
@@ -2539,7 +2745,10 @@ function activateDateCustom() {
 }
 
 function selectCustomDate(val) {
-  selectedActivityDate = new Date(val).toDateString();
+  // Fix iOS UTC timezone bug
+  const [y, m, d] = val.split('-').map(Number);
+  const date = new Date(y, m-1, d, 12, 0, 0);
+  selectedActivityDate = date.toDateString();
   updatePreview();
 }
 
@@ -2605,15 +2814,16 @@ function resetTimeSlot() {
 
 function logSelectedActivity() {
   if (state.selectedActivity === null) { showToast('Bitte Aktivität auswählen.'); return; }
+  if (!selectedActivityTime) { showToast('Bitte Zeitpunkt wählen.'); return; }
   const a = state.activities[state.selectedActivity];
   const isSteps = a.steps === true;
   const pts = isSteps
     ? Math.round((a.stepsDefault || 5000) / 1000) * 10
     : a.min * (a.ptsPerMin || 1);
   const label = isSteps ? `${(a.stepsDefault||5000).toLocaleString('de-DE')} Schritte` : `${a.min} min`;
-  const ts = selectedActivityTime || new Date().toISOString();
-  state.activityLog.unshift({ name: a.name, icon: a.icon || '🏃', min: a.min, pts, label, ts });
-  if (state.activityLog.length > 20) state.activityLog.pop();
+  const ts = selectedActivityTime;
+  state.activityLog.unshift({ name: a.name, icon: a.icon || '🏃', min: a.min, pts, label, ts, ptsPerMin: a.ptsPerMin||1, steps: isSteps, stepsDefault: a.stepsDefault });
+  if (state.activityLog.length > 200) state.activityLog.pop();
   state.activitiesLogged++;
   addPoints(pts, '🏃 ' + a.name);
   checkStreak();
@@ -2870,8 +3080,11 @@ function toggleAlcToday(drank) {
     targetDate.setHours(12,0,0,0);
     state.alcDaysLog.push({ date: targetDate.toISOString(), drank, joker: false });
   }
+  // Recalculate points and update rewards
+  addPoints(0, '');
   saveState();
   renderAlcohol();
+  checkBadges();
   const label = targetStr === new Date().toDateString() ? 'Heute' :
     targetStr === (() => { const d=new Date(); d.setDate(d.getDate()-1); return d.toDateString(); })() ? 'Gestern' : 'Vorgestern';
   showToast(drank ? `🍷 ${label} als Trinktag geloggt.` : `✅ ${label} nüchtern +15 Punkte!`);
@@ -2901,6 +3114,61 @@ function setAlcMax(v) {
 function setJokerMax(v) {
   state.jokerMax = Math.max(0, parseInt(v) || 2);
   saveState(); renderAlcohol();
+}
+
+function toggleAlcHistory() {
+  const body = document.getElementById('alc-history-body');
+  const icon = document.getElementById('alc-history-icon');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  icon.textContent = open ? '▼' : '▲';
+  if (!open) renderAlcHistory();
+}
+
+function renderAlcHistory() {
+  const list = document.getElementById('alc-history-list');
+  if (!list) return;
+  const thisWeekStart = getWeekStart();
+  const days = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+  let html = '';
+
+  for (let w = 1; w <= 8; w++) {
+    const wStart = new Date(thisWeekStart);
+    wStart.setDate(wStart.getDate() - w * 7);
+    const wEnd = new Date(wStart); wEnd.setDate(wStart.getDate() + 7);
+
+    const daysInWeek = (state.alcDaysLog||[]).filter(e => {
+      const d = new Date(e.date);
+      return d >= wStart && d < wEnd;
+    });
+    if (daysInWeek.length === 0) continue;
+
+    const drinkDays = daysInWeek.filter(e => e.drank).length;
+    const inLimit = drinkDays <= (state.alcMax || 3);
+    const wLabel = wStart.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) +
+      ' – ' + new Date(wEnd - 1).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+
+    // Build dots for Mo-So
+    let dotsHtml = '';
+    for (let d = 0; d < 7; d++) {
+      const day = new Date(wStart); day.setDate(wStart.getDate() + d);
+      const entry = daysInWeek.find(e => new Date(e.date).toDateString() === day.toDateString());
+      const color = !entry ? 'var(--border)' : entry.drank ? 'var(--accent2)' : 'var(--accent)';
+      dotsHtml += `<div style="width:26px;height:26px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:600;color:white;">${days[d]}</div>`;
+    }
+
+    html += `<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:0.78rem;color:var(--muted);">${wLabel}</span>
+        <span style="font-size:0.75rem;font-weight:600;color:${inLimit?'var(--accent)':'var(--accent2)'};">
+          ${drinkDays}/${state.alcMax||3} Tage ${inLimit?'✓ +50 Pkt':'⚠️'}
+        </span>
+      </div>
+      <div style="display:flex;gap:4px;">${dotsHtml}</div>
+    </div>`;
+  }
+
+  list.innerHTML = html || '<p class="small-note">Keine Daten aus vergangenen Wochen.</p>';
 }
 
 function resetAlcWeek() {
@@ -3063,42 +3331,83 @@ function renderChallenge() {
 // Süssigkeit geloggt:    5 Pts
 
 function calcPoints() {
-  // Wenn alle Logs leer sind → alles auf 0
   const hasAnyEntry = state.activityLog.length > 0
     || state.waterDays > 0
-    || (state.alcDaysLog||[]).length > 0;
+    || state.waterMl > 0
+    || (state.alcDaysLog||[]).length > 0
+    || (state.mindfulnessLog||[]).length > 0;
 
   if (!hasAnyEntry) {
     state.streak = 0;
     state.lastActiveDate = null;
     state.earnedBadges = [];
     state.activitiesLogged = 0;
+    state.pointsLog = [];
     return 0;
   }
 
   let pts = 0;
+  const log = [];
 
-  // Aktivitäten: Minuten × ptsPerMin
-  state.activityLog.forEach(e => pts += (e.pts || e.min || 0));
+  // Aktivitäten
+  state.activityLog.forEach(e => {
+    if (e.pts > 0) {
+      pts += e.pts;
+      log.push({ pts: e.pts, reason: (e.icon||'🏃') + ' ' + e.name, ts: e.ts });
+    }
+  });
 
-  // Wasser: 5 pro Portion (vereinfacht über waterDays), 30 pro Tagesziel
-  pts += state.waterDays * 30;
+  // Achtsamkeit
+  (state.mindfulnessLog||[]).forEach(e => {
+    if (e.pts > 0) {
+      pts += e.pts;
+      log.push({ pts: e.pts, reason: (e.icon||'🪷') + ' ' + e.name, ts: e.ts });
+    }
+  });
 
-  // Streak: 20 pro Tag
-  pts += state.streak * 20;
+  // Wasser Tagesziele: +30 pro Tag
+  if (state.waterDays > 0) {
+    pts += state.waterDays * 30;
+    log.push({ pts: state.waterDays * 30, reason: '💧 Tagesziele Wasser (' + state.waterDays + '×)', ts: new Date().toISOString() });
+  }
 
-  // Alkohol: +15 pro Nüchtern-Tag
-  const soberDays = (state.alcDaysLog || []).filter(e => e.drank === false).length;
-  pts += soberDays * 15;
+  // Streak: +20 pro Tag
+  if (state.streak > 0) {
+    pts += state.streak * 20;
+    const tage = state.streak === 1 ? 'Tag' : 'Tage';
+    log.push({ pts: state.streak * 20, reason: '🔥 Streak (' + state.streak + ' ' + tage + ')', ts: new Date().toISOString() });
+  }
 
-  // Alkohol: +50 pro Woche im Limit (jede abgeschlossene Woche)
-  const weeksInLimit = calcWeeksInLimit();
-  pts += weeksInLimit * 50;
+  // Nüchtern-Tage: +15 – nur aus abgeschlossenen Wochen (nicht aktuelle Woche)
+  const weekStart = getWeekStart();
+  const soberDays = (state.alcDaysLog||[]).filter(e =>
+    e.drank === false && new Date(e.date) < weekStart
+  );
+  soberDays.forEach(e => {
+    pts += 15;
+    const d = new Date(e.date);
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    log.push({ pts: 15, reason: '✅ Nüchtern-Tag (' + ds + ')', ts: e.date });
+  });
 
-  // Challenge: +10 pro clean Tag
+  // Wochen im Alkohol-Limit: +50 – nur abgeschlossene Wochen
+  const { count: weeksInLimit, weekEntries } = calcWeeksInLimit();
+  weekEntries.forEach(wStart => {
+    const wEnd = new Date(wStart);
+    wEnd.setDate(wStart.getDate() + 6);
+    const from = wStart.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+    const to   = wEnd.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+    pts += 50;
+    log.push({ pts: 50, reason: '🍷 Woche im Limit (' + from + '–' + to + ')', ts: wEnd.toISOString() });
+  });
+
+  // Challenge clean days: +10
   if (state.challenge) {
-    const cleanDays = state.challenge.log.filter(e => e.clean).length;
-    pts += cleanDays * 10;
+    const cleanDays = (state.challenge.log||[]).filter(e => e.clean).length;
+    if (cleanDays > 0) {
+      pts += cleanDays * 10;
+      log.push({ pts: cleanDays * 10, reason: '🏆 Challenge (' + cleanDays + ' Tage)', ts: new Date().toISOString() });
+    }
   }
 
   // Badges
@@ -3109,19 +3418,25 @@ function calcPoints() {
   state.earnedBadges = stillEarned;
   stillEarned.forEach(id => {
     const b = BADGES.find(b => b.id === id);
-    if (b) pts += b.pts;
+    if (b && b.pts > 0) {
+      pts += b.pts;
+      log.push({ pts: b.pts, reason: b.icon + ' Badge: ' + b.name, ts: new Date().toISOString() });
+    }
   });
+
+  // Sort log by date desc
+  log.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+  state.pointsLog = log;
 
   return pts;
 }
 
 function calcWeeksInLimit() {
-  // Zählt abgeschlossene Wochen (Mo–So) wo Trinktage <= alcMax
-  if (!state.alcDaysLog || !state.alcDaysLog.length) return 0;
-  const now = new Date();
+  if (!state.alcDaysLog || !state.alcDaysLog.length) return { count: 0, weekEntries: [] };
   const thisWeekStart = getWeekStart();
   let count = 0;
-  // Look back up to 52 weeks
+  let emptyStreak = 0;
+  const weekEntries = [];
   for (let w = 1; w <= 52; w++) {
     const wStart = new Date(thisWeekStart);
     wStart.setDate(wStart.getDate() - w * 7);
@@ -3131,21 +3446,28 @@ function calcWeeksInLimit() {
       const d = new Date(e.date);
       return d >= wStart && d < wEnd;
     });
-    if (daysInWeek.length === 0) break; // no data further back
+    if (daysInWeek.length === 0) {
+      emptyStreak++;
+      if (emptyStreak >= 4) break;
+      continue;
+    }
+    emptyStreak = 0;
     const drinkDays = daysInWeek.filter(e => e.drank).length;
-    if (drinkDays <= state.alcMax) count++;
+    if (drinkDays <= state.alcMax) {
+      count++;
+      weekEntries.push(new Date(wStart));
+    }
   }
-  return count;
+  return { count, weekEntries };
 }
 
 function addPoints(pts, reason) {
-  // Nicht mehr manuell addieren – wird live berechnet
-  // Wir speichern nur noch den Grund für spätere Nutzung
-  // Punkte werden via calcPoints() ermittelt
   state.totalPoints = calcPoints();
+  saveState();
   const el = document.getElementById('total-points');
   if (el) el.textContent = state.totalPoints;
-  document.getElementById('streak-header-num').textContent = state.streak;
+  const streakEl = document.getElementById('streak-header-num');
+  if (streakEl) streakEl.textContent = state.streak;
   checkBadges();
 }
 
@@ -3211,6 +3533,8 @@ function renderRewards() {
 
   // Custom rewards
   renderCustomRewards();
+  renderPointsLog();
+  renderHabit90();
 
   // Badges by category
   const grid = document.getElementById('badges-grid');
@@ -3234,6 +3558,70 @@ function renderRewards() {
     catDiv.appendChild(inner);
     grid.appendChild(catDiv);
   });
+}
+
+function rebuildPointsLog() {
+  // Only rebuild if log is empty but points exist
+  if ((state.pointsLog||[]).length > 0) return;
+  if (state.totalPoints === 0) return;
+
+  const log = [];
+
+  // Activities
+  state.activityLog.forEach(e => {
+    if (e.pts > 0) log.push({ pts: e.pts, reason: (e.icon||'🏃') + ' ' + e.name, ts: e.ts });
+  });
+
+  // Water goals
+  for (let i = 0; i < state.waterDays; i++) {
+    log.push({ pts: 30, reason: '💧 Tagesziel Wasser erreicht', ts: new Date().toISOString() });
+  }
+
+  // Sober days
+  (state.alcDaysLog||[]).filter(e => e.drank === false).forEach(e => {
+    log.push({ pts: 15, reason: '✅ Nüchtern-Tag', ts: e.date });
+  });
+
+  // Streak
+  if (state.streak > 0) {
+    log.push({ pts: state.streak * 20, reason: '🔥 Streak (' + state.streak + ' Tage)', ts: new Date().toISOString() });
+  }
+
+  // Mindfulness
+  (state.mindfulnessLog||[]).forEach(e => {
+    if (e.pts > 0) log.push({ pts: e.pts, reason: (e.icon||'🪷') + ' ' + e.name, ts: e.ts });
+  });
+
+  // Sort by date desc
+  log.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+  state.pointsLog = log;
+  saveState();
+}
+
+function togglePointsInfo() {
+  const body = document.getElementById('points-info-body');
+  const icon = document.getElementById('points-info-icon');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  icon.textContent = open ? '▼' : '▲';
+}
+
+function renderPointsLog() {
+  const list  = document.getElementById('points-log-list');
+  const empty = document.getElementById('points-log-empty');
+  if (!list) return;
+  const log = state.pointsLog || [];
+  if (!log.length) { list.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  list.innerHTML = log.slice(0, 50).map(e => {
+    const d = new Date(e.ts);
+    const ds = d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;background:var(--bg);">
+      <span style="font-family:'DM Serif Display',serif;font-size:1rem;color:var(--gold);font-weight:600;min-width:40px;">+${e.pts}</span>
+      <span style="flex:1;font-size:0.85rem;">${e.reason}</span>
+      <span style="font-size:0.72rem;color:var(--muted);white-space:nowrap;">${ds}</span>
+    </div>`;
+  }).join('');
 }
 
 function renderCustomRewards() {
@@ -3583,7 +3971,7 @@ function renderSleepCheckinGrid() {
 function quickLogSleepSlider() {
   const score = parseInt(document.getElementById('checkin-sleep-slider')?.value || 5);
   state.sleepLog.unshift({ ts: new Date().toISOString(), score, hours: null, bedtime: null, wake: null, note: null });
-  if (state.sleepLog.length > 60) state.sleepLog.pop();
+  if (state.sleepLog.length > 200) state.sleepLog.pop();
   saveState();
   document.getElementById('sleep-checkin-card').style.display = 'none';
   showToast('🌙 Schlaf notiert. Guten Morgen!');
@@ -3621,7 +4009,7 @@ function logSleep() {
   const note    = document.getElementById('sleep-note').value.trim() || null;
 
   state.sleepLog.unshift({ ts: new Date().toISOString(), score, hours, bedtime, wake, note });
-  if (state.sleepLog.length > 60) state.sleepLog.pop();
+  if (state.sleepLog.length > 200) state.sleepLog.pop();
 
   sleepQuality = null;
   initSlider('sleep-quality', 5);
@@ -3826,7 +4214,7 @@ function logBody() {
     feeling,
     note,
   });
-  if (state.bodyLog.length > 30) state.bodyLog.pop();
+  if (state.bodyLog.length > 200) state.bodyLog.pop();
   bodyMeal = null;
   initSlider('hunger', 5);
   initSlider('body-feeling', 5);
@@ -4299,9 +4687,10 @@ function renderVerlauf() {
   renderVerlaufList('vl-feeling-list', 'vl-feeling-empty', feels, e => {
     const d = new Date(e.ts);
     const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
-    const before = e.before !== null ? FEELINGS[e.before].emoji : '–';
-    const after  = e.after  !== null ? FEELINGS[e.after].emoji  : '–';
-    return `<span class="emojis">${before}</span><span class="arrow" style="color:var(--accent);font-weight:600;">→</span><span class="emojis">${after}</span><span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>`;
+    const sc = v => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
+    const before = e.before !== null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${sc(e.before)};">${e.before}</span>` : '<span style="color:var(--muted);">–</span>';
+    const after  = e.after  !== null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${sc(e.after)};">${e.after}</span>` : '<span style="color:var(--muted);">⏳</span>';
+    return `${before}<span class="arrow" style="color:var(--accent);font-weight:600;">→</span>${after}<span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>`;
   });
 
   // Süssigkeiten
@@ -4574,6 +4963,123 @@ function deleteMindfulnessLog(i) {
     renderMindfulness();
     showToast('Eintrag gelöscht.');
   });
+}
+
+// =====================
+// 90-TAGE-GEWOHNHEIT
+// =====================
+const HABIT_MILESTONES = [
+  { day: 7,  text: '🌱 1 Woche! Der erste Schritt ist getan.' },
+  { day: 21, text: '⭐ 21 Tage! Die erste Phase ist geschafft.' },
+  { day: 42, text: '🔥 42 Tage! Du bist über die Hälfte.' },
+  { day: 66, text: '🧠 66 Tage! Wissenschaftlich gesehen ist die Gewohnheit jetzt verankert.' },
+  { day: 90, text: '🏆 90 Tage! Du hast es geschafft. Das ist außergewöhnlich.' },
+];
+
+function startHabit() {
+  const name = document.getElementById('habit-name-input').value.trim();
+  const dateVal = document.getElementById('habit-start-input').value;
+  if (!name) { showToast('Bitte Gewohnheit benennen.'); return; }
+  if (!dateVal) { showToast('Bitte Startdatum wählen.'); return; }
+  const [y, m, d] = dateVal.split('-').map(Number);
+  const startDate = new Date(y, m-1, d, 12, 0, 0);
+  showConfirm(
+    '🌱 Commitment starten?',
+    '90 Tage „' + name + '". Kein Druck – aber Bewusstsein. Bereit?',
+    () => {
+      state.habit90 = { name, startDate: startDate.toISOString(), log: [], completed: false };
+      saveState();
+      renderHabit90();
+      showToast('🌱 Los geht\'s! 90 Tage starten jetzt.');
+    }
+  );
+}
+
+function logHabitDay(done) {
+  if (!state.habit90) return;
+  const todayStr = new Date().toDateString();
+  const existing = state.habit90.log.find(e => new Date(e.date).toDateString() === todayStr);
+  if (existing) { existing.done = done; }
+  else { state.habit90.log.push({ date: new Date().toISOString(), done }); }
+  // Check completion
+  const daysPassed = Math.floor((new Date() - new Date(state.habit90.startDate)) / 86400000) + 1;
+  if (daysPassed >= 90) {
+    state.habit90.completed = true;
+    addPoints(500, '🌱 90-Tage-Gewohnheit abgeschlossen: ' + state.habit90.name);
+    showToast('🏆 90 Tage geschafft! +500 Punkte!');
+  }
+  saveState();
+  renderHabit90();
+  if (!state.habit90.completed) showToast(done ? '✅ Heute abgehakt!' : '○ Notiert – morgen wieder.');
+}
+
+function stopHabit() {
+  showConfirm('Gewohnheit beenden?', 'Den 90-Tage-Tracker stoppen?', () => {
+    state.habit90 = null;
+    saveState();
+    renderHabit90();
+  });
+}
+
+function renderHabit90() {
+  const active = document.getElementById('habit-active-card');
+  const setup  = document.getElementById('habit-setup-card');
+  if (!active || !setup) return;
+
+  if (!state.habit90) {
+    active.style.display = 'none';
+    setup.style.display  = '';
+    // Set default start date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('habit-start-input').value = today;
+    return;
+  }
+
+  active.style.display = '';
+  setup.style.display  = 'none';
+
+  const h = state.habit90;
+  const start = new Date(h.startDate);
+  const today = new Date();
+  const daysPassed = Math.max(0, Math.floor((today - start) / 86400000) + 1);
+  const daysTotal  = 90;
+  const pct = Math.min(100, Math.round(daysPassed / daysTotal * 100));
+
+  document.getElementById('habit-name-display').textContent = '🌱 ' + h.name;
+  document.getElementById('habit-date-display').textContent = 'Gestartet am ' + start.toLocaleDateString('de-DE', {day:'2-digit', month:'long', year:'numeric'});
+  document.getElementById('habit-days-label').textContent = 'Tag ' + Math.min(daysPassed, 90) + ' von 90';
+  document.getElementById('habit-pct-label').textContent = pct + '%';
+  document.getElementById('habit-progress-bar').style.width = pct + '%';
+
+  // Milestone
+  const milestone = HABIT_MILESTONES.slice().reverse().find(m => daysPassed >= m.day);
+  const milestoneEl = document.getElementById('habit-milestone');
+  if (milestone) { milestoneEl.style.display = ''; milestoneEl.textContent = milestone.text; }
+  else { milestoneEl.style.display = 'none'; }
+
+  // Today buttons
+  const todayStr = today.toDateString();
+  const todayEntry = h.log.find(e => new Date(e.date).toDateString() === todayStr);
+  const yesBtn = document.getElementById('habit-yes-btn');
+  const noBtn  = document.getElementById('habit-no-btn');
+  yesBtn.style.background = todayEntry?.done ? '#3a5bc7' : 'white';
+  yesBtn.style.color      = todayEntry?.done ? 'white' : '';
+  yesBtn.style.borderColor= todayEntry?.done ? '#3a5bc7' : 'rgba(58,91,199,0.3)';
+  noBtn.style.background  = (todayEntry && !todayEntry.done) ? '#eee' : 'white';
+
+  // Last 7 days dots
+  const dots = document.getElementById('habit-dots');
+  dots.innerHTML = '';
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const entry = h.log.find(e => new Date(e.date).toDateString() === d.toDateString());
+    const isFuture = d > today;
+    const dot = document.createElement('div');
+    const color = isFuture ? 'var(--border)' : !entry ? 'var(--border)' : entry.done ? '#3a5bc7' : '#ddd';
+    dot.style.cssText = `width:30px;height:30px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:white;font-weight:600;`;
+    dot.textContent = ['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()];
+    dots.appendChild(dot);
+  }
 }
 
 // =====================
@@ -5055,12 +5561,28 @@ function finishBreathing() {
 
 function saveBreathingSession() {
   const score = parseInt(document.getElementById('breath-after-slider')?.value || 5);
+  const t = TECHNIQUES[state.breathingTechnique || 'box'];
+  const dur = state.breathingDuration || 3;
+
+  // Save to breathingLog (for settings stats)
   if (!state.breathingLog) state.breathingLog = [];
   state.breathingLog.unshift({ ts: new Date().toISOString(), technique: state.breathingTechnique, score });
+
+  // Also save to mindfulnessLog so it appears in the Achtsamkeit tile + log
+  if (!state.mindfulnessLog) state.mindfulnessLog = [];
+  state.mindfulnessLog.unshift({
+    ts: new Date().toISOString(),
+    name: t ? t.name : 'Atemübung',
+    icon: '🫁',
+    min: dur,
+    pts: dur * 3,
+    score,
+  });
+
   saveState();
   closeBreathing();
   showToast('🫁 Pause abgeschlossen. Gut gemacht!');
-  scheduleBreathing(); // Schedule next
+  scheduleBreathing();
 }
 
 function closeBreathing() {
@@ -5089,11 +5611,63 @@ function hideConfirm() {
   document.getElementById('confirm-overlay').classList.remove('open');
 }
 
+function exportData() {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toISOString().split('T')[0];
+  a.href     = url;
+  a.download = `vitalis-backup-${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('📤 Backup exportiert!');
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (typeof imported !== 'object' || imported === null) throw new Error('Ungültig');
+      showConfirm(
+        '📥 Daten importieren?',
+        'Alle bestehenden Daten werden überschrieben. Fortfahren?',
+        () => {
+          localStorage.setItem('vitalis_state', JSON.stringify(imported));
+          showToast('✅ Import erfolgreich – App wird neu geladen.');
+          setTimeout(() => location.reload(), 1200);
+        }
+      );
+    } catch(err) {
+      showToast('❌ Datei ungültig – kein Vitalis-Backup.');
+    }
+  };
+  reader.readAsText(file);
+  input.value = ''; // Reset so same file can be selected again
+}
+
+function resetAllData() {
+  showConfirm(
+    '🗑 Alles zurücksetzen?',
+    'Alle Daten werden unwiderruflich gelöscht. Nur für Testzwecke!',
+    () => {
+      localStorage.removeItem('vitalis_state');
+      location.reload();
+    }
+  );
+}
+
 // =====================
 // INIT
 // =====================
 state.totalPoints = calcPoints();
 saveState();
+rebuildPointsLog();
 renderHome();
 document.getElementById('streak-header-num').textContent = state.streak;
 scheduleBreathing();
