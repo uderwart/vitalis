@@ -1519,7 +1519,7 @@
       <div class="vitalis-slider-value" id="hunger-val">5</div>
       <div class="vitalis-slider-desc" id="hunger-desc">neutral</div>
       <input type="range" id="hunger-slider" min="1" max="10" value="5"
-        oninput="updateSlider('hunger', this.value)">
+        oninput="updateSlider('hunger', this.value);bodyCheckReady()">
       <div class="slider-labels"><span>😫 Ausgehungert</span><span>😮 Übervoll</span></div>
     </div>
 
@@ -1533,16 +1533,17 @@
       <div class="vitalis-slider-value" id="body-feeling-val">5</div>
       <div class="vitalis-slider-desc" id="body-feeling-desc">okay</div>
       <input type="range" id="body-feeling-slider" min="1" max="10" value="5"
-        oninput="updateSlider('body-feeling', this.value)">
+        oninput="updateSlider('body-feeling', this.value);bodyCheckReady()">
       <div class="slider-labels"><span>😔 Unwohl</span><span>😄 Sehr wohl</span></div>
     </div>
 
     <!-- NOTIZ -->
     <h3 style="margin-bottom:6px;">Kurze Notiz (optional)</h3>
     <textarea id="body-note" placeholder="Was fällt dir gerade auf? Kein Muss…"
-      style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:70px;background:var(--bg);color:var(--ink);"></textarea>
+      style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:70px;background:var(--bg);color:var(--ink);"
+      oninput="bodyCheckReady()"></textarea>
 
-    <button class="log-btn secondary" style="margin-top:12px;" onclick="logBody()">Beobachtung notieren</button>
+    <button id="body-log-btn" class="log-btn secondary" style="margin-top:12px;opacity:0.4;cursor:not-allowed;" onclick="logBody()" disabled>Beobachtung notieren</button>
   </div>
 
   <!-- BESCHWERDEN -->
@@ -4862,13 +4863,25 @@ function renderBodyGrid(containerId, items, stateKey, selectable) {
     btn.innerHTML = `<div style="font-size:1.4rem;">${item.emoji}</div><div style="margin-top:3px;color:var(--muted);font-size:0.72rem;">${item.label}</div>`;
     btn.onclick = () => {
       if (stateKey === 'meal') { bodyMeal = bodyMeal === idx ? null : idx; }
+      bodyCheckReady();
       renderBodyGrid(containerId, items, stateKey, selectable);
     };
     container.appendChild(btn);
   });
 }
 
+let bodyTouched = false;
+
+function bodyCheckReady() {
+  bodyTouched = true;
+  const btn = document.getElementById('body-log-btn');
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+}
+
 function renderBody() {
+  bodyTouched = false;
+  const btn = document.getElementById('body-log-btn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
   initSlider('hunger', bodyHunger !== null ? bodyHunger : 5);
   initSlider('body-feeling', bodyFeeling !== null ? bodyFeeling : 5);
   renderBodyGrid('meal-grid', MEAL_FEELINGS, 'meal', true);
