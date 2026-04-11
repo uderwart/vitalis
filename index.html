@@ -698,9 +698,105 @@
 </head>
 <body>
 
+<!-- ONBOARDING OVERLAY -->
+<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#1a3a2a 0%,#2d5a3d 50%,#1a3a2a 100%);flex-direction:column;align-items:center;justify-content:center;padding:32px;overflow:hidden;">
+
+  <!-- Step 1: Willkommen -->
+  <div id="ob-step-1" style="text-align:center;width:100%;max-width:360px;">
+    <div style="font-size:3.5rem;margin-bottom:16px;animation:ob-float 3s ease-in-out infinite;">🌿</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:2.2rem;color:white;margin-bottom:8px;line-height:1.2;">Willkommen<br>bei Vitalis</div>
+    <div style="font-size:0.9rem;color:rgba(255,255,255,0.6);margin-bottom:32px;line-height:1.6;">Dein persönlicher Gesundheitsbegleiter.<br>Kein Druck. Kein Kalorienzählen.<br>Nur Bewusstsein.</div>
+    <div style="margin-bottom:24px;">
+      <label style="font-size:0.78rem;color:rgba(255,255,255,0.6);display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Wie heisst du?</label>
+      <input id="ob-name-input" type="text" placeholder="Dein Name"
+        style="width:100%;padding:14px 18px;border:2px solid rgba(255,255,255,0.2);border-radius:16px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:1.1rem;text-align:center;outline:none;box-sizing:border-box;"
+        onfocus="this.style.borderColor='rgba(255,255,255,0.5)'"
+        onblur="this.style.borderColor='rgba(255,255,255,0.2)'"
+        onkeydown="if(event.key==='Enter') obNext(2)">
+    </div>
+    <button onclick="obNext(2)"
+      style="width:100%;padding:16px;border-radius:16px;border:none;background:white;color:#1a3a2a;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;letter-spacing:0.3px;">
+      Weiter →
+    </button>
+  </div>
+
+  <!-- Step 2: Ziel -->
+  <div id="ob-step-2" style="display:none;text-align:center;width:100%;max-width:360px;">
+    <div style="font-size:2rem;margin-bottom:12px;">🎯</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;" id="ob-name-display">Hey!</div>
+    <div style="font-size:0.88rem;color:rgba(255,255,255,0.6);margin-bottom:24px;">Was liegt dir gerade am meisten am Herzen?</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;" id="ob-goals">
+      <button class="ob-goal-btn" onclick="obSelectGoal(this, 'Mehr bewegen')">🏃 Mehr bewegen</button>
+      <button class="ob-goal-btn" onclick="obSelectGoal(this, 'Besser schlafen')">🌙 Besser schlafen</button>
+      <button class="ob-goal-btn" onclick="obSelectGoal(this, 'Bewusster essen')">🥗 Bewusster essen</button>
+      <button class="ob-goal-btn" onclick="obSelectGoal(this, 'Weniger Alkohol')">🍷 Weniger Alkohol</button>
+      <button class="ob-goal-btn" onclick="obSelectGoal(this, 'Einfach beobachten')">👀 Einfach beobachten</button>
+    </div>
+    <button onclick="obNext(3)" id="ob-step2-btn"
+      style="width:100%;padding:16px;border-radius:16px;border:none;background:white;color:#1a3a2a;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;">
+      Weiter →
+    </button>
+  </div>
+
+  <!-- Step 3: Los geht's -->
+  <div id="ob-step-3" style="display:none;text-align:center;width:100%;max-width:360px;">
+    <div style="font-size:3rem;margin-bottom:20px;">🌱</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:white;margin-bottom:12px;line-height:1.3;">Ab heute.<br>Nicht perfekt.<br>Aber beständig.</div>
+    <div style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:12px;line-height:1.6;font-style:italic;">„Ein ausgelassener Tag schadet nicht.<br>Was zählt ist der Gesamteinsatz."</div>
+    <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-bottom:24px;">Lally et al. (2010)</div>
+    <div style="text-align:left;margin-bottom:20px;">
+      <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Dein Wenn-Dann-Plan</div>
+      <div style="font-size:0.82rem;color:rgba(255,255,255,0.7);margin-bottom:10px;line-height:1.5;">Wann wirst du Vitalis öffnen? Konkrete Pläne werden 3× häufiger umgesetzt.</div>
+      <select id="ob-intention-when" style="width:100%;padding:10px 14px;border:2px solid rgba(255,255,255,0.2);border-radius:12px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;margin-bottom:8px;outline:none;">
+        <option value="">Wann? (wählen)</option>
+        <option value="morgens nach dem Aufstehen">Morgens nach dem Aufstehen</option>
+        <option value="beim ersten Kaffee">Beim ersten Kaffee</option>
+        <option value="nach dem Mittagessen">Nach dem Mittagessen</option>
+        <option value="nach der Aktivität">Nach der Aktivität</option>
+        <option value="abends vor dem Schlafen">Abends vor dem Schlafen</option>
+      </select>
+      <select id="ob-intention-what" style="width:100%;padding:10px 14px;border:2px solid rgba(255,255,255,0.2);border-radius:12px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;">
+        <option value="">Was? (wählen)</option>
+        <option value="trage ich meine Aktivität ein">Trage ich meine Aktivität ein</option>
+        <option value="logge ich mein Wasser">Logge ich mein Wasser</option>
+        <option value="mache ich den Tages-Check">Mache ich den Tages-Check</option>
+        <option value="notiere ich meine Dankbarkeit">Notiere ich meine Dankbarkeit</option>
+      </select>
+    </div>
+    <button onclick="obFinish()"
+      style="width:100%;padding:18px;border-radius:16px;border:none;background:white;color:#1a3a2a;font-family:'DM Serif Display',serif;font-size:1.2rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;">
+      🌿 Los geht's
+    </button>
+  </div>
+</div>
+
+<style>
+@keyframes ob-float {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+.ob-goal-btn {
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
+  color: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+.ob-goal-btn.selected {
+  background: rgba(255,255,255,0.25);
+  border-color: rgba(255,255,255,0.6);
+}
+</style>
+
 <header>
   <h1>🌿 Vitalis</h1>
-  <div class="streak-badge" id="header-streak">🔥 <span id="streak-header-num">0</span> Tage</div>
+  <div class="streak-badge" id="header-streak">🔥 <span id="streak-header-num">0</span> <span id="streak-header-label">Tage</span></div>
 </header>
 
 <nav id="bottom-nav">
@@ -726,19 +822,44 @@
 <!-- HOME / HEUTE -->
 <div id="section-home" class="section visible">
 
-  <!-- CHECK-INS -->
-  <div id="gratitude-checkin-card" style="display:none;background:linear-gradient(135deg,#2d1b4e,#4a2060);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
-    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌟 Guten Abend!</div>
-    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:12px;">Wofür bist du heute dankbar?</div>
-    <textarea id="gratitude-input" placeholder="Heute war ich dankbar für…"
-      style="width:100%;padding:10px 12px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:70px;background:rgba(255,255,255,0.15);color:white;outline:none;"
-      onfocus="this.style.background='rgba(255,255,255,0.2)'"
-      onblur="this.style.background='rgba(255,255,255,0.15)'"
-    ></textarea>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
-      <button onclick="skipGratitude()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
-      <button onclick="logGratitude()" style="padding:8px 18px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Notieren ✓</button>
+  <!-- TAGES-CHECK -->
+  <div id="daily-check-card" style="display:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">⚡ Guten Morgen!</div>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:16px;">30 Sekunden – wie startest du in den Tag?</div>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.78rem;opacity:0.7;margin-bottom:6px;">Energie gerade</div>
+      <div style="display:flex;gap:8px;">
+        <button class="dc-btn" onclick="dcSelect('energy',1,this)" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;">😴 Müde</button>
+        <button class="dc-btn" onclick="dcSelect('energy',2,this)" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;">😐 Okay</button>
+        <button class="dc-btn" onclick="dcSelect('energy',3,this)" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;">⚡ Fit</button>
+      </div>
     </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:0.78rem;opacity:0.7;margin-bottom:6px;">Mein Fokus heute</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="dc-btn" onclick="dcSelect('focus','Bewegung',this)" style="padding:7px 12px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">🏃 Bewegung</button>
+        <button class="dc-btn" onclick="dcSelect('focus','Ernährung',this)" style="padding:7px 12px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">🥗 Ernährung</button>
+        <button class="dc-btn" onclick="dcSelect('focus','Schlaf',this)" style="padding:7px 12px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">🌙 Schlaf</button>
+        <button class="dc-btn" onclick="dcSelect('focus','Ruhe',this)" style="padding:7px 12px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">🪷 Ruhe</button>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button onclick="skipDailyCheck()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+      <button onclick="saveDailyCheck()" style="padding:8px 20px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Los geht's ✓</button>
+    </div>
+  </div>
+
+  <!-- WÖCHENTLICHE ZUSAMMENFASSUNG -->
+  <div id="weekly-summary-card" style="display:none;background:linear-gradient(135deg,#f4c261,#e8a020);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">📊 Deine letzte Woche</div>
+    <div id="weekly-summary-content" style="font-size:0.85rem;line-height:1.8;opacity:0.95;"></div>
+    <button onclick="document.getElementById('weekly-summary-card').style.display='none'" style="margin-top:12px;background:none;border:1.5px solid rgba(255,255,255,0.4);border-radius:10px;padding:6px 16px;color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">Verstanden ✓</button>
+  </div>
+
+  <!-- IMPLEMENTATION INTENTION -->
+  <div id="intention-card" style="display:none;background:var(--card);border:2px solid var(--accent);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
+    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Dein Plan für heute</div>
+    <div id="intention-text" style="font-size:0.88rem;color:var(--ink);line-height:1.5;font-style:italic;"></div>
   </div>
 
   <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
@@ -754,11 +875,54 @@
     </div>
   </div>
 
+  <!-- DANKBARKEIT ABEND-CHECKIN -->
+  <div id="gratitude-checkin-card" style="display:none;background:linear-gradient(135deg,#2d1b4e,#4a2060);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌟 Guten Abend!</div>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:12px;">Wofür bist du heute dankbar?</div>
+    <textarea id="gratitude-input" placeholder="Heute war ich dankbar für…"
+      style="width:100%;padding:10px 12px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:70px;background:rgba(255,255,255,0.15);color:white;outline:none;"
+      onfocus="this.style.background='rgba(255,255,255,0.2)'"
+      onblur="this.style.background='rgba(255,255,255,0.15)'"
+    ></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+      <button onclick="skipGratitude()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+      <button onclick="logGratitude()" style="padding:8px 18px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Notieren ✓</button>
+    </div>
+  </div>
+
   <!-- GREETING -->
   <div style="padding:4px 4px 16px;">
     <h1 id="home-greeting" style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);"></h1>
     <div id="home-date" style="font-size:0.82rem;color:var(--muted);margin-top:2px;"></div>
+    <div id="home-goal-sub" style="font-size:0.82rem;color:var(--accent);margin-top:6px;font-style:italic;display:none;"></div>
   </div>
+
+  <!-- TIPP DER WOCHE -->
+  <div id="home-tip-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
+    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Wussten Sie?</div>
+    <div id="home-tip-text" style="font-size:0.85rem;color:var(--ink);line-height:1.5;"></div>
+    <div id="home-tip-source" style="font-size:0.72rem;color:var(--muted);margin-top:6px;font-style:italic;"></div>
+  </div>
+
+  <!-- AKTIVE AKTIVITÄT BANNER -->
+  <div id="active-activity-banner" style="display:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;border-radius:16px;padding:16px 18px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:1.8rem;" id="active-act-icon">🏃</div>
+      <div style="flex:1;">
+        <div style="font-family:'DM Serif Display',serif;font-size:1rem;" id="active-act-name">Aktivität</div>
+        <div style="font-size:0.82rem;opacity:0.7;margin-top:2px;" id="active-act-timer">00:00</div>
+      </div>
+      <button onclick="stopActivity()"
+        style="padding:10px 18px;border-radius:12px;border:2px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">
+        ⏹ Stopp
+      </button>
+    </div>
+  </div>
+
+  <!-- 2-MINUTEN BUTTON -->
+  <button onclick="startTwoMin()" style="width:100%;margin-bottom:14px;padding:16px;border-radius:16px;border:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;font-family:'DM Serif Display',serif;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+    ⚡ 2 Minuten – schnell eintragen
+  </button>
 
   <!-- KACHELN -->
   <div id="home-tiles" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;"></div>
@@ -768,6 +932,92 @@
     <button onclick="resetGratitudeToday()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:0.72rem;color:var(--muted);cursor:pointer;text-decoration:underline;">🌟 Dankbarkeit zurücksetzen</button>
   </div>
 </div>
+
+<!-- 2-MINUTEN OVERLAY -->
+<div id="twomin-overlay" style="display:none;position:fixed;inset:0;z-index:4000;background:linear-gradient(160deg,#1a3a2a,#2d5a3d);flex-direction:column;padding:32px 24px;">
+  <div style="display:flex;gap:8px;margin-bottom:32px;justify-content:center;">
+    <div class="tm-dot active" id="tm-dot-0"></div>
+    <div class="tm-dot" id="tm-dot-1"></div>
+    <div class="tm-dot" id="tm-dot-2"></div>
+    <div class="tm-dot" id="tm-dot-3"></div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <!-- Step 0: Wasser -->
+    <div id="tm-step-0" style="text-align:center;">
+      <div style="font-size:3rem;margin-bottom:12px;">💧</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Wie viel Wasser heute?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:24px;">Ziel: <span id="tm-water-goal">2000</span> ml</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:3rem;color:#a8d8ea;margin-bottom:12px;" id="tm-water-val">0 ml</div>
+      <input type="range" id="tm-water-slider" min="0" max="3000" step="100" value="0"
+        style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:16px;"
+        oninput="document.getElementById('tm-water-val').textContent=this.value+' ml'">
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="tmSetWater(500)" class="tm-quick">500 ml</button>
+        <button onclick="tmSetWater(1000)" class="tm-quick">1 L</button>
+        <button onclick="tmSetWater(1500)" class="tm-quick">1.5 L</button>
+        <button onclick="tmSetWater(2000)" class="tm-quick">2 L</button>
+      </div>
+    </div>
+    <!-- Step 1: Aktivität -->
+    <div id="tm-step-1" style="display:none;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:12px;">🏃</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Warst du aktiv?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:20px;">Tippe auf eine Aktivität oder überspringe</div>
+      <div id="tm-activity-list" style="display:flex;flex-direction:column;gap:8px;max-height:150px;overflow-y:auto;margin-bottom:14px;"></div>
+      <div id="tm-time-row" style="display:none;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px;">
+        <button class="tm-quick tm-time-btn" onclick="tmSetTime('ganztags',this)" style="background:rgba(255,255,255,0.35);">☀️ Ganztags</button>
+        <button class="tm-quick tm-time-btn" onclick="tmSetTime('morgens',this)">🌅 Morgens</button>
+        <button class="tm-quick tm-time-btn" onclick="tmSetTime('mittags',this)">🌤 Mittags</button>
+        <button class="tm-quick tm-time-btn" onclick="tmSetTime('abends',this)">🌙 Abends</button>
+      </div>
+      <div id="tm-dur-row" style="display:none;">
+        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:6px;">Dauer</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:6px;" id="tm-dur-val">30 Min</div>
+        <input type="range" id="tm-dur-slider" min="5" max="180" step="5" value="30"
+          style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;"
+          oninput="document.getElementById('tm-dur-val').textContent=this.value+' Min'">
+        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:4px;">
+          <span>5 Min</span><span>3 Std</span>
+        </div>
+      </div>
+    </div>
+    <!-- Step 2: Gefühl -->
+    <div id="tm-step-2" style="display:none;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:12px;">😊</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Wie geht es dir?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:20px;">Gerade jetzt</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:4rem;color:white;margin-bottom:4px;" id="tm-feel-val">5</div>
+      <div style="font-size:0.9rem;color:rgba(255,255,255,0.6);margin-bottom:20px;" id="tm-feel-desc">okay</div>
+      <input type="range" id="tm-feel-slider" min="1" max="10" step="1" value="5"
+        style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;"
+        oninput="tmUpdateFeel(this.value)">
+      <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:6px;">
+        <span>😩 Miserabel</span><span>😄 Super</span>
+      </div>
+    </div>
+    <!-- Step 3: Dankbarkeit -->
+    <div id="tm-step-3" style="display:none;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:12px;">🌟</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Wofür bist du dankbar?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:20px;">Optional – oder einfach fertig</div>
+      <textarea id="tm-note" placeholder="Heute war ich dankbar für…" rows="4"
+        style="width:100%;padding:14px;border:none;border-radius:14px;background:rgba(255,255,255,0.12);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;resize:none;outline:none;box-sizing:border-box;"></textarea>
+    </div>
+  </div>
+  <div style="display:flex;gap:12px;margin-top:24px;">
+    <button onclick="tmBack()" id="tm-back-btn" style="padding:14px 20px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">← Zurück</button>
+    <button onclick="tmNext()" id="tm-next-btn" style="flex:1;padding:14px;border-radius:14px;border:none;background:white;color:#1a3a2a;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;">Weiter →</button>
+  </div>
+  <button onclick="closeTwoMin()" style="margin-top:10px;background:none;border:none;color:rgba(255,255,255,0.3);font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;width:100%;text-align:center;">Abbrechen</button>
+</div>
+
+<style>
+.tm-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all 0.2s;}
+.tm-dot.active{background:white;width:24px;border-radius:4px;}
+.tm-quick{padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;}
+.tm-activity-btn{padding:12px 16px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;text-align:left;}
+.tm-activity-btn.selected{background:rgba(255,255,255,0.28);border-color:rgba(255,255,255,0.7);}
+</style>
 <div id="section-feeling" class="section">
   <div class="card">
     <h2>Wie fühlst du dich?</h2>
@@ -826,6 +1076,14 @@
 <div id="section-water" class="section">
   <div class="card">
     <h2>Wassertracker 💧</h2>
+
+    <!-- Datum-Chips -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="chip active" id="wdchip-heute"      onclick="selectWaterDate('heute')">📅 Heute</button>
+      <button class="chip"        id="wdchip-gestern"    onclick="selectWaterDate('gestern')">Gestern</button>
+      <button class="chip"        id="wdchip-vorgestern" onclick="selectWaterDate('vorgestern')">Vorgestern</button>
+    </div>
+
     <div class="water-display">
       <div class="water-amount"><span id="water-ml">0</span> ml</div>
       <div class="water-goal">Ziel: <span id="water-goal-display">2000</span> ml</div>
@@ -869,12 +1127,13 @@
         style="display:block;padding:12px 16px;background:var(--bg);border-radius:12px;border:2px solid var(--border);font-size:0.88rem;font-weight:600;color:#457b9d;text-decoration:none;word-break:break-all;"></a>
     </div>
     <hr class="divider">
-    <h3>Wann war das?</h3>
+    <h3>Nachträglich eintragen</h3>
+    <p class="small-note" style="margin-bottom:10px;">Für vergangene Tage – für heute einfach ▶ Start drücken.</p>
 
     <!-- Datum -->
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
-      <button class="chip active" id="chip-date-heute"     onclick="selectDateChip('heute')">📅 Heute</button>
-      <button class="chip"        id="chip-date-gestern"   onclick="selectDateChip('gestern')">Gestern</button>
+      <button class="chip" id="chip-date-heute"     onclick="selectDateChip('heute')">📅 Heute</button>
+      <button class="chip active" id="chip-date-gestern"   onclick="selectDateChip('gestern')">Gestern</button>
       <button class="chip"        id="chip-date-vorgestern" onclick="selectDateChip('vorgestern')">Vorgestern</button>
       <button class="chip"        id="chip-date-own"       onclick="activateDateCustom()">📆 Datum…</button>
     </div>
@@ -900,7 +1159,7 @@
     <div style="font-size:0.78rem;color:var(--muted);margin:8px 0 12px;padding:8px 12px;background:var(--bg);border-radius:8px;" id="activity-time-preview">
       ⏱ Kein Zeitpunkt gewählt – bitte auswählen.
     </div>
-    <button class="log-btn" id="activity-log-btn" onclick="logSelectedActivity()" disabled style="opacity:0.4;cursor:not-allowed;">✅ Aktivität loggen (+Punkte)</button>
+    <button class="log-btn secondary" id="activity-log-btn" onclick="logSelectedActivity()" disabled style="opacity:0.4;cursor:not-allowed;">📝 Nachträglich loggen</button>
   </div>
 
   <div class="card">
@@ -1251,7 +1510,7 @@
 <div id="section-body" class="section">
 
   <div class="card">
-    <h2>🧘 Körper-Check</h2>
+    <h2>🧘 Wohlbefinden</h2>
     <p class="small-note" style="margin-bottom:16px;line-height:1.5;">Kein Muss, keine Punkte, kein Druck. Einfach beobachten – was nimmst du gerade wahr?</p>
 
     <!-- HUNGER / SÄTTIGUNG -->
@@ -1284,6 +1543,96 @@
       style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:70px;background:var(--bg);color:var(--ink);"></textarea>
 
     <button class="log-btn secondary" style="margin-top:12px;" onclick="logBody()">Beobachtung notieren</button>
+  </div>
+
+  <!-- BESCHWERDEN -->
+  <div class="card">
+    <h2>🩹 Beschwerden</h2>
+    <p class="small-note" style="margin-bottom:12px;">Tippe auf eine Körperstelle um Schmerzen oder Verspannungen einzutragen.</p>
+
+    <div style="display:flex;gap:16px;justify-content:center;align-items:flex-start;margin-bottom:8px;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.5px;">VORNE</div>
+        <svg id="sym-front" width="110" height="270" viewBox="0 0 110 270">
+          <ellipse class="sym-zone" data-zone="Kopf" cx="55" cy="24" rx="20" ry="22" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Hals" x="47" y="46" width="16" height="12" rx="3" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Linke Schulter" cx="22" cy="70" rx="15" ry="10" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Rechte Schulter" cx="88" cy="70" rx="15" ry="10" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Brust" x="36" y="58" width="38" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Linker Oberarm" x="6" y="76" width="14" height="36" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Rechter Oberarm" x="90" y="76" width="14" height="36" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Bauch" x="36" y="90" width="38" height="40" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Linker Unterarm" x="5" y="115" width="13" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Rechter Unterarm" x="93" y="115" width="13" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Hüfte" x="32" y="130" width="46" height="20" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Linke Hand" cx="9" cy="154" rx="9" ry="6" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Rechte Hand" cx="101" cy="154" rx="9" ry="6" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Linker Oberschenkel" x="32" y="152" width="20" height="40" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Rechter Oberschenkel" x="58" y="152" width="20" height="40" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Linkes Knie" cx="42" cy="197" rx="10" ry="7" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Rechtes Knie" cx="68" cy="197" rx="10" ry="7" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Linker Unterschenkel" x="34" y="205" width="16" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Rechter Unterschenkel" x="60" y="205" width="16" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Linker Fuss" cx="40" cy="242" rx="13" ry="7" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Rechter Fuss" cx="70" cy="242" rx="13" ry="7" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.5px;">HINTEN</div>
+        <svg id="sym-back" width="110" height="270" viewBox="0 0 110 270">
+          <ellipse class="sym-zone" data-zone="Hinterkopf" cx="55" cy="24" rx="20" ry="22" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Nacken" x="47" y="46" width="16" height="12" rx="3" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Linke Schulter hinten" cx="22" cy="70" rx="15" ry="10" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Rechte Schulter hinten" cx="88" cy="70" rx="15" ry="10" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Oberer Rücken" x="36" y="58" width="38" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Linker Oberarm hinten" x="6" y="76" width="14" height="36" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Rechter Oberarm hinten" x="90" y="76" width="14" height="36" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Unterer Rücken" x="36" y="90" width="38" height="40" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Linker Unterarm hinten" x="5" y="115" width="13" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Rechter Unterarm hinten" x="93" y="115" width="13" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Gesäss" x="32" y="130" width="46" height="20" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Linke Hand hinten" cx="9" cy="154" rx="9" ry="6" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Rechte Hand hinten" cx="101" cy="154" rx="9" ry="6" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Linke Wade" x="32" y="152" width="20" height="40" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Rechte Wade" x="58" y="152" width="20" height="40" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Linkes Knie hinten" cx="42" cy="197" rx="10" ry="7" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Rechtes Knie hinten" cx="68" cy="197" rx="10" ry="7" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Linker Unterschenkel hinten" x="34" y="205" width="16" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Rechter Unterschenkel hinten" x="60" y="205" width="16" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Linke Ferse" cx="40" cy="242" rx="13" ry="7" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Rechte Ferse" cx="70" cy="242" rx="13" ry="7" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+        </svg>
+      </div>
+    </div>
+
+    <p class="small-note" id="sym-hint" style="text-align:center;">Tippe auf eine Körperstelle</p>
+
+    <div id="sym-panel" style="display:none;background:var(--bg);border-radius:14px;padding:14px;margin-top:10px;border:2px solid var(--border);">
+      <div style="font-weight:600;font-size:0.95rem;color:var(--ink);margin-bottom:10px;" id="sym-zone-title"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;" id="sym-types">
+        <button class="chip active" onclick="symSetType(this,'Schmerz')">Schmerz</button>
+        <button class="chip" onclick="symSetType(this,'Verspannung')">Verspannung</button>
+        <button class="chip" onclick="symSetType(this,'Müdigkeit')">Müdigkeit</button>
+        <button class="chip" onclick="symSetType(this,'Kribbeln')">Kribbeln</button>
+        <button class="chip" onclick="symSetType(this,'Anderes')">Anderes</button>
+      </div>
+      <div class="vitalis-slider-wrap" style="margin-bottom:12px;">
+        <div class="vitalis-slider-value" id="sym-int-val">3</div>
+        <div class="vitalis-slider-desc" id="sym-int-desc">leicht</div>
+        <input type="range" id="sym-int-slider" min="1" max="10" value="3" step="1"
+          oninput="symUpdateIntensity(this.value)">
+        <div class="slider-labels"><span>😌 Kaum</span><span>😣 Stark</span></div>
+      </div>
+      <textarea id="sym-note" placeholder="Notiz (optional)…" rows="2"
+        style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;margin-bottom:10px;background:var(--bg);color:var(--ink);"></textarea>
+      <div style="display:flex;gap:8px;">
+        <button class="log-btn" onclick="symSaveZone()" style="flex:1;">💾 Speichern</button>
+        <button class="log-btn secondary" onclick="symCancelZone()">Abbrechen</button>
+      </div>
+    </div>
+
+    <div id="sym-log-list" style="margin-top:10px;"></div>
+    <p class="small-note" id="sym-log-empty" style="margin-top:8px;">Noch keine Beschwerden eingetragen.</p>
   </div>
 
   <div class="card">
@@ -1383,7 +1732,7 @@
     </div>
   </div>
 
-  <!-- AKTIV-QUOTE + JOKER -->
+  <!-- AKTIV-QUOTE + AUSNAHMETAG -->
   <div class="card" style="padding:16px 20px;">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
       <div style="text-align:center;padding:12px;background:var(--bg);border-radius:12px;">
@@ -1392,22 +1741,25 @@
       </div>
       <div style="text-align:center;padding:12px;background:var(--bg);border-radius:12px;">
         <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--gold);" id="streak-joker-num">2</div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Joker übrig</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Ausnahmetage übrig</div>
       </div>
     </div>
+
+    <!-- Streak-Status Visualisierung -->
+    <div id="streak-status-bar" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:10px 14px;border-radius:12px;background:var(--bg);">
+      <span style="font-size:1.2rem;" id="streak-status-icon">🔥</span>
+      <div style="flex:1;">
+        <div style="font-size:0.82rem;font-weight:600;" id="streak-status-text">Streak aktiv</div>
+        <div style="font-size:0.72rem;color:var(--muted);" id="streak-status-sub"></div>
+      </div>
+    </div>
+
     <button onclick="useStreakJoker()" id="streak-joker-btn"
       style="width:100%;padding:11px;border-radius:12px;border:2px solid var(--gold);background:transparent;color:var(--gold);font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;">
-      🃏 Joker einsetzen – Streak retten
+      🃏 Ausnahmetag einsetzen – Streak retten
     </button>
     <p class="small-note" style="margin-top:8px;text-align:center;" id="streak-joker-status"></p>
   </div>
-
-  <div class="card">
-    <h2>Nächste Belohnung</h2>
-    <div id="next-badge-name" style="font-weight:600;margin-bottom:6px;"></div>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar" id="next-badge-progress"></div>
-    </div>
     <div class="next-badge-info" id="next-badge-info"></div>
   </div>
 
@@ -1469,11 +1821,6 @@
     <p style="font-size:0.72rem;color:var(--muted);text-align:center;margin-top:8px;">Noch nicht verfügbar – kommt bald</p>
   </div>
 
-  <div class="card">
-    <h2>Badges 🏅</h2>
-    <div id="badges-grid"></div>
-  </div>
-
   <!-- 90-TAGE-GEWOHNHEIT -->
   <div class="card" style="background:linear-gradient(135deg,#f0f4ff,#e0e8ff);border-color:transparent;">
     <h2 style="color:#3a5bc7;">🌱 90-Tage-Gewohnheit</h2>
@@ -1528,6 +1875,35 @@
         🌱 90-Tage-Commitment starten
       </button>
     </div>
+  </div>
+</div>
+
+<!-- SYMPTOME -->
+
+
+<!-- DANKBARKEIT -->
+<div id="section-gratitude" class="section">
+  <div style="padding:4px 4px 16px;">
+    <h1 style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);">🌟 Dankbarkeit</h1>
+    <p style="font-size:0.82rem;color:var(--muted);margin-top:4px;line-height:1.5;">Drei Dinge täglich aufzuschreiben wofür man dankbar ist, erhöht nachweislich das Wohlbefinden. (Emmons & McCullough, 2003)</p>
+  </div>
+
+  <div class="card" style="background:linear-gradient(135deg,#2d1b4e,#4a2060);color:white;border:none;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:8px;">Wofür bist du heute dankbar?</div>
+    <textarea id="gratitude-section-input" placeholder="Heute war ich dankbar für…"
+      style="width:100%;padding:10px 12px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:90px;background:rgba(255,255,255,0.15);color:white;outline:none;box-sizing:border-box;"
+      onfocus="this.style.background='rgba(255,255,255,0.2)'"
+      onblur="this.style.background='rgba(255,255,255,0.15)'"
+    ></textarea>
+    <button onclick="logGratitudeSection()" style="margin-top:10px;width:100%;padding:11px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:12px;color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">
+      🌟 Notieren
+    </button>
+  </div>
+
+  <div class="card" id="gratitude-section-log">
+    <h2>Verlauf</h2>
+    <div id="gratitude-section-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <p class="small-note" id="gratitude-section-empty">Noch keine Einträge.</p>
   </div>
 </div>
 
@@ -1714,10 +2090,15 @@
           </select>
         </div>
       </div>
+      <div>
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;">💡 Wenn-Dann-Plan</label>
+        <input type="text" id="profile-intention" placeholder="z.B. Wenn ich Kaffee mache, logge ich mein Wasser."
+          style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.88rem;"
+          onchange="saveProfile()">
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">Erscheint täglich auf der Heute-Seite als Erinnerung.</div>
+      </div>
     </div>
   </div>
-
-  <!-- KONTAKTE -->
   <div class="card">
     <h2>❤️ Soziale Kontakte</h2>
     <p class="small-note" style="margin-bottom:10px;">Wöchentliche Kontakt-Intentions-Liste</p>
@@ -1829,6 +2210,7 @@
     <button class="log-btn secondary" onclick="showSection('about')" style="width:auto;padding:8px 20px;margin-bottom:10px;">🌿 Über Vitalis & Quellen</button>
     <hr class="divider">
     <button onclick="resetAllData()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--accent2);background:transparent;color:var(--accent2);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">🗑 Alle Daten zurücksetzen (Test)</button>
+    <button onclick="restartOnboarding()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;margin-top:8px;">🌿 Startschuss-Intro nochmal anzeigen</button>
   </div>
 </div>
 
@@ -1971,33 +2353,6 @@
 // =====================
 // STATE
 // =====================
-const BADGES = [
-  // Einstieg – basiert auf Aktivitäts-Log
-  { id:'first_step',    icon:'👣', name:'Erster Schritt',       pts:10,  cat:'Start',     cond: s => s.activityLog.length >= 1 },
-  { id:'hundred',       icon:'💯', name:'100 Minuten aktiv',    pts:20,  cat:'Start',     cond: s => s.activityLog.reduce((t,e)=>t+(e.min||0),0) >= 100 },
-  { id:'five_hundred',  icon:'🌟', name:'500 Minuten aktiv',    pts:50,  cat:'Start',     cond: s => s.activityLog.reduce((t,e)=>t+(e.min||0),0) >= 500 },
-  // Wasser
-  { id:'hydrated',      icon:'💧', name:'Gut hydriert',         pts:50,  cat:'Wasser',    cond: s => s.waterDays >= 3 },
-  { id:'water_week',    icon:'🚿', name:'Wasser-Woche',         pts:80,  cat:'Wasser',    cond: s => s.waterDays >= 7 },
-  { id:'water_master',  icon:'🌊', name:'Wasser-Profi',         pts:120, cat:'Wasser',    cond: s => s.waterDays >= 14 },
-  // Aktivität – direkt aus Log
-  { id:'mover',         icon:'🏃', name:'5 Aktivitäten',        pts:100, cat:'Aktivität', cond: s => s.activityLog.length >= 5 },
-  { id:'active_10',     icon:'🏋️', name:'10 Aktivitäten',      pts:200, cat:'Aktivität', cond: s => s.activityLog.length >= 10 },
-  { id:'active_25',     icon:'🥇', name:'25 Aktivitäten',       pts:400, cat:'Aktivität', cond: s => s.activityLog.length >= 25 },
-  // Streak
-  { id:'streak_3',      icon:'🔥', name:'3 Tage Streak',        pts:60,  cat:'Streak',    cond: s => s.streak >= 3 },
-  { id:'streak_7',      icon:'⚡', name:'7 Tage Streak',        pts:150, cat:'Streak',    cond: s => s.streak >= 7 },
-  { id:'streak_14',     icon:'🌈', name:'2 Wochen Streak',      pts:300, cat:'Streak',    cond: s => s.streak >= 14 },
-  { id:'streak_30',     icon:'👑', name:'30 Tage Streak',       pts:600, cat:'Streak',    cond: s => s.streak >= 30 },
-  // Alkohol – nur wenn auch geloggt wurde
-  { id:'challenge_done', icon:'🏆', name:'6-Wochen-Challenge', pts:1000, cat:'Alkohol', cond: s => s.challenge?.completed },
-  { id:'dry_week',      icon:'🌵', name:'Trockene Woche',       pts:80,  cat:'Alkohol',   cond: s => (s.alcDaysLog||[]).filter(e=>{ const ws=new Date(); ws.setDate(ws.getDate()-((ws.getDay()+6)%7)); ws.setHours(0,0,0,0); return new Date(e.date)>=ws && e.drank; }).length === 0 && (s.alcDaysLog||[]).filter(e=>{ const ws=new Date(); ws.setDate(ws.getDate()-((ws.getDay()+6)%7)); ws.setHours(0,0,0,0); return new Date(e.date)>=ws; }).length >= 5 },
-  { id:'within_limit',  icon:'✅', name:'Im Limit geblieben',   pts:50,  cat:'Alkohol',   cond: s => { const ws=new Date(); ws.setDate(ws.getDate()-((ws.getDay()+6)%7)); ws.setHours(0,0,0,0); const days=(s.alcDaysLog||[]).filter(e=>new Date(e.date)>=ws); return days.length>=3 && days.filter(e=>e.drank).length<=s.alcMax; } },
-  // Gewicht
-  { id:'weight_logged', icon:'⚖️', name:'Gewicht geloggt',      pts:20,  cat:'Gewicht',   cond: s => s.weightLog && s.weightLog.length >= 1 },
-  { id:'weight_streak', icon:'📉', name:'7× Gewicht getrackt',  pts:100, cat:'Gewicht',   cond: s => s.weightLog && s.weightLog.length >= 7 },
-  { id:'weight_goal',   icon:'🎯', name:'Zielgewicht erreicht', pts:300, cat:'Gewicht',   cond: s => s.weightGoal && s.weightLog.length > 0 && Math.abs(s.weightLog[0].kg - s.weightGoal) < 0.5 },
-];
 
 const FEELINGS = [
   { emoji:'😴', label:'müde' },
@@ -2015,13 +2370,52 @@ const DEFAULT_ACTIVITIES = [
   { id:'run',    icon:'🏃', name:'Laufen',       min:30, ptsPerMin:2,  steps:false, custom:false },
 ];
 
+const GOAL_SUBS = {
+  'Mehr bewegen':        ['Heute eine Chance zu bewegen.', 'Bewegung beginnt mit einem Schritt.', 'Dein Körper freut sich auf Aktivität.'],
+  'Besser schlafen':     ['Schlaf ist die beste Medizin.', 'Heute Abend früh ins Bett?', 'Guter Schlaf beginnt am Morgen.'],
+  'Bewusster essen':     ['Wie fühlt sich dein Hunger gerade an?', 'Essen mit Bewusstsein statt Kalorien.', 'Dein Körper weiss was er braucht.'],
+  'Weniger Alkohol':     ['Jeder nüchterne Tag zählt.', 'Klarheit ist unterschätzt.', 'Dein Körper dankt es dir.'],
+  'Einfach beobachten':  ['Bewusstsein ist der erste Schritt.', 'Beobachten ohne zu werten.', 'Du bist schon dabei.'],
+};
+
+const GOAL_TIPS = {
+  'Mehr bewegen': [
+    { text: 'Schon 20 Minuten moderates Gehen verbessern die Stimmung messbar – unabhängig von Fitness-Level.', source: 'Blumenthal et al. (2007)' },
+    { text: 'Bewegung wirkt bei leichten bis mittleren Depressionen ähnlich effektiv wie Antidepressiva.', source: 'Craft & Perna (2004)' },
+    { text: 'Regelmässige Bewegung verbessert Schlafqualität, Gedächtnis und Stressresistenz gleichzeitig.', source: 'Harvard Health (2021)' },
+  ],
+  'Besser schlafen': [
+    { text: 'Schlaf reinigt das Gehirn buchstäblich: das glymphatische System arbeitet hauptsächlich nachts.', source: 'Xie et al. (2013)' },
+    { text: 'Weniger als 7 Stunden Schlaf erhöht die Anfälligkeit für Erkältungen um das Dreifache.', source: 'Walker (2017)' },
+    { text: 'Schlafmangel beeinträchtigt Entscheidungsfähigkeit ähnlich stark wie Alkohol.', source: 'Harrison & Horne (2000)' },
+  ],
+  'Bewusster essen': [
+    { text: 'Intuitives Essen – auf innere Hunger- und Sättigungssignale hören – führt langfristig zu besserem Wohlbefinden als Diäten.', source: 'Tribole & Resch (1995)' },
+    { text: 'Menschen die langsam essen nehmen im Schnitt 88 kcal weniger pro Mahlzeit auf – ohne es zu merken.', source: 'Andrade et al. (2008)' },
+    { text: 'Ablenkung beim Essen (TV, Handy) reduziert das Sättigungsgefühl und erhöht Kalorienzufuhr.', source: 'Robinson et al. (2013)' },
+  ],
+  'Weniger Alkohol': [
+    { text: 'Bereits 2 alkoholfreie Wochen verbessern Schlafqualität, Energielevel und Stimmung messbar.', source: 'de Visser et al. (2016)' },
+    { text: 'Alkohol unterdrückt REM-Schlaf – selbst kleine Mengen verschlechtern die Schlafqualität.', source: 'Walker (2017)' },
+    { text: 'Die 6-Wochen-Challenge reduziert Leberfettprozentsatz im Schnitt um 15%.', source: 'Mehta et al. (2018)' },
+  ],
+  'Einfach beobachten': [
+    { text: 'Allein das Aufschreiben von Verhalten verändert es – ohne weitere Intervention.', source: 'Kanfer (1970)' },
+    { text: 'Self-Monitoring ist die wirksamste Einzelkomponente in Verhaltensänderungs-Programmen.', source: 'Burke et al. (2011)' },
+    { text: 'Bewusstsein über eigene Muster ist die Voraussetzung für jede nachhaltige Veränderung.', source: 'Michie et al. (2009)' },
+  ],
+};
+
 function loadState() {
   const raw = localStorage.getItem('vitalis_state');
   const defaults = {
     waterMl: 0,
+    waterLog: [],
     waterGoal: 2000,
     waterDays: 0,
     lastWaterDate: null,
+    onboardingDone: false,
+    activeActivity: null, // { idx, name, icon, startTs, feelingBefore }
     alcMax: 3,         // Max Tage pro Woche
     jokerMax: 2,       // Joker pro Monat
     jokersUsed: 0,     // Joker diese Woche genutzt
@@ -2036,7 +2430,6 @@ function loadState() {
     streakJokersUsedMonth: null, // YYYY-MM
     activeDaysLog: [], // [{date}] all days with any activity
     activitiesLogged: 0,
-    earnedBadges: [],
     pointsLog: [],
     habit90: null, // { name, startDate, log: [{date, done}], completed }
     feelingLog: [],
@@ -2050,7 +2443,9 @@ function loadState() {
     sweetsMax: 3,
     sweetsJokerMax: 2,
     sweetsDaysLog: [],
+    sweetsLog: [],
     bodyLog: [],
+    symptomLog: [],
     sleepLog: [],
     sleepCheckinSkipped: null,
     gratitudeLog: [],
@@ -2071,7 +2466,16 @@ function loadState() {
     selectedActivity: null,
   };
   if (!raw) return defaults;
-  try { return { ...defaults, ...JSON.parse(raw) }; }
+  try {
+    const saved = { ...defaults, ...JSON.parse(raw) };
+    // Safety: ensure all arrays are arrays
+    const arrays = ['activityLog','feelingLog','weightLog','bodyLog','sleepLog',
+      'gratitudeLog','socialContacts','mindfulnessLog','breathingLog','bugReports',
+      'alcDaysLog','sweetsDaysLog','sweetsLog','pointsLog',
+      'waterLog','activeDaysLog','symptomLog'];
+    arrays.forEach(k => { if (!Array.isArray(saved[k])) saved[k] = []; });
+    return saved;
+  }
   catch(e) { return defaults; }
 }
 
@@ -2083,18 +2487,18 @@ function saveState() {
 function checkDailyWaterReset() {
   const todayStr = new Date().toDateString();
   if (!state.lastWaterDate) {
-    // Erster Start – kein Reset nötig, nur Datum setzen
     state.lastWaterDate = todayStr;
     saveState();
     return;
   }
   if (state.lastWaterDate !== todayStr) {
-    // Echter Tageswechsel
+    // New day – reset waterMl but keep waterLog entry for old day
     state.waterMl = 0;
     state.lastWaterDate = todayStr;
     saveState();
-    // Toast erst nach DOM-Ready
-    if (state.waterMl > 0 || state.waterDays > 0) setTimeout(() => showToast('💧 Neuer Tag – Wasserzähler zurückgesetzt.'), 500);
+    if (state.waterLog?.find(e => e.date !== todayStr)) {
+      setTimeout(() => showToast('💧 Neuer Tag – Wasserzähler zurückgesetzt.'), 500);
+    }
   }
 }
 
@@ -2146,10 +2550,11 @@ function showSection(id) {
   if (id === 'nutrition') renderNutrition();
   if (id === 'weight') renderWeight();
   if (id === 'sleep') renderSleep();
-  if (id === 'body') renderBody();
   if (id === 'verlauf') renderVerlauf();
   if (id === 'social') renderSocial();
   if (id === 'mindfulness') renderMindfulness();
+  if (id === 'body') { renderBody(); renderSymptoms(); }
+  if (id === 'gratitude') renderGratitudeSection();
   if (id === 'rewards') renderRewards();
   if (id === 'settings') renderSettings();
   if (id === 'about') {} // static
@@ -2192,11 +2597,39 @@ function renderHome() {
     checkinCard.style.display = ''; renderSleepCheckinGrid();
   } else { checkinCard.style.display = 'none'; }
 
+  // Goal subtitle
+  const goal = state.profile?.mainGoal;
+  renderDailyCheck();
+  renderWeeklySummary();
+  renderIntention();
+  const subEl = document.getElementById('home-goal-sub');
+  if (subEl) {
+    if (goal && GOAL_SUBS[goal]) {
+      const subs = GOAL_SUBS[goal];
+      subEl.textContent = subs[new Date().getDay() % subs.length];
+      subEl.style.display = '';
+    } else { subEl.style.display = 'none'; }
+  }
+
+  // Tip of the week
+  const tipCard = document.getElementById('home-tip-card');
+  const tipText = document.getElementById('home-tip-text');
+  const tipSource = document.getElementById('home-tip-source');
+  if (tipCard && tipText && goal && GOAL_TIPS[goal]) {
+    const tips = GOAL_TIPS[goal];
+    // Rotate tip weekly
+    const weekNum = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+    const tip = tips[weekNum % tips.length];
+    tipText.textContent = tip.text;
+    tipSource.textContent = tip.source;
+    tipCard.style.display = '';
+  } else if (tipCard) { tipCard.style.display = 'none'; }
+
   // Gratitude check-in
   const gratitudeCard = document.getElementById('gratitude-checkin-card');
   const gratitudeToday = state.gratitudeLog.length > 0 && new Date(state.gratitudeLog[0].ts).toDateString() === todayStr;
   const gratitudeSkipped = state.gratitudeSkipped === todayStr;
-  gratitudeCard.style.display = (hour >= 18 && hour < 23 && !gratitudeToday && !gratitudeSkipped) ? '' : 'none';
+  if (gratitudeCard) gratitudeCard.style.display = (hour >= 18 && hour < 23 && !gratitudeToday && !gratitudeSkipped) ? '' : 'none';
 
   // Data
   const waterPct = Math.min(100, Math.round(state.waterMl / state.waterGoal * 100));
@@ -2214,8 +2647,14 @@ function renderHome() {
     {
       icon: '💧', label: 'Wasser', section: 'water',
       color: '#457b9d', bg: 'linear-gradient(135deg,#edf4f8,#d4e8f5)',
-      value: state.waterMl >= state.waterGoal ? '✓ Ziel!' : state.waterMl + ' ml',
-      sub: 'Ziel: ' + state.waterGoal + ' ml',
+      value: (() => {
+        const ml = state.waterLog?.find(e => e.date === todayStr)?.ml ?? state.waterMl;
+        return ml >= state.waterGoal ? '✓ Ziel!' : ml + ' ml';
+      })(),
+      sub: (() => {
+        const ml = state.waterLog?.find(e => e.date === todayStr)?.ml ?? state.waterMl;
+        return 'Ziel: ' + state.waterGoal + ' ml';
+      })(),
       bar: waterPct, barColor: '#457b9d'
     },
     {
@@ -2260,25 +2699,21 @@ function renderHome() {
       bar: null
     },
     {
-      icon: '😊', label: 'Gefühl', section: 'feeling',
-      color: '#c9a84c', bg: 'linear-gradient(135deg,#fdf9ec,#f9eecc)',
-      value: (() => {
-        const f = state.feelingLog.find(e => new Date(e.ts).toDateString() === todayStr);
-        if (!f) return '—';
-        if (f.before !== null && f.after !== null) return f.before + '→' + f.after;
-        if (f.before !== null) return f.before + '→⏳';
-        if (f.after !== null) return '→' + f.after;
-        return '—';
-      })(),
-      sub: 'Vor & nach Aktivität',
-      bar: null
-    },
-    {
       icon: '🧘', label: 'Körper', section: 'body',
       color: '#6b8f71', bg: 'linear-gradient(135deg,#f0f5f0,#dceadc)',
-      value: (state.bodyLog.length > 0 && new Date(state.bodyLog[0].ts).toDateString() === todayStr)
-        ? (state.bodyLog[0].feeling || '—') : '—',
-      sub: 'Körper-Check',
+      value: (() => {
+        const b = state.bodyLog.length > 0 && new Date(state.bodyLog[0].ts).toDateString() === todayStr ? state.bodyLog[0] : null;
+        const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+        if (!b && !s.length) return '—';
+        const parts = [];
+        if (b?.feeling) parts.push(b.feeling + '/10');
+        if (s.length) parts.push(s.length + '× 🩹');
+        return parts.join(' · ') || '✓';
+      })(),
+      sub: (() => {
+        const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+        return s.length ? s.map(e=>e.zone).join(', ').slice(0,28) : 'Wohlbefinden & Beschwerden';
+      })(),
       bar: null
     },
     {
@@ -2307,6 +2742,19 @@ function renderHome() {
       sub: (() => {
         const ml = (state.mindfulnessLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
         return ml.length > 0 ? ml.map(e=>e.name).join(', ') : 'Atmen & Meditieren';
+      })(),
+      bar: null
+    },
+    {
+      icon: '🌟', label: 'Dankbarkeit', section: 'gratitude',
+      color: '#7b5ea7', bg: 'linear-gradient(135deg,#f3eeff,#e4d4f4)',
+      value: (() => {
+        const g = state.gratitudeLog.find(e => new Date(e.ts).toDateString() === todayStr);
+        return g ? '✓' : '—';
+      })(),
+      sub: (() => {
+        const g = state.gratitudeLog.find(e => new Date(e.ts).toDateString() === todayStr);
+        return g ? g.text.slice(0, 30) + (g.text.length > 30 ? '…' : '') : 'Wofür bist du dankbar?';
       })(),
       bar: null
     },
@@ -2530,20 +2978,58 @@ function deleteFeelingEntry(i) {
 // =====================
 // WATER
 // =====================
+let selectedWaterDateStr = new Date().toDateString();
+
+function selectWaterDate(when) {
+  ['heute','gestern','vorgestern'].forEach(k => {
+    const el = document.getElementById('wdchip-' + k);
+    if (el) el.classList.toggle('active', k === when);
+  });
+  const d = new Date();
+  if (when === 'gestern')    d.setDate(d.getDate()-1);
+  if (when === 'vorgestern') d.setDate(d.getDate()-2);
+  selectedWaterDateStr = d.toDateString();
+  renderWater();
+}
+
+function getWaterMlForDate(dateStr) {
+  if (!state.waterLog || !state.waterLog.length) {
+    // Fallback: today uses waterMl
+    return dateStr === new Date().toDateString() ? state.waterMl : 0;
+  }
+  const entry = state.waterLog.find(e => e.date === dateStr);
+  return entry ? entry.ml : 0;
+}
+
+function setWaterMlForDate(dateStr, ml) {
+  if (!state.waterLog) state.waterLog = [];
+  const existing = state.waterLog.find(e => e.date === dateStr);
+  if (existing) { existing.ml = Math.max(0, ml); }
+  else if (ml > 0) { state.waterLog.push({ date: dateStr, ml: Math.max(0, ml) }); }
+  // Keep today in sync with waterMl for legacy
+  if (dateStr === new Date().toDateString()) {
+    state.waterMl = Math.max(0, ml);
+  }
+}
+
 function renderWater() {
-  document.getElementById('water-ml').textContent = state.waterMl;
+  const ml = getWaterMlForDate(selectedWaterDateStr);
+  document.getElementById('water-ml').textContent = ml;
   document.getElementById('water-goal-display').textContent = state.waterGoal;
   document.getElementById('water-goal-input').value = state.waterGoal;
-  const pct = Math.min(100, Math.round(state.waterMl / state.waterGoal * 100));
+  const pct = Math.min(100, Math.round(ml / state.waterGoal * 100));
   document.getElementById('water-bar').style.width = pct + '%';
 }
 
 function addWater(ml) {
-  state.waterMl = Math.max(0, state.waterMl + ml);
-  const goalHit = state.waterMl >= state.waterGoal;
+  const current = getWaterMlForDate(selectedWaterDateStr);
+  const newMl = Math.max(0, current + ml);
+  const wasGoalHit = current >= state.waterGoal;
+  const nowGoalHit = newMl >= state.waterGoal;
+  setWaterMlForDate(selectedWaterDateStr, newMl);
   if (ml > 0) {
     addPoints(5, '💧 Wasser getrunken');
-    if (goalHit && state.waterMl - ml < state.waterGoal) {
+    if (nowGoalHit && !wasGoalHit) {
       showToast('🎉 Tagesziel erreicht! +30 Bonus');
       addPoints(30, '💧 Tagesziel erreicht');
       state.waterDays++;
@@ -2551,7 +3037,7 @@ function addWater(ml) {
   }
   saveState();
   renderWater();
-  checkBadges();
+  renderHome();
 }
 
 function setWaterGoal(v) {
@@ -2561,8 +3047,10 @@ function setWaterGoal(v) {
 }
 
 function resetWater() {
-  state.waterMl = 0;
-  state.lastWaterDate = new Date().toDateString();
+  setWaterMlForDate(selectedWaterDateStr, 0);
+  if (selectedWaterDateStr === new Date().toDateString()) {
+    state.lastWaterDate = new Date().toDateString();
+  }
   saveState();
   renderWater();
   showToast('Wasser-Tracker zurückgesetzt.');
@@ -2601,6 +3089,11 @@ function renderActivities() {
       <span style="font-size:0.72rem;color:var(--gold);font-weight:600;">= ${totalPts} Pkt</span>
     `;
 
+    const isActive = state.activeActivity?.idx === i;
+    const startStopBtn = isActive
+      ? `<button onclick="stopActivity()" style="padding:6px 12px;border-radius:10px;border:none;background:var(--accent2);color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;" onclick="event.stopPropagation()">⏹ Stopp</button>`
+      : `<button onclick="startActivity(event,${i})" style="padding:6px 12px;border-radius:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;">▶ Start</button>`;
+
     div.innerHTML = `
       <div style="display:flex;flex-direction:column;gap:2px;margin-right:4px;">
         <button onclick="moveActivity(event,${i},-1)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.7rem;padding:1px 4px;line-height:1;" ${i===0?'disabled':''}>▲</button>
@@ -2619,6 +3112,7 @@ function renderActivities() {
             onclick="event.stopPropagation()">
         </div>
       </div>
+      ${startStopBtn}
       <div class="check" onclick="selectActivity(${i})" style="cursor:pointer;">${state.selectedActivity === i ? '✓' : ''}</div>
       <button class="del-activity" onclick="deleteActivity(event,${i})">✕</button>
     `;
@@ -2682,12 +3176,8 @@ function selectActivity(i) {
   renderActivities();
   if (state.selectedActivity !== null) {
     showActivityLink(state.selectedActivity);
-    // Auto-select Ganztags/Heute if no time chosen yet
-    if (!selectedActivityTime) {
-      selectTimeSlot('ganztags');
-    } else {
-      enableLogBtn();
-    }
+    // Auto-select gestern for manual backdating
+    selectDateChip('gestern');
   } else {
     document.getElementById('activity-link-area').style.display = 'none';
   }
@@ -2893,7 +3383,6 @@ function logSelectedActivity() {
   resetTimeSlot();
   saveState();
   renderActivities();
-  checkBadges();
   showToast(`✅ ${a.name} geloggt! +${pts} Punkte`);
   // Ask for before-feeling
   setTimeout(() => showFeelingOverlay({ type: 'activity', logIndex: 0, phase: 'before' }), 400);
@@ -2925,7 +3414,8 @@ function renderActivityLog() {
       <span style="flex:1;font-weight:600;font-size:0.88rem;margin:0 8px;">${e.name}</span>
       <span style="font-size:0.78rem;color:var(--muted);">${e.label || e.min+' min'}</span>
       <span class="pts" style="margin:0 8px;">+${e.pts}</span>
-      <span id="toggle-icon-${i}" style="color:var(--muted);font-size:0.8rem;">▼</span>
+      <button onclick="event.stopPropagation();deleteActivityLog(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:0 4px;line-height:1;">✕</button>
+      <span id="toggle-icon-${i}" style="color:var(--muted);font-size:0.8rem;margin-left:4px;">▼</span>
     `;
 
     // Detail panel
@@ -3024,7 +3514,7 @@ function editActivityLogField(i, field, val) {
   if (el) el.textContent = state.totalPoints;
   saveState();
   renderActivityLog();
-  if (document.getElementById('section-verlauf')?.classList.contains('visible')) renderVerlauf();
+  renderVerlauf();
   showToast('✅ Eintrag aktualisiert.');
 }
 
@@ -3052,8 +3542,7 @@ function deleteActivityLog(i) {
     if (el) el.textContent = state.totalPoints;
     saveState();
     renderActivityLog();
-    // Verlauf neu rendern falls sichtbar
-    if (document.getElementById('section-verlauf')?.classList.contains('visible')) renderVerlauf();
+    renderVerlauf();
     showToast('Eintrag gelöscht.');
   });
 }
@@ -3199,7 +3688,6 @@ function toggleAlcToday(drank) {
   addPoints(0, '');
   saveState();
   renderAlcohol();
-  checkBadges();
   const label = targetStr === new Date().toDateString() ? 'Heute' :
     targetStr === (() => { const d=new Date(); d.setDate(d.getDate()-1); return d.toDateString(); })() ? 'Gestern' : 'Vorgestern';
   showToast(drank ? `🍷 ${label} als Trinktag geloggt.` : `✅ ${label} nüchtern +15 Punkte!`);
@@ -3430,7 +3918,7 @@ function renderChallenge() {
 }
 
 // =====================
-// POINTS & BADGES
+// POINTS
 // =====================
 // Punkte-Übersicht:
 // Gefühl loggen:        10 Pts
@@ -3455,7 +3943,6 @@ function calcPoints() {
   if (!hasAnyEntry) {
     state.streak = 0;
     state.lastActiveDate = null;
-    state.earnedBadges = [];
     state.activitiesLogged = 0;
     state.pointsLog = [];
     return 0;
@@ -3525,20 +4012,6 @@ function calcPoints() {
     }
   }
 
-  // Badges
-  const stillEarned = state.earnedBadges.filter(id => {
-    const b = BADGES.find(b => b.id === id);
-    return b && b.cond(state);
-  });
-  state.earnedBadges = stillEarned;
-  stillEarned.forEach(id => {
-    const b = BADGES.find(b => b.id === id);
-    if (b && b.pts > 0) {
-      pts += b.pts;
-      log.push({ pts: b.pts, reason: b.icon + ' Badge: ' + b.name, ts: new Date().toISOString() });
-    }
-  });
-
   // Sort log by date desc
   log.sort((a, b) => new Date(b.ts) - new Date(a.ts));
   state.pointsLog = log;
@@ -3582,8 +4055,11 @@ function addPoints(pts, reason) {
   const el = document.getElementById('total-points');
   if (el) el.textContent = state.totalPoints;
   const streakEl = document.getElementById('streak-header-num');
-  if (streakEl) streakEl.textContent = state.streak;
-  checkBadges();
+  if (streakEl) {
+    streakEl.textContent = state.streak;
+    const labelEl = document.getElementById('streak-header-label');
+    if (labelEl) labelEl.textContent = state.streak === 1 ? 'Tag' : 'Tage';
+  }
 }
 
 function getStreakJokersThisMonth() {
@@ -3605,12 +4081,12 @@ function useStreakJoker() {
   if (state.lastActiveDate === today) { showToast('Du warst heute schon aktiv – kein Joker nötig!'); return; }
   if (state.lastActiveDate !== yStr) {
     // More than one day missed
-    showConfirm('Joker einsetzen?', 'Den gestrigen Tag als Joker-Tag markieren und Streak retten?', () => {
+    showConfirm('Ausnahmetag einsetzen?', 'Den gestrigen Tag als Ausnahme markieren und Streak retten?', () => {
       applyStreakJoker(monthKey, yesterday);
     });
     return;
   }
-  showConfirm('🃏 Joker einsetzen?', 'Gestrigen Tag überbrücken – Streak läuft weiter. ' + (2-used) + ' Joker übrig diesen Monat.', () => {
+  showConfirm('🃏 Ausnahmetag einsetzen?', 'Gestrigen Tag überbrücken – Streak läuft weiter. ' + (2-used) + ' Joker übrig diesen Monat.', () => {
     applyStreakJoker(monthKey, yesterday);
   });
 }
@@ -3621,11 +4097,13 @@ function applyStreakJoker(monthKey, jokerDate) {
     state.streakJokersUsedMonth = monthKey;
   }
   state.streakJokersUsed++;
-  state.lastActiveDate = new Date().toDateString();
-  // Don't increment streak – just keep it alive
+  // Setze lastActiveDate auf gestern – so zählt der nächste echte Eintrag heute als streak++
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  state.lastActiveDate = yesterday.toDateString();
   saveState();
   renderRewards();
-  showToast('🃏 Joker eingesetzt! Streak gerettet.');
+  showToast('🃏 Ausnahmetag eingesetzt! Beim nächsten Eintrag läuft der Streak weiter.');
 }
 
 function getActiveDaysCount() {
@@ -3662,20 +4140,10 @@ function checkStreak() {
     addPoints(20, '🔥 Streak');
   }
   document.getElementById('streak-header-num').textContent = state.streak;
+  const _sl = document.getElementById('streak-header-label');
+  if (_sl) _sl.textContent = state.streak === 1 ? 'Tag' : 'Tage';
 }
 
-function checkBadges() {
-  let newBadge = false;
-  BADGES.forEach(b => {
-    if (!state.earnedBadges.includes(b.id) && b.cond(state)) {
-      state.earnedBadges.push(b.id);
-      if (b.pts > 0) state.totalPoints += b.pts;
-      showToast(`🏅 Badge freigeschaltet: ${b.name}! +${b.pts} Punkte`);
-      newBadge = true;
-    }
-  });
-  if (newBadge) saveState();
-}
 
 function renderRewards() {
   state.totalPoints = calcPoints();
@@ -3683,6 +4151,8 @@ function renderRewards() {
   document.getElementById('total-points').textContent = state.totalPoints;
   document.getElementById('streak-num').textContent = state.streak;
   document.getElementById('streak-header-num').textContent = state.streak;
+  const _sl = document.getElementById('streak-header-label');
+  if (_sl) _sl.textContent = state.streak === 1 ? 'Tag' : 'Tage';
 
   // Active days + joker
   const activeDays = getActiveDaysCount();
@@ -3698,58 +4168,42 @@ function renderRewards() {
   if (el3) el3.textContent = jokersLeft;
   if (el3) el3.style.color = jokersLeft > 0 ? 'var(--gold)' : 'var(--muted)';
   if (el4) { el4.disabled = jokersLeft <= 0; el4.style.opacity = jokersLeft > 0 ? '1' : '0.4'; }
-  if (el5) el5.textContent = jokersLeft > 0 ? jokersLeft + ' von 2 Jokern diesen Monat verfügbar' : 'Keine Joker mehr diesen Monat';
+  if (el5) el5.textContent = jokersLeft > 0 ? jokersLeft + ' von 2 Ausnahmetagen diesen Monat verfügbar' : 'Keine Ausnahmetage mehr diesen Monat';
 
-  // Next badge – nimm den, bei dem Punkte-Fortschritt am weitesten ist (nur Punkte-basierte Badges)
-  const unearned = BADGES.filter(b => !state.earnedBadges.includes(b.id));
-  const ptsBadges = unearned.filter(b => b.pts > 0 && state.totalPoints < b.pts);
-  const next = ptsBadges.length > 0
-    ? ptsBadges.reduce((best, b) => (b.pts < best.pts ? b : best), ptsBadges[0])
-    : unearned[0] || null;
-
-  if (next) {
-    document.getElementById('next-badge-name').textContent = next.icon + ' ' + next.name;
-    if (next.pts > 0 && state.totalPoints <= next.pts) {
-      const pct = Math.min(100, Math.round(state.totalPoints / next.pts * 100));
-      document.getElementById('next-badge-progress').style.width = pct + '%';
-      document.getElementById('next-badge-info').textContent = `${state.totalPoints} / ${next.pts} Punkte`;
+  // Streak-Status Bar
+  const today = new Date().toDateString();
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const statusIcon = document.getElementById('streak-status-icon');
+  const statusText = document.getElementById('streak-status-text');
+  const statusSub  = document.getElementById('streak-status-sub');
+  if (statusIcon && statusText && statusSub) {
+    if (state.lastActiveDate === today) {
+      statusIcon.textContent = '🔥';
+      statusText.textContent = 'Heute aktiv – Streak läuft!';
+      statusSub.textContent  = state.streak + (state.streak === 1 ? ' Tag' : ' Tage') + ' in Folge';
+    } else if (state.lastActiveDate === yesterday.toDateString()) {
+      statusIcon.textContent = '🃏';
+      statusText.textContent = 'Ausnahmetag aktiv – Streak gerettet';
+      statusSub.textContent  = 'Heute noch eintragen um den Streak fortzuführen';
+      document.getElementById('streak-status-bar').style.background = '#fdf9ec';
+    } else if (!state.lastActiveDate) {
+      statusIcon.textContent = '✨';
+      statusText.textContent = 'Noch kein Streak';
+      statusSub.textContent  = 'Erste Aktivität starten!';
     } else {
-      document.getElementById('next-badge-progress').style.width = '80%';
-      document.getElementById('next-badge-info').textContent = 'Bedingung: weiter tracken';
+      statusIcon.textContent = '💤';
+      statusText.textContent = 'Streak unterbrochen';
+      statusSub.textContent  = 'Ausnahmetag einsetzen oder neu starten';
+      document.getElementById('streak-status-bar').style.background = '#fff5f5';
     }
-  } else {
-    document.getElementById('next-badge-name').textContent = '🎉 Alle Badges freigeschaltet!';
-    document.getElementById('next-badge-progress').style.width = '100%';
-    document.getElementById('next-badge-info').textContent = '';
   }
+
+
 
   // Custom rewards
   renderCustomRewards();
   renderPointsLog();
   renderHabit90();
-
-  // Badges by category
-  const grid = document.getElementById('badges-grid');
-  grid.innerHTML = '';
-  const cats = [...new Set(BADGES.map(b => b.cat))];
-  cats.forEach(cat => {
-    const catBadges = BADGES.filter(b => b.cat === cat);
-    const catDiv = document.createElement('div');
-    catDiv.style.cssText = 'margin-bottom:14px;';
-    catDiv.innerHTML = `<div style="font-size:0.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">${cat}</div>`;
-    const inner = document.createElement('div');
-    inner.className = 'badges-grid';
-    catBadges.forEach(b => {
-      const earned = state.earnedBadges.includes(b.id);
-      const div = document.createElement('div');
-      div.className = 'badge' + (earned ? ' earned' : ' locked');
-      div.title = earned ? 'Freigeschaltet!' : `Freischalten: +${b.pts} Punkte`;
-      div.innerHTML = `<div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div><div class="badge-pts">${earned ? '✓ verdient' : b.pts > 0 ? '+'+b.pts+' Pts' : ''}</div>`;
-      inner.appendChild(div);
-    });
-    catDiv.appendChild(inner);
-    grid.appendChild(catDiv);
-  });
 }
 
 function rebuildPointsLog() {
@@ -4165,7 +4619,7 @@ function quickLogSleepSlider() {
   state.sleepLog.unshift({ ts: new Date().toISOString(), score, hours: null, bedtime: null, wake: null, note: null });
   if (state.sleepLog.length > 200) state.sleepLog.pop();
   saveState();
-  document.getElementById('sleep-checkin-card').style.display = 'none';
+  const _scc=document.getElementById('sleep-checkin-card'); if(_scc) _scc.style.display = 'none';
   showToast('🌙 Schlaf notiert. Guten Morgen!');
   renderHome();
 }
@@ -4173,7 +4627,7 @@ function quickLogSleepSlider() {
 function skipSleepCheckin() {
   state.sleepCheckinSkipped = new Date().toDateString();
   saveState();
-  document.getElementById('sleep-checkin-card').style.display = 'none';
+  const _scc=document.getElementById('sleep-checkin-card'); if(_scc) _scc.style.display = 'none';
 }
 
 // =====================
@@ -4621,7 +5075,7 @@ function logWeight() {
     if (el) el.classList.toggle('active', k==='heute');
   });
   addPoints(10, '⚖️ Gewicht notiert');
-  saveState(); renderWeight(); checkBadges();
+  saveState(); renderWeight();
   const dateLabel = key === 'heute' ? 'Heute' : key === 'gestern' ? 'Gestern' : 'Vorgestern';
   showToast(`⚖️ ${dateLabel} notiert.`);
 }
@@ -4883,17 +5337,29 @@ function renderVerlauf() {
     const sc = v => v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)';
     const feelBefore = e.feeling?.before != null ? `<span style="font-size:0.75rem;color:${sc(e.feeling.before)};margin-left:4px;">😊${e.feeling.before}</span>` : '';
     const feelAfter  = e.feeling?.after  != null ? `<span style="font-size:0.75rem;color:${sc(e.feeling.after)};margin-left:2px;">→${e.feeling.after}</span>` : '';
-    return `<span>${e.icon||'🏃'} ${e.name} · ${e.label||e.min+' min'}${feelBefore}${feelAfter}</span><span style="color:var(--muted);font-size:0.78rem;">${ds} ${ts}</span><span class="pts">+${e.pts} Pts</span>`;
+    const idx = state.activityLog.indexOf(e);
+    return `<span style="font-size:1rem;">${e.icon||'🏃'}</span><span style="flex:1;font-weight:600;">${e.name} · ${e.label||e.min+' min'}${feelBefore}${feelAfter}</span><span style="color:var(--muted);font-size:0.75rem;white-space:nowrap;">${ds}</span><span class="pts">+${e.pts}</span><button onclick="deleteActivityLog(${idx})" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:1rem;padding:0;flex-shrink:0;">✕</button>`;
   });
 
-  // Gefühl – nur aus feelingLog (separater Tracker)
-  renderVerlaufList('vl-feeling-list', 'vl-feeling-empty', feels, e => {
+  // Gefühl – aus feelingLog UND aus activityLog/mindfulnessLog
+  const feelsManual = filterByDate(state.feelingLog, verlaufFilter);
+  const feelsFromActs = filterByDate(state.activityLog, verlaufFilter)
+    .filter(e => e.feeling?.before != null || e.feeling?.after != null)
+    .map(e => ({ ts: e.ts, source: e.icon + ' ' + e.name, before: e.feeling?.before ?? null, after: e.feeling?.after ?? null }));
+  const feelsFromMind = filterByDate(state.mindfulnessLog||[], verlaufFilter)
+    .filter(e => e.feeling?.before != null || e.feeling?.after != null)
+    .map(e => ({ ts: e.ts, source: e.icon + ' ' + e.name, before: e.feeling?.before ?? null, after: e.feeling?.after ?? null }));
+  const allFeels = [...feelsManual.map(e => ({...e, source: null})), ...feelsFromActs, ...feelsFromMind]
+    .sort((a,b) => new Date(b.ts) - new Date(a.ts));
+
+  renderVerlaufList('vl-feeling-list', 'vl-feeling-empty', allFeels, e => {
     const d = new Date(e.ts);
     const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const sc = v => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
     const before = e.before !== null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${sc(e.before)};">${e.before}</span>` : '<span style="color:var(--muted);">–</span>';
     const after  = e.after  !== null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${sc(e.after)};">${e.after}</span>` : '<span style="color:var(--muted);">⏳</span>';
-    return `${before}<span class="arrow" style="color:var(--accent);font-weight:600;">→</span>${after}<span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>`;
+    const src = e.source ? `<span style="font-size:0.72rem;color:var(--muted);margin-left:4px;">${e.source}</span>` : '';
+    return `${before}<span class="arrow" style="color:var(--accent);font-weight:600;">→</span>${after}${src}<span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>`;
   });
 
   // Süssigkeiten
@@ -4962,8 +5428,13 @@ function renderVerlauf() {
     ? allContacts.filter(c => c.week === getCurrentWeekKey())
     : allContacts;
   renderVerlaufList('vl-social-list', 'vl-social-empty', contactsFiltered, c => {
-    const typeLabel = {meeting:'Treffen',call:'Anruf',message:'Nachricht',letter:'Brief'}[c.type] || c.type;
-    return `<span>❤️ ${c.name}</span><span style="font-size:0.78rem;color:var(--muted);">${typeLabel}</span><span style="font-size:0.78rem;color:var(--accent);">✓ erledigt</span>`;
+    const typeLabel = {meeting:'Treffen',call:'Anruf',message:'Nachricht',letter:'Brief'}[c.type || c.how] || c.type || c.how || '';
+    let dateStr = '';
+    if (c.doneAt) {
+      const d = new Date(c.doneAt);
+      dateStr = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    }
+    return `<span>❤️ ${c.name}</span><span style="font-size:0.78rem;color:var(--muted);">${typeLabel}</span>${dateStr ? `<span style="font-size:0.75rem;color:var(--muted);">${dateStr}</span>` : ''}<span style="font-size:0.78rem;color:var(--accent);">✓</span>`;
   });
 }
 
@@ -4973,10 +5444,9 @@ function renderVerlaufList(listId, emptyId, entries, rowFn) {
   list.innerHTML = '';
   if (!entries.length) { empty.style.display=''; return; }
   empty.style.display = 'none';
-  entries.slice(0,20).forEach(e => {
+  entries.slice(0,50).forEach(e => {
     const div = document.createElement('div');
-    div.className = 'activity-log-entry';
-    div.style.flexWrap = 'wrap';
+    div.style.cssText = 'display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--bg);border-radius:8px;font-size:0.82rem;flex-wrap:nowrap;';
     div.innerHTML = rowFn(e);
     list.appendChild(div);
   });
@@ -5217,7 +5687,7 @@ function deleteMindfulnessLog(i) {
     if (streakEl) streakEl.textContent = state.streak;
     saveState();
     renderMindfulness();
-    if (document.getElementById('section-verlauf')?.classList.contains('visible')) renderVerlauf();
+    renderVerlauf();
     showToast('Eintrag gelöscht.');
   });
 }
@@ -5339,6 +5809,48 @@ function renderHabit90() {
   }
 }
 
+function logGratitudeSection() {
+  const input = document.getElementById('gratitude-section-input');
+  const text = input.value.trim();
+  if (!text) { showToast('Bitte etwas eingeben.'); return; }
+  state.gratitudeLog.unshift({ ts: new Date().toISOString(), text });
+  if (state.gratitudeLog.length > 200) state.gratitudeLog.pop();
+  input.value = '';
+  saveState();
+  renderGratitudeSection();
+  renderHome();
+  renderVerlauf();
+  showToast('🌟 Dankbarkeit notiert!');
+}
+
+function renderGratitudeSection() {
+  const list  = document.getElementById('gratitude-section-list');
+  const empty = document.getElementById('gratitude-section-empty');
+  if (!list) return;
+  if (!state.gratitudeLog.length) { list.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  list.innerHTML = state.gratitudeLog.slice(0, 30).map((e, i) => {
+    const d = new Date(e.ts);
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    return `<div style="padding:10px 12px;background:var(--bg);border-radius:10px;position:relative;">
+      <div style="font-size:0.85rem;line-height:1.5;color:var(--ink);padding-right:24px;">"${e.text}"</div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">${ds}</div>
+      <button onclick="deleteGratitudeEntry(${i})" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteGratitudeEntry(i) {
+  showConfirm('Eintrag löschen?', 'Diesen Dankbarkeits-Eintrag entfernen?', () => {
+    state.gratitudeLog.splice(i, 1);
+    saveState();
+    renderGratitudeSection();
+    renderHome();
+    renderVerlauf();
+    showToast('Eintrag gelöscht.');
+  });
+}
+
 // =====================
 // SOCIAL CONTACTS
 // =====================
@@ -5392,8 +5904,10 @@ function addSocialContact() {
 
 function toggleSocialDone(i) {
   state.socialContacts[i].done = !state.socialContacts[i].done;
+  state.socialContacts[i].doneAt = state.socialContacts[i].done ? new Date().toISOString() : null;
   saveState();
   renderSocial();
+  renderVerlauf();
   if (state.socialContacts[i].done) showToast('❤️ Gut gemacht!');
 }
 
@@ -5593,9 +6107,387 @@ function deleteBug(i) {
 }
 
 // =====================
-// FEELING OVERLAY
+// 2-MINUTEN MODUS
 // =====================
-let feelingOverlayContext = null; // { type: 'activity'|'mindfulness', logIndex: i, phase: 'before'|'after' }
+let tmStep = 0;
+let tmSelectedActivity = null;
+let tmSelectedTime = 'ganztags';
+const TM_FEEL_DESCS = ['','miserabel','sehr schlecht','schlecht','eher schlecht','okay','ganz gut','gut','sehr gut','ausgezeichnet','super!'];
+const TM_TIME_HOURS = { ganztags: 12, morgens: 8, mittags: 13, abends: 19 };
+
+function tmSetTime(slot, el) {
+  tmSelectedTime = slot;
+  document.querySelectorAll('.tm-time-btn').forEach(b => b.style.background = 'rgba(255,255,255,0.1)');
+  el.style.background = 'rgba(255,255,255,0.35)';
+}
+
+function startTwoMin() {
+  tmStep = 0;
+  tmSelectedActivity = null;
+  tmSelectedTime = 'ganztags';
+  const timeRow = document.getElementById('tm-time-row');
+  if (timeRow) timeRow.style.display = 'none';
+  const durRow = document.getElementById('tm-dur-row');
+  if (durRow) durRow.style.display = 'none';
+  // Init water slider
+  const slider = document.getElementById('tm-water-slider');
+  const goal = state.waterGoal || 2000;
+  if (slider) { slider.max = Math.max(3000, goal); slider.value = state.waterMl || 0; }
+  document.getElementById('tm-water-val').textContent = (state.waterMl||0) + ' ml';
+  document.getElementById('tm-water-goal').textContent = goal;
+  // Init feel slider
+  document.getElementById('tm-feel-slider').value = 5;
+  tmUpdateFeel(5);
+  document.getElementById('tm-note').value = '';
+  // Build activity list
+  const list = document.getElementById('tm-activity-list');
+  list.innerHTML = (state.activities||[]).map((a,i) => `
+    <button class="tm-activity-btn" onclick="tmSelectActivity(${i},this)">
+      <span style="font-size:1.2rem;">${a.icon||'🏃'}</span>
+      <span style="flex:1;">${a.name}</span>
+      <span style="font-size:0.8rem;opacity:0.6;">${a.steps ? (a.stepsDefault||5000)+' Schr.' : a.min+' Min'}</span>
+    </button>`).join('');
+  // Show overlay
+  tmGoStep(0);
+  document.getElementById('twomin-overlay').style.display = 'flex';
+}
+
+function tmSetWater(ml) {
+  const slider = document.getElementById('tm-water-slider');
+  if (slider) slider.value = ml;
+  document.getElementById('tm-water-val').textContent = ml + ' ml';
+}
+
+function tmSelectActivity(i, el) {
+  document.querySelectorAll('.tm-activity-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  tmSelectedActivity = i;
+  // Show time + duration
+  const timeRow = document.getElementById('tm-time-row');
+  const durRow  = document.getElementById('tm-dur-row');
+  if (timeRow) timeRow.style.display = 'flex';
+  if (durRow)  durRow.style.display  = '';
+  tmSelectedTime = 'ganztags';
+  document.querySelectorAll('.tm-time-btn').forEach((b,j) => b.style.background = j===0 ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.1)');
+  // Set default duration from activity
+  const a = state.activities[i];
+  const defaultMin = (a && a.min > 0) ? a.min : 30;
+  const slider = document.getElementById('tm-dur-slider');
+  if (slider) { slider.value = defaultMin; }
+  document.getElementById('tm-dur-val').textContent = defaultMin + ' Min';
+}
+
+function tmUpdateFeel(v) {
+  const iv = parseInt(v);
+  document.getElementById('tm-feel-val').textContent = iv;
+  document.getElementById('tm-feel-desc').textContent = TM_FEEL_DESCS[iv] || '';
+}
+
+function tmGoStep(step) {
+  for (let i = 0; i < 4; i++) {
+    const s = document.getElementById('tm-step-' + i);
+    const d = document.getElementById('tm-dot-' + i);
+    if (s) s.style.display = i === step ? '' : 'none';
+    if (d) d.classList.toggle('active', i === step);
+  }
+  tmStep = step;
+  const backBtn = document.getElementById('tm-back-btn');
+  const nextBtn = document.getElementById('tm-next-btn');
+  if (backBtn) backBtn.style.display = step === 0 ? 'none' : '';
+  if (nextBtn) {
+    nextBtn.textContent = step === 3 ? '✅ Fertig!' : 'Weiter →';
+    // Step 1: enable only if activity selected or skippable
+    nextBtn.style.opacity = '1';
+    nextBtn.style.cursor = 'pointer';
+  }
+}
+
+function tmNext() {
+  if (tmStep === 3) { tmSave(); return; }
+  tmGoStep(tmStep + 1);
+  // On step 1: show skip hint
+  if (tmStep === 1) {
+    const nextBtn = document.getElementById('tm-next-btn');
+    if (nextBtn) nextBtn.textContent = 'Überspringen →';
+  }
+}
+
+function tmBack() {
+  if (tmStep > 0) tmGoStep(tmStep - 1);
+}
+
+function tmSave() {
+  // 1. Wasser
+  const waterMl = parseInt(document.getElementById('tm-water-slider').value || 0);
+  if (waterMl > 0) {
+    const todayStr = new Date().toDateString();
+    setWaterMlForDate(todayStr, waterMl);
+    if (waterMl >= state.waterGoal && state.waterMl < state.waterGoal) {
+      state.waterDays++;
+      addPoints(30, '💧 Tagesziel Wasser erreicht');
+    }
+    state.waterMl = waterMl;
+  }
+
+  // 2. Aktivität
+  if (tmSelectedActivity !== null) {
+    const a = state.activities[tmSelectedActivity];
+    if (a) {
+      const durMin = parseInt(document.getElementById('tm-dur-slider')?.value || a.min || 30);
+      const pts = a.steps ? Math.round((a.stepsDefault||5000)/1000)*10 : durMin*(a.ptsPerMin||1);
+      const label = a.steps ? (a.stepsDefault||5000).toLocaleString('de-DE')+' Schritte' : durMin+' min';
+      const ts = new Date();
+      ts.setHours(TM_TIME_HOURS[tmSelectedTime]||12, 0, 0, 0);
+      state.activityLog.unshift({
+        name: a.name, icon: a.icon||'🏃', min: durMin, pts, label,
+        ts: ts.toISOString(), ptsPerMin: a.ptsPerMin||1,
+        steps: !!a.steps, feeling: {}
+      });
+      if (state.activityLog.length > 200) state.activityLog.pop();
+      state.activitiesLogged++;
+      addPoints(pts, (a.icon||'🏃') + ' ' + a.name);
+      checkStreak();
+    }
+  }
+
+  // 3. Gefühl → bodyLog
+  const feelVal = parseInt(document.getElementById('tm-feel-slider').value);
+  state.bodyLog.unshift({ ts: new Date().toISOString(), hunger: null, meal: null, feeling: feelVal, note: '' });
+  if (state.bodyLog.length > 200) state.bodyLog.pop();
+
+  // 4. Notiz → gratitudeLog wenn nicht leer
+  const note = document.getElementById('tm-note').value.trim();
+  if (note) {
+    state.gratitudeLog.unshift({ ts: new Date().toISOString(), text: note });
+    if (state.gratitudeLog.length > 200) state.gratitudeLog.pop();
+  }
+
+  saveState();
+  closeTwoMin();
+  renderHome();
+  showToast('✅ Alles gespeichert!');
+}
+
+function closeTwoMin() {
+  document.getElementById('twomin-overlay').style.display = 'none';
+}
+// =====================
+let dcEnergy = null;
+let dcFocus = null;
+
+function dcSelect(type, val, el) {
+  const group = el.parentElement.querySelectorAll('.dc-btn');
+  group.forEach(b => {
+    b.style.background = 'rgba(255,255,255,0.08)';
+    b.style.borderColor = 'rgba(255,255,255,0.2)';
+  });
+  el.style.background = 'rgba(255,255,255,0.3)';
+  el.style.borderColor = 'rgba(255,255,255,0.7)';
+  if (type === 'energy') dcEnergy = val;
+  if (type === 'focus')  dcFocus  = val;
+}
+
+function saveDailyCheck() {
+  if (!state.profile) state.profile = {};
+  state.profile.dailyCheckDate = new Date().toDateString();
+  state.profile.dailyCheckEnergy = dcEnergy;
+  state.profile.dailyCheckFocus  = dcFocus;
+  saveState();
+  document.getElementById('daily-check-card').style.display = 'none';
+  dcEnergy = null; dcFocus = null;
+  showToast('⚡ Schönen Tag!');
+}
+
+function skipDailyCheck() {
+  if (!state.profile) state.profile = {};
+  state.profile.dailyCheckDate = new Date().toDateString();
+  saveState();
+  document.getElementById('daily-check-card').style.display = 'none';
+}
+
+function renderWeeklySummary() {
+  const card = document.getElementById('weekly-summary-card');
+  const content = document.getElementById('weekly-summary-content');
+  if (!card || !content) return;
+
+  // Show only on Mondays if not already seen this week
+  const today = new Date();
+  const isMonday = today.getDay() === 1;
+  const seenKey = 'week-' + today.toISOString().slice(0,10);
+  if (!card || !content || !isMonday || state.profile?.weeklySummarySeen === seenKey) {
+    if (card) card.style.display = 'none';
+    return;
+  }
+
+  // Calculate last week stats
+  const lastWeekStart = new Date(today); lastWeekStart.setDate(today.getDate() - 7); lastWeekStart.setHours(0,0,0,0);
+  const lastWeekEnd = new Date(today); lastWeekEnd.setHours(0,0,0,0);
+
+  const acts = (state.activityLog||[]).filter(e => { const d=new Date(e.ts); return d>=lastWeekStart && d<lastWeekEnd; });
+  const sleeps = (state.sleepLog||[]).filter(e => { const d=new Date(e.ts); return d>=lastWeekStart && d<lastWeekEnd && e.score; });
+  const avgSleep = sleeps.length ? (sleeps.reduce((t,e)=>t+e.score,0)/sleeps.length).toFixed(1) : null;
+  const totalMin = acts.reduce((t,e)=>t+(e.min||0),0);
+  const minds = (state.mindfulnessLog||[]).filter(e => { const d=new Date(e.ts); return d>=lastWeekStart && d<lastWeekEnd; });
+
+  const lines = [];
+  if (acts.length) lines.push(`🏃 ${acts.length}× aktiv · ${totalMin} Min`);
+  if (avgSleep) lines.push(`🌙 Schlaf Ø ${avgSleep}/10`);
+  if (minds.length) lines.push(`🪷 ${minds.length}× Achtsamkeit`);
+  if (!lines.length) { card.style.display = 'none'; return; }
+
+  content.innerHTML = lines.join('<br>');
+  card.style.display = '';
+  // Mark as seen
+  if (!state.profile) state.profile = {};
+  state.profile.weeklySummarySeen = seenKey;
+  saveState();
+}
+
+function renderDailyCheck() {
+  const card = document.getElementById('daily-check-card');
+  if (!card) return;
+  const todayStr = new Date().toDateString();
+  const hour = new Date().getHours();
+  const alreadySeen = state.profile?.dailyCheckDate === todayStr;
+  card.style.display = (!alreadySeen && hour >= 5 && hour < 11) ? '' : 'none';
+}
+
+function renderIntention() {
+  const card = document.getElementById('intention-card');
+  const text = document.getElementById('intention-text');
+  if (!card || !text) return;
+  const intention = state.profile?.intention;
+  if (!intention) { card.style.display = 'none'; return; }
+  text.textContent = intention;
+  card.style.display = '';
+}
+// =====================
+let obSelectedGoal = null;
+
+function showOnboarding() {
+  const overlay = document.getElementById('onboarding-overlay');
+  overlay.style.display = 'flex';
+  // Pre-fill name if already set
+  const name = state.profile?.name;
+  if (name) document.getElementById('ob-name-input').value = name;
+}
+
+function obNext(step) {
+  // Validate step 1
+  if (step === 2) {
+    const name = document.getElementById('ob-name-input').value.trim();
+    if (!name) { document.getElementById('ob-name-input').focus(); return; }
+    if (!state.profile) state.profile = {};
+    state.profile.name = name;
+    saveState();
+    document.getElementById('ob-name-display').textContent = 'Hey, ' + name + '!';
+  }
+  document.querySelectorAll('[id^="ob-step-"]').forEach(el => el.style.display = 'none');
+  const next = document.getElementById('ob-step-' + step);
+  if (next) next.style.display = '';
+}
+
+function obSelectGoal(btn, goal) {
+  document.querySelectorAll('.ob-goal-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  obSelectedGoal = goal;
+}
+
+function obFinish() {
+  if (!state.profile) state.profile = {};
+  if (obSelectedGoal) state.profile.mainGoal = obSelectedGoal;
+  // Save implementation intention
+  const when = document.getElementById('ob-intention-when')?.value;
+  const what = document.getElementById('ob-intention-what')?.value;
+  if (when && what) state.profile.intention = `Wenn ${when}, dann ${what}.`;
+  state.onboardingDone = true;
+  saveState();
+  const overlay = document.getElementById('onboarding-overlay');
+  overlay.style.transition = 'opacity 0.5s';
+  overlay.style.opacity = '0';
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    overlay.style.opacity = '1';
+    overlay.style.transition = '';
+    renderHome();
+    const nameInput = document.getElementById('profile-name');
+    if (nameInput && state.profile?.name) nameInput.value = state.profile.name;
+  }, 500);
+}
+
+function restartOnboarding() {
+  state.onboardingDone = false;
+  saveState();
+  showOnboarding();
+  obNext(1);
+}
+// =====================
+let feelingOverlayContext = null; // { type: 'activity'|'mindfulness'|'active', logIndex, phase }
+
+// =====================
+// ACTIVITY TIMER
+// =====================
+let activityTimerInterval = null;
+
+function startActivity(event, i) {
+  event.stopPropagation();
+  if (state.activeActivity) { showToast('Erst die laufende Aktivität stoppen.'); return; }
+  const a = state.activities[i];
+  state.activeActivity = { idx: i, name: a.name, icon: a.icon||'🏃', startTs: new Date().toISOString(), feelingBefore: null };
+  saveState();
+  renderActivities();
+  updateActiveBanner();
+  setTimeout(() => showFeelingOverlay({ type: 'active', logIndex: -1, phase: 'before' }), 300);
+}
+
+function stopActivity() {
+  if (!state.activeActivity) return;
+  const a = state.activeActivity;
+  const minElapsed = Math.max(1, Math.round((new Date() - new Date(a.startTs)) / 60000));
+  const act = state.activities[a.idx];
+  if (!act) { state.activeActivity = null; saveState(); renderActivities(); updateActiveBanner(); return; }
+  const pts = minElapsed * (act.ptsPerMin || 1);
+  const entry = {
+    name: act.name, icon: act.icon||'🏃', min: minElapsed,
+    pts, label: minElapsed + ' min', ts: a.startTs,
+    ptsPerMin: act.ptsPerMin||1, steps: false,
+    feeling: { before: a.feelingBefore ?? null, after: null }
+  };
+  state.activityLog.unshift(entry);
+  if (state.activityLog.length > 200) state.activityLog.pop();
+  state.activitiesLogged++;
+  state.activeActivity = null;
+  addPoints(pts, act.icon + ' ' + act.name);
+  checkStreak();
+  saveState();
+  clearInterval(activityTimerInterval); activityTimerInterval = null;
+  renderActivities(); updateActiveBanner();
+  showToast(`✅ ${act.name} – ${minElapsed} Min geloggt! +${pts} Punkte`);
+  setTimeout(() => showFeelingOverlay({ type: 'activity', logIndex: 0, phase: 'after' }), 400);
+}
+
+function updateActiveBanner() {
+  const banner = document.getElementById('active-activity-banner');
+  if (!banner) return;
+  if (!state.activeActivity) {
+    banner.style.display = 'none';
+    clearInterval(activityTimerInterval); activityTimerInterval = null;
+    return;
+  }
+  banner.style.display = '';
+  document.getElementById('active-act-icon').textContent = state.activeActivity.icon;
+  document.getElementById('active-act-name').textContent = state.activeActivity.name;
+  if (!activityTimerInterval) {
+    activityTimerInterval = setInterval(() => {
+      const el = document.getElementById('active-act-timer');
+      if (!el || !state.activeActivity) return;
+      const elapsed = Math.floor((new Date() - new Date(state.activeActivity.startTs)) / 1000);
+      const m = Math.floor(elapsed / 60);
+      const s = elapsed % 60;
+      el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    }, 1000);
+  }
+}
 
 function showFeelingOverlay(context) {
   feelingOverlayContext = context;
@@ -5614,6 +6506,16 @@ function saveFeelingOverlay() {
   if (!feelingOverlayContext) { closeFeelingOverlay(); return; }
   const val = parseInt(document.getElementById('feeling-overlay-slider').value || 5);
   const { type, logIndex, phase } = feelingOverlayContext;
+
+  if (type === 'active') {
+    // Save before-feeling to running activity
+    if (state.activeActivity) state.activeActivity.feelingBefore = val;
+    saveState();
+    closeFeelingOverlay();
+    showToast('😊 Vor-Gefühl gespeichert – viel Erfolg!');
+    return;
+  }
+
   const log = type === 'mindfulness' ? state.mindfulnessLog : state.activityLog;
   if (log[logIndex]) {
     if (!log[logIndex].feeling) log[logIndex].feeling = {};
@@ -5621,6 +6523,9 @@ function saveFeelingOverlay() {
   }
   saveState();
   closeFeelingOverlay();
+  if (type === 'mindfulness') renderMindfulness();
+  else renderActivityLog();
+  renderVerlauf();
   showToast('😊 Gefühl gespeichert!');
 }
 
@@ -5649,20 +6554,21 @@ function saveProfile() {
   state.profile.name      = document.getElementById('profile-name')?.value.trim() || '';
   state.profile.birthdate = document.getElementById('profile-birthdate')?.value || '';
   state.profile.gender    = document.getElementById('profile-gender')?.value || '';
+  state.profile.intention = document.getElementById('profile-intention')?.value.trim() || '';
   saveState();
-  // Update header greeting if name set
   renderHome();
 }
 
 function renderSettings() {
-  // Profile
   if (state.profile) {
     const n = document.getElementById('profile-name');
     const b = document.getElementById('profile-birthdate');
     const g = document.getElementById('profile-gender');
+    const i = document.getElementById('profile-intention');
     if (n) n.value = state.profile.name || '';
     if (b) b.value = state.profile.birthdate || '';
     if (g) g.value = state.profile.gender || '';
+    if (i) i.value = state.profile.intention || '';
   }
 
   const vEl = document.getElementById('app-version');
@@ -5713,6 +6619,102 @@ function saveBreathingSettings() {
   state.breathingWindowEnd     = parseInt(document.getElementById('breathing-end')?.value) || 17;
   saveState();
   scheduleBreathing();
+}
+
+// =====================
+// SYMPTOME
+// =====================
+const SYM_BASE = '#9FE1CB';
+const SYM_SEL  = '#B5D4F4';
+const SYM_INT_DESCS = ['','kaum','sehr leicht','leicht','mässig','deutlich','stark','sehr stark','heftig','sehr heftig','unerträglich'];
+let symActiveEl=null, symActiveZone=null, symActiveType='Schmerz';
+
+function symIntColor(v){return v<=3?'#97C459':v<=5?'#EF9F27':v<=7?'#E24B4A':'#A32D2D'}
+
+function symOpenZone(el){
+  if(symActiveEl===el){symCancelZone();return}
+  if(symActiveEl)symActiveEl.setAttribute('fill',SYM_BASE);
+  symActiveEl=el; symActiveZone=el.getAttribute('data-zone');
+  el.setAttribute('fill',SYM_SEL);
+  symActiveType='Schmerz';
+  document.querySelectorAll('#sym-types .chip').forEach((b,i)=>b.classList.toggle('active',i===0));
+  document.getElementById('sym-int-slider').value=3;
+  symUpdateIntensity(3);
+  document.getElementById('sym-note').value='';
+  document.getElementById('sym-zone-title').textContent=symActiveZone;
+  document.getElementById('sym-panel').style.display='';
+  document.getElementById('sym-hint').style.display='none';
+}
+
+function symSetType(el,type){
+  document.querySelectorAll('#sym-types .chip').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); symActiveType=type;
+}
+
+function symUpdateIntensity(v){
+  const iv=parseInt(v);
+  document.getElementById('sym-int-val').textContent=iv;
+  document.getElementById('sym-int-desc').textContent=SYM_INT_DESCS[iv]||'';
+  document.getElementById('sym-int-val').style.color=symIntColor(iv);
+}
+
+function symSaveZone(){
+  if(!symActiveZone)return;
+  const intensity=parseInt(document.getElementById('sym-int-slider').value);
+  const note=document.getElementById('sym-note').value.trim();
+  const color=symIntColor(intensity);
+  symActiveEl.setAttribute('fill',color);
+  if(!state.symptomLog)state.symptomLog=[];
+  state.symptomLog.unshift({zone:symActiveZone,type:symActiveType,intensity,note,color,ts:new Date().toISOString()});
+  if(state.symptomLog.length>200)state.symptomLog.pop();
+  symActiveEl=null; symActiveZone=null;
+  document.getElementById('sym-panel').style.display='none';
+  document.getElementById('sym-hint').style.display='';
+  saveState(); renderSymptoms(); renderHome();
+  showToast('🩹 Symptom gespeichert.');
+}
+
+function symCancelZone(){
+  if(symActiveEl)symActiveEl.setAttribute('fill',SYM_BASE);
+  symActiveEl=null; symActiveZone=null;
+  document.getElementById('sym-panel').style.display='none';
+  document.getElementById('sym-hint').style.display='';
+}
+
+function renderSymptoms(){
+  const todayStr=new Date().toDateString();
+  document.querySelectorAll('.sym-zone').forEach(el=>el.setAttribute('fill',SYM_BASE));
+  (state.symptomLog||[]).filter(e=>new Date(e.ts).toDateString()===todayStr).forEach(e=>{
+    document.querySelectorAll(`.sym-zone[data-zone="${e.zone}"]`).forEach(el=>el.setAttribute('fill',e.color));
+  });
+  const list=document.getElementById('sym-log-list');
+  const empty=document.getElementById('sym-log-empty');
+  if(!list)return;
+  const entries=(state.symptomLog||[]).filter(e=>new Date(e.ts).toDateString()===todayStr);
+  if(!entries.length){list.innerHTML='';empty.style.display='';return}
+  empty.style.display='none';
+  list.innerHTML=entries.map((e,i)=>{
+    const d=new Date(e.ts);
+    const ts=d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div style="width:10px;height:10px;border-radius:50%;background:${e.color};flex-shrink:0;"></div>
+      <div style="flex:1;">
+        <span style="font-weight:600;font-size:0.88rem;">${e.zone}</span>
+        <span style="font-size:0.78rem;color:var(--muted);margin-left:6px;">${e.type} · ${e.intensity}/10</span>
+        ${e.note?`<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">"${e.note}"</div>`:''}
+      </div>
+      <span style="font-size:0.72rem;color:var(--muted);">${ts}</span>
+      <button onclick="deleteSymptom(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteSymptom(i){
+  const todayStr=new Date().toDateString();
+  const entries=(state.symptomLog||[]).filter(e=>new Date(e.ts).toDateString()===todayStr);
+  const idx=state.symptomLog.indexOf(entries[i]);
+  if(idx>-1)state.symptomLog.splice(idx,1);
+  saveState(); renderSymptoms(); renderHome();
 }
 
 function scheduleBreathing() {
@@ -5962,6 +6964,12 @@ rebuildPointsLog();
 renderHome();
 document.getElementById('streak-header-num').textContent = state.streak;
 scheduleBreathing();
+// Restore active activity banner if running
+if (state.activeActivity) setTimeout(() => updateActiveBanner(), 300);
+// Show onboarding on first start
+if (!state.onboardingDone) {
+  setTimeout(() => showOnboarding(), 200);
+}
 </script>
 <!-- CONFIRM MODAL -->
 <div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;padding:20px;" class="confirm-flex">
