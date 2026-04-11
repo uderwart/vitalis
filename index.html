@@ -1606,34 +1606,47 @@
       </div>
     </div>
 
-    <p class="small-note" id="sym-hint" style="text-align:center;">Tippe auf eine Körperstelle</p>
+    <p class="small-note" id="sym-hint" style="text-align:center;margin-top:4px;">Tippe auf eine Körperstelle</p>
 
-    <div id="sym-panel" style="display:none;background:var(--bg);border-radius:14px;padding:14px;margin-top:10px;border:2px solid var(--border);">
-      <div style="font-weight:600;font-size:0.95rem;color:var(--ink);margin-bottom:10px;" id="sym-zone-title"></div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;" id="sym-types">
+    <!-- Inline Panel -->
+    <div id="sym-panel" style="display:none;margin-top:12px;background:var(--bg);border-radius:14px;padding:14px 16px;border:2px solid var(--border);">
+      <div style="font-weight:700;font-size:0.95rem;color:var(--ink);margin-bottom:12px;" id="sym-zone-title"></div>
+
+      <!-- Typ -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;" id="sym-types">
         <button class="chip active" onclick="symSetType(this,'Schmerz')">Schmerz</button>
         <button class="chip" onclick="symSetType(this,'Verspannung')">Verspannung</button>
         <button class="chip" onclick="symSetType(this,'Müdigkeit')">Müdigkeit</button>
         <button class="chip" onclick="symSetType(this,'Kribbeln')">Kribbeln</button>
         <button class="chip" onclick="symSetType(this,'Anderes')">Anderes</button>
       </div>
-      <div class="vitalis-slider-wrap" style="margin-bottom:12px;">
-        <div class="vitalis-slider-value" id="sym-int-val">3</div>
-        <div class="vitalis-slider-desc" id="sym-int-desc">leicht</div>
+
+      <!-- Intensität -->
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+          <span style="font-size:0.78rem;color:var(--muted);">Intensität</span>
+          <span style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--ink);" id="sym-int-val">3</span>
+        </div>
         <input type="range" id="sym-int-slider" min="1" max="10" value="3" step="1"
+          style="width:100%;accent-color:var(--accent);height:6px;cursor:pointer;"
           oninput="symUpdateIntensity(this.value)">
-        <div class="slider-labels"><span>😌 Kaum</span><span>😣 Stark</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:4px;">
+          <span>😌 Kaum</span><span id="sym-int-desc">leicht</span><span>😣 Stark</span>
+        </div>
       </div>
+
       <textarea id="sym-note" placeholder="Notiz (optional)…" rows="2"
-        style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;margin-bottom:10px;background:var(--bg);color:var(--ink);"></textarea>
+        style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;margin-bottom:10px;background:var(--bg);color:var(--ink);box-sizing:border-box;"></textarea>
+
       <div style="display:flex;gap:8px;">
         <button class="log-btn" onclick="symSaveZone()" style="flex:1;">💾 Speichern</button>
         <button class="log-btn secondary" onclick="symCancelZone()">Abbrechen</button>
       </div>
     </div>
 
-    <div id="sym-log-list" style="margin-top:10px;"></div>
-    <p class="small-note" id="sym-log-empty" style="margin-top:8px;">Noch keine Beschwerden eingetragen.</p>
+    <!-- Heutige Einträge -->
+    <div id="sym-log-list" style="margin-top:12px;"></div>
+    <p class="small-note" id="sym-log-empty" style="margin-top:8px;text-align:center;">Noch keine Beschwerden eingetragen.</p>
   </div>
 
   <div class="card">
@@ -1714,6 +1727,13 @@
     <h2>❤️ Kontakte</h2>
     <div id="vl-social-list" style="display:flex;flex-direction:column;gap:6px;"></div>
     <p class="small-note" id="vl-social-empty">Keine Einträge im Zeitraum.</p>
+  </div>
+
+  <!-- Beschwerden -->
+  <div class="card">
+    <h2>🩹 Beschwerden</h2>
+    <div id="vl-symptom-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-symptom-empty">Keine Einträge im Zeitraum.</p>
   </div>
 
 </div>
@@ -5478,6 +5498,17 @@ function renderVerlauf() {
     }
     const ci = state.socialContacts.indexOf(c);
     return `<span style="flex:1;">❤️ ${c.name}</span><span style="font-size:0.78rem;color:var(--muted);">${typeLabel}</span>${dateStr ? `<span style="font-size:0.75rem;color:var(--muted);">${dateStr}</span>` : ''}<button onclick="toggleSocialDone(${ci})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
+  });
+
+  // Beschwerden
+  const symptoms = filterByDate(state.symptomLog||[], verlaufFilter);
+  renderVerlaufList('vl-symptom-list', 'vl-symptom-empty', symptoms, e => {
+    const d = new Date(e.ts);
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const ts = d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const color = e.color || '#9FE1CB';
+    const si = state.symptomLog.indexOf(e);
+    return `<span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block;"></span><span style="flex:1;font-weight:600;">${e.zone}</span><span style="font-size:0.78rem;color:var(--muted);">${e.type} · ${e.intensity}/10</span><span style="font-size:0.75rem;color:var(--muted);">${ds} ${ts}</span><button onclick="deleteSymptom(${si})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
 }
 
