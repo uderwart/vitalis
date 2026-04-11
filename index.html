@@ -902,6 +902,7 @@
     <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Wussten Sie?</div>
     <div id="home-tip-text" style="font-size:0.85rem;color:var(--ink);line-height:1.5;"></div>
     <div id="home-tip-source" style="font-size:0.72rem;color:var(--muted);margin-top:6px;font-style:italic;"></div>
+    <button id="home-tip-btn" onclick="" style="margin-top:10px;padding:8px 16px;border-radius:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;display:none;">Jetzt eintragen →</button>
   </div>
 
   <!-- AKTIVE AKTIVITÄT BANNER -->
@@ -921,7 +922,7 @@
 
   <!-- 2-MINUTEN BUTTON -->
   <button onclick="startTwoMin()" style="width:100%;margin-bottom:14px;padding:16px;border-radius:16px;border:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;font-family:'DM Serif Display',serif;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
-    ⚡ 2 Minuten – schnell eintragen
+    ⚡ 30-Sekunden Check-in
   </button>
 
   <!-- KACHELN -->
@@ -2380,29 +2381,29 @@ const GOAL_SUBS = {
 
 const GOAL_TIPS = {
   'Mehr bewegen': [
-    { text: 'Schon 20 Minuten moderates Gehen verbessern die Stimmung messbar – unabhängig von Fitness-Level.', source: 'Blumenthal et al. (2007)' },
-    { text: 'Bewegung wirkt bei leichten bis mittleren Depressionen ähnlich effektiv wie Antidepressiva.', source: 'Craft & Perna (2004)' },
-    { text: 'Regelmässige Bewegung verbessert Schlafqualität, Gedächtnis und Stressresistenz gleichzeitig.', source: 'Harvard Health (2021)' },
+    { text: 'Schon 20 Minuten moderates Gehen verbessern die Stimmung messbar – unabhängig von Fitness-Level.', source: 'Blumenthal et al. (2007)', section: 'activity', btn: '🏃 Aktivität starten' },
+    { text: 'Bewegung wirkt bei leichten bis mittleren Depressionen ähnlich effektiv wie Antidepressiva.', source: 'Craft & Perna (2004)', section: 'activity', btn: '🏃 Aktivität starten' },
+    { text: 'Regelmässige Bewegung verbessert Schlafqualität, Gedächtnis und Stressresistenz gleichzeitig.', source: 'Harvard Health (2021)', section: 'activity', btn: '🏃 Aktivität starten' },
   ],
   'Besser schlafen': [
-    { text: 'Schlaf reinigt das Gehirn buchstäblich: das glymphatische System arbeitet hauptsächlich nachts.', source: 'Xie et al. (2013)' },
-    { text: 'Weniger als 7 Stunden Schlaf erhöht die Anfälligkeit für Erkältungen um das Dreifache.', source: 'Walker (2017)' },
-    { text: 'Schlafmangel beeinträchtigt Entscheidungsfähigkeit ähnlich stark wie Alkohol.', source: 'Harrison & Horne (2000)' },
+    { text: 'Schlaf reinigt das Gehirn buchstäblich: das glymphatische System arbeitet hauptsächlich nachts.', source: 'Xie et al. (2013)', section: 'sleep', btn: '🌙 Schlaf eintragen' },
+    { text: 'Weniger als 7 Stunden Schlaf erhöht die Anfälligkeit für Erkältungen um das Dreifache.', source: 'Walker (2017)', section: 'sleep', btn: '🌙 Schlaf eintragen' },
+    { text: 'Schlafmangel beeinträchtigt Entscheidungsfähigkeit ähnlich stark wie Alkohol.', source: 'Harrison & Horne (2000)', section: 'sleep', btn: '🌙 Schlaf eintragen' },
   ],
   'Bewusster essen': [
-    { text: 'Intuitives Essen – auf innere Hunger- und Sättigungssignale hören – führt langfristig zu besserem Wohlbefinden als Diäten.', source: 'Tribole & Resch (1995)' },
-    { text: 'Menschen die langsam essen nehmen im Schnitt 88 kcal weniger pro Mahlzeit auf – ohne es zu merken.', source: 'Andrade et al. (2008)' },
-    { text: 'Ablenkung beim Essen (TV, Handy) reduziert das Sättigungsgefühl und erhöht Kalorienzufuhr.', source: 'Robinson et al. (2013)' },
+    { text: 'Intuitives Essen – auf innere Hunger- und Sättigungssignale hören – führt langfristig zu besserem Wohlbefinden als Diäten.', source: 'Tribole & Resch (1995)', section: 'body', btn: '🧘 Hunger checken' },
+    { text: 'Menschen die langsam essen nehmen im Schnitt 88 kcal weniger pro Mahlzeit auf – ohne es zu merken.', source: 'Andrade et al. (2008)', section: 'body', btn: '🧘 Körper eintragen' },
+    { text: 'Ablenkung beim Essen (TV, Handy) reduziert das Sättigungsgefühl und erhöht Kalorienzufuhr.', source: 'Robinson et al. (2013)', section: 'body', btn: '🧘 Hunger checken' },
   ],
   'Weniger Alkohol': [
-    { text: 'Bereits 2 alkoholfreie Wochen verbessern Schlafqualität, Energielevel und Stimmung messbar.', source: 'de Visser et al. (2016)' },
-    { text: 'Alkohol unterdrückt REM-Schlaf – selbst kleine Mengen verschlechtern die Schlafqualität.', source: 'Walker (2017)' },
-    { text: 'Die 6-Wochen-Challenge reduziert Leberfettprozentsatz im Schnitt um 15%.', source: 'Mehta et al. (2018)' },
+    { text: 'Bereits 2 alkoholfreie Wochen verbessern Schlafqualität, Energielevel und Stimmung messbar.', source: 'de Visser et al. (2016)', section: 'nutrition', btn: '🍷 Alkohol tracken' },
+    { text: 'Alkohol unterdrückt REM-Schlaf – selbst kleine Mengen verschlechtern die Schlafqualität.', source: 'Walker (2017)', section: 'nutrition', btn: '🍷 Alkohol tracken' },
+    { text: 'Die 6-Wochen-Challenge reduziert Leberfettprozentsatz im Schnitt um 15%.', source: 'Mehta et al. (2018)', section: 'alcohol', btn: '🏆 Challenge ansehen' },
   ],
   'Einfach beobachten': [
-    { text: 'Allein das Aufschreiben von Verhalten verändert es – ohne weitere Intervention.', source: 'Kanfer (1970)' },
-    { text: 'Self-Monitoring ist die wirksamste Einzelkomponente in Verhaltensänderungs-Programmen.', source: 'Burke et al. (2011)' },
-    { text: 'Bewusstsein über eigene Muster ist die Voraussetzung für jede nachhaltige Veränderung.', source: 'Michie et al. (2009)' },
+    { text: 'Allein das Aufschreiben von Verhalten verändert es – ohne weitere Intervention.', source: 'Kanfer (1970)', section: 'body', btn: '🧘 Körper eintragen' },
+    { text: 'Self-Monitoring ist die wirksamste Einzelkomponente in Verhaltensänderungs-Programmen.', source: 'Burke et al. (2011)', section: 'verlauf', btn: '📊 Verlauf anschauen' },
+    { text: 'Bewusstsein über eigene Muster ist die Voraussetzung für jede nachhaltige Veränderung.', source: 'Michie et al. (2009)', section: 'verlauf', btn: '📊 Verlauf anschauen' },
   ],
 };
 
@@ -2617,12 +2618,17 @@ function renderHome() {
   const tipSource = document.getElementById('home-tip-source');
   if (tipCard && tipText && goal && GOAL_TIPS[goal]) {
     const tips = GOAL_TIPS[goal];
-    // Rotate tip weekly
     const weekNum = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
     const tip = tips[weekNum % tips.length];
     tipText.textContent = tip.text;
     tipSource.textContent = tip.source;
     tipCard.style.display = '';
+    const tipBtn = document.getElementById('home-tip-btn');
+    if (tipBtn && tip.section) {
+      tipBtn.textContent = tip.btn || 'Jetzt eintragen →';
+      tipBtn.onclick = () => showSection(tip.section);
+      tipBtn.style.display = '';
+    }
   } else if (tipCard) { tipCard.style.display = 'none'; }
 
   // Gratitude check-in
@@ -4846,6 +4852,23 @@ let bodyHunger   = null;
 let bodyMeal     = null;
 let bodyFeeling  = null;
 
+function renderBodyGrid(containerId, items, stateKey, selectable) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  items.forEach((item, idx) => {
+    const btn = document.createElement('button');
+    const isSelected = stateKey === 'meal' ? bodyMeal === idx : false;
+    btn.style.cssText = `padding:10px 8px;border-radius:10px;border:2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};background:${isSelected ? '#eef6f1' : 'var(--bg)'};cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;transition:all 0.15s;`;
+    btn.innerHTML = `<div style="font-size:1.4rem;">${item.emoji}</div><div style="margin-top:3px;color:var(--muted);font-size:0.72rem;">${item.label}</div>`;
+    btn.onclick = () => {
+      if (stateKey === 'meal') { bodyMeal = bodyMeal === idx ? null : idx; }
+      renderBodyGrid(containerId, items, stateKey, selectable);
+    };
+    container.appendChild(btn);
+  });
+}
+
 function renderBody() {
   initSlider('hunger', bodyHunger !== null ? bodyHunger : 5);
   initSlider('body-feeling', bodyFeeling !== null ? bodyFeeling : 5);
@@ -5359,14 +5382,17 @@ function renderVerlauf() {
     const before = e.before !== null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${sc(e.before)};">${e.before}</span>` : '<span style="color:var(--muted);">–</span>';
     const after  = e.after  !== null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${sc(e.after)};">${e.after}</span>` : '<span style="color:var(--muted);">⏳</span>';
     const src = e.source ? `<span style="font-size:0.72rem;color:var(--muted);margin-left:4px;">${e.source}</span>` : '';
-    return `${before}<span class="arrow" style="color:var(--accent);font-weight:600;">→</span>${after}${src}<span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>`;
+    const fidx = e.source ? -1 : state.feelingLog.indexOf(e);
+    const fdel = fidx >= 0 ? `<button onclick="deleteFeelingEntry(${fidx});renderVerlauf()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>` : '';
+    return `${before}<span class="arrow" style="color:var(--accent);font-weight:600;">→</span>${after}${src}<span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>${fdel}`;
   });
 
   // Süssigkeiten
   renderVerlaufList('vl-sweets-list', 'vl-sweets-empty', sweets, e => {
     const d = new Date(e.ts);
     const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
-    return `<span>${e.icon||'🍬'} ${e.name}</span><span style="color:var(--muted);font-size:0.78rem;">${e.kcal?e.kcal+' kcal':''}</span><span style="color:var(--muted);font-size:0.78rem;">${ds}</span>`;
+    const sidx = state.sweetsLog.indexOf(e);
+    return `<span style="flex:1;">${e.icon||'🍬'} ${e.name}</span><span style="color:var(--muted);font-size:0.78rem;">${e.kcal?e.kcal+' kcal':''}</span><span style="color:var(--muted);font-size:0.78rem;">${ds}</span><button onclick="state.sweetsLog.splice(${sidx},1);saveState();renderVerlauf()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
 
   // Schlaf
@@ -5378,7 +5404,8 @@ function renderVerlauf() {
     const d = new Date(e.ts);
     const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const q = e.score !== null ? SLEEP_QUALITY.find(q=>q.score<=e.score)?.emoji||'😐' : '';
-    return `<span>${q} ${e.score!==null?e.score+'/10':''} ${e.hours?e.hours+'h':''}</span><span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>`;
+    const sli = state.sleepLog.indexOf(e);
+    return `<span style="flex:1;">${q} ${e.score!==null?e.score+'/10':''} ${e.hours?e.hours+'h':''}</span><span style="font-size:0.78rem;color:var(--muted);">${ds}</span><button onclick="deleteSleepEntry(${sli})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
 
   // Kacheln – sleep avg ergänzen
@@ -5394,7 +5421,8 @@ function renderVerlauf() {
   renderVerlaufList('vl-gratitude-list', 'vl-gratitude-empty', gratitudes, e => {
     const d = new Date(e.ts);
     const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
-    return `<span style="font-style:italic;flex:1;">"${e.text}"</span><span style="font-size:0.75rem;color:var(--muted);white-space:nowrap;margin-left:8px;">${ds}</span>`;
+    const gi = state.gratitudeLog.indexOf(e);
+    return `<span style="font-style:italic;flex:1;">"${e.text}"</span><span style="font-size:0.75rem;color:var(--muted);white-space:nowrap;margin-left:8px;">${ds}</span><button onclick="deleteGratitudeEntry(${gi})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
 
   // Körper
@@ -5405,7 +5433,8 @@ function renderVerlauf() {
     const h = e.hunger  != null ? `<span style="color:${sc(e.hunger)};font-size:0.82rem;">Hunger ${e.hunger}</span>` : '';
     const f = e.feeling != null ? `<span style="color:${sc(e.feeling)};font-size:0.82rem;">Wohl ${e.feeling}</span>` : '';
     const m = e.meal    != null && MEAL_FEELINGS[e.meal] ? MEAL_FEELINGS[e.meal].emoji : '';
-    return `<span style="display:flex;gap:6px;align-items:center;">${m} ${h} ${f}</span><span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>${e.note?`<span style="font-size:0.78rem;color:var(--muted);font-style:italic;width:100%;margin-top:2px;">"${e.note}"</span>`:''}`;
+    const bi = state.bodyLog.indexOf(e);
+    return `<span style="display:flex;gap:6px;align-items:center;flex:1;">${m} ${h} ${f}</span><span style="font-size:0.78rem;color:var(--muted);">${ds}</span><button onclick="deleteBodyEntry(${bi})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>${e.note?`<div style="font-size:0.78rem;color:var(--muted);font-style:italic;width:100%;margin-top:2px;">"${e.note}"</div>`:''}`;
   });
 
   // Achtsamkeit
@@ -5417,7 +5446,8 @@ function renderVerlauf() {
     const sc = v => v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)';
     const feelBefore = e.feeling?.before != null ? `<span style="font-size:0.75rem;color:${sc(e.feeling.before)};margin-left:4px;">😊${e.feeling.before}</span>` : '';
     const feelAfter  = e.feeling?.after  != null ? `<span style="font-size:0.75rem;color:${sc(e.feeling.after)};margin-left:2px;">→${e.feeling.after}</span>` : '';
-    return `<span>${e.icon||'🪷'} ${e.name} · ${e.min} Min${feelBefore}${feelAfter}</span><span style="color:var(--muted);font-size:0.78rem;">${ds} ${ts}</span><span class="pts">+${e.pts} Pts</span>`;
+    const mi = state.mindfulnessLog.indexOf(e);
+    return `<span style="flex:1;">${e.icon||'🪷'} ${e.name} · ${e.min} Min${feelBefore}${feelAfter}</span><span style="color:var(--muted);font-size:0.78rem;">${ds}</span><span class="pts">+${e.pts}</span><button onclick="deleteMindfulnessLog(${mi})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
 
   // Kontakte – zeige erledigte Kontakte der Woche
@@ -5434,7 +5464,8 @@ function renderVerlauf() {
       const d = new Date(c.doneAt);
       dateStr = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
     }
-    return `<span>❤️ ${c.name}</span><span style="font-size:0.78rem;color:var(--muted);">${typeLabel}</span>${dateStr ? `<span style="font-size:0.75rem;color:var(--muted);">${dateStr}</span>` : ''}<span style="font-size:0.78rem;color:var(--accent);">✓</span>`;
+    const ci = state.socialContacts.indexOf(c);
+    return `<span style="flex:1;">❤️ ${c.name}</span><span style="font-size:0.78rem;color:var(--muted);">${typeLabel}</span>${dateStr ? `<span style="font-size:0.75rem;color:var(--muted);">${dateStr}</span>` : ''}<button onclick="toggleSocialDone(${ci})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
 }
 
@@ -6175,6 +6206,7 @@ function tmSelectActivity(i, el) {
   const slider = document.getElementById('tm-dur-slider');
   if (slider) { slider.value = defaultMin; }
   document.getElementById('tm-dur-val').textContent = defaultMin + ' Min';
+  tmUpdateNextBtn();
 }
 
 function tmUpdateFeel(v) {
@@ -6196,19 +6228,25 @@ function tmGoStep(step) {
   if (backBtn) backBtn.style.display = step === 0 ? 'none' : '';
   if (nextBtn) {
     nextBtn.textContent = step === 3 ? '✅ Fertig!' : 'Weiter →';
-    // Step 1: enable only if activity selected or skippable
     nextBtn.style.opacity = '1';
     nextBtn.style.cursor = 'pointer';
   }
+  setTimeout(tmUpdateNextBtn, 0);
 }
 
 function tmNext() {
   if (tmStep === 3) { tmSave(); return; }
   tmGoStep(tmStep + 1);
-  // On step 1: show skip hint
-  if (tmStep === 1) {
-    const nextBtn = document.getElementById('tm-next-btn');
-    if (nextBtn) nextBtn.textContent = 'Überspringen →';
+}
+
+function tmUpdateNextBtn() {
+  const nextBtn = document.getElementById('tm-next-btn');
+  if (!nextBtn) return;
+  if (tmStep === 3) { nextBtn.textContent = '✅ Fertig!'; return; }
+  if (tmStep === 1 && tmSelectedActivity === null) {
+    nextBtn.textContent = 'Überspringen →';
+  } else {
+    nextBtn.textContent = 'Weiter →';
   }
 }
 
