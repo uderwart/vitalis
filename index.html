@@ -953,10 +953,6 @@
   <!-- KACHELN -->
   <div id="home-tiles" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;"></div>
 
-  <!-- Reset -->
-  <div style="text-align:center;margin-top:16px;">
-    <button onclick="resetGratitudeToday()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:0.72rem;color:var(--muted);cursor:pointer;text-decoration:underline;">🌟 Dankbarkeit zurücksetzen</button>
-  </div>
 </div>
 
 <!-- 2-MINUTEN OVERLAY -->
@@ -2068,7 +2064,10 @@
   </div>
 
   <div class="card" id="gratitude-section-log">
-    <h2>Verlauf</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <h2 style="margin:0;">Verlauf</h2>
+      <button onclick="resetGratitudeToday()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:0.78rem;color:var(--muted);cursor:pointer;text-decoration:underline;">Heute zurücksetzen</button>
+    </div>
     <div id="gratitude-section-list" style="display:flex;flex-direction:column;gap:8px;"></div>
     <p class="small-note" id="gratitude-section-empty">Noch keine Einträge.</p>
   </div>
@@ -2698,7 +2697,20 @@
       style="padding:14px 36px;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.4);border-radius:20px;color:white;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;width:100%;margin-bottom:12px;">
       Starten
     </button>
-    <button onclick="closeBreathing()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">Überspringen</button>
+
+    <!-- Buttons nach Abschluss -->
+    <div id="breath-finish-btns" style="display:none;width:100%;display:none;flex-direction:column;gap:10px;margin-bottom:12px;">
+      <button onclick="saveBreathingSession()"
+        style="padding:13px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.5);border-radius:16px;color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;">
+        ✅ Speichern & Schließen
+      </button>
+      <button onclick="repeatBreathing()"
+        style="padding:13px;background:transparent;border:2px solid rgba(255,255,255,0.25);border-radius:16px;color:rgba(255,255,255,0.8);font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;">
+        🔄 Wiederholen
+      </button>
+    </div>
+
+    <button onclick="closeBreathing()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">Abbrechen</button>
   </div>
 </div>
 
@@ -8125,9 +8137,25 @@ function finishBreathing() {
   document.getElementById('breath-progress').style.width = '100%';
   document.getElementById('breath-action-btn').style.display = 'none';
   document.getElementById('breath-after-wrap').style.display = '';
-  // Replace skip button with save
-  const skipBtn = document.querySelector('#breathing-overlay button:last-child');
-  if (skipBtn) { skipBtn.textContent = 'Speichern & Schließen'; skipBtn.onclick = saveBreathingSession; }
+  // Show finish buttons
+  const finishBtns = document.getElementById('breath-finish-btns');
+  if (finishBtns) { finishBtns.style.display = 'flex'; }
+}
+
+function repeatBreathing() {
+  // Reset overlay and start again
+  document.getElementById('breath-after-wrap').style.display = 'none';
+  document.getElementById('breath-finish-btns').style.display = 'none';
+  document.getElementById('breath-action-btn').style.display = '';
+  document.getElementById('breath-action-btn').textContent = 'Starten';
+  document.getElementById('breath-instruction').textContent = '···';
+  document.getElementById('breath-countdown').textContent = '';
+  document.getElementById('breath-round').textContent = '';
+  document.getElementById('breath-progress').style.width = '0%';
+  document.getElementById('breath-after-val').textContent = '5';
+  document.getElementById('breath-after-slider').value = 5;
+  breathRunning = false;
+  handleBreathAction();
 }
 
 function saveBreathingSession() {
