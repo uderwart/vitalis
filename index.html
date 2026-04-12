@@ -792,6 +792,11 @@
   background: rgba(255,255,255,0.25);
   border-color: rgba(255,255,255,0.6);
 }
+.tm-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all 0.2s;}
+.tm-dot.active{background:white;width:24px;border-radius:4px;}
+.tm-quick{padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;}
+.tm-activity-btn{padding:12px 16px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;text-align:left;}
+.tm-activity-btn.selected{background:rgba(255,255,255,0.28);border-color:rgba(255,255,255,0.7);}
 </style>
 
 <header>
@@ -862,6 +867,18 @@
     <div id="intention-text" style="font-size:0.88rem;color:var(--ink);line-height:1.5;font-style:italic;"></div>
   </div>
 
+  <!-- GEPLANTE AKTIVITÄT -->
+  <div id="planned-activity-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
+    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">📋 Heute geplant</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:1.6rem;" id="planned-act-icon">🏃</span>
+      <div>
+        <div style="font-weight:700;font-size:0.95rem;color:var(--ink);" id="planned-act-name"></div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Abends beim Check-out bestätigen</div>
+      </div>
+    </div>
+  </div>
+
   <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
     <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌙 Guten Morgen!</div>
     <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht? (1 = schlecht · 10 = super)</div>
@@ -919,8 +936,8 @@
     </div>
   </div>
 
-  <!-- 2-MINUTEN BUTTON -->
-  <button onclick="startTwoMin()" style="width:100%;margin-bottom:14px;padding:16px;border-radius:16px;border:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;font-family:'DM Serif Display',serif;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+  <!-- 2-MINUTEN BUTTON – dynamisch je nach Uhrzeit -->
+  <button id="quick-checkin-btn" onclick="startTwoMin()" style="width:100%;margin-bottom:14px;padding:16px;border-radius:16px;border:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;font-family:'DM Serif Display',serif;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
     ⚡ 30-Sekunden Check-in
   </button>
 
@@ -935,6 +952,7 @@
 
 <!-- 2-MINUTEN OVERLAY -->
 <div id="twomin-overlay" style="display:none;position:fixed;inset:0;z-index:4000;background:linear-gradient(160deg,#1a3a2a,#2d5a3d);flex-direction:column;padding:32px 24px;">
+  <div style="font-family:'DM Serif Display',serif;font-size:1rem;color:rgba(255,255,255,0.7);text-align:center;margin-bottom:16px;" id="twomin-title">⚡ Schnell Check-in</div>
   <div style="display:flex;gap:8px;margin-bottom:32px;justify-content:center;">
     <div class="tm-dot active" id="tm-dot-0"></div>
     <div class="tm-dot" id="tm-dot-1"></div>
@@ -961,25 +979,9 @@
     <!-- Step 1: Aktivität -->
     <div id="tm-step-1" style="display:none;text-align:center;">
       <div style="font-size:3rem;margin-bottom:12px;">🏃</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Warst du aktiv?</div>
-      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:20px;">Tippe auf eine Aktivität oder überspringe</div>
-      <div id="tm-activity-list" style="display:flex;flex-direction:column;gap:8px;max-height:150px;overflow-y:auto;margin-bottom:14px;"></div>
-      <div id="tm-time-row" style="display:none;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px;">
-        <button class="tm-quick tm-time-btn" onclick="tmSetTime('ganztags',this)" style="background:rgba(255,255,255,0.35);">☀️ Ganztags</button>
-        <button class="tm-quick tm-time-btn" onclick="tmSetTime('morgens',this)">🌅 Morgens</button>
-        <button class="tm-quick tm-time-btn" onclick="tmSetTime('mittags',this)">🌤 Mittags</button>
-        <button class="tm-quick tm-time-btn" onclick="tmSetTime('abends',this)">🌙 Abends</button>
-      </div>
-      <div id="tm-dur-row" style="display:none;">
-        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:6px;">Dauer</div>
-        <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:6px;" id="tm-dur-val">30 Min</div>
-        <input type="range" id="tm-dur-slider" min="5" max="180" step="5" value="30"
-          style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;"
-          oninput="document.getElementById('tm-dur-val').textContent=this.value+' Min'">
-        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:4px;">
-          <span>5 Min</span><span>3 Std</span>
-        </div>
-      </div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Was planst du heute?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:20px;">Tippe auf eine oder mehrere – abends bestätigst du wie viel du gemacht hast.</div>
+      <div id="tm-activity-list" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;"></div>
     </div>
     <!-- Step 2: Gefühl -->
     <div id="tm-step-2" style="display:none;text-align:center;">
@@ -1011,13 +1013,95 @@
   <button onclick="closeTwoMin()" style="margin-top:10px;background:none;border:none;color:rgba(255,255,255,0.3);font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;width:100%;text-align:center;">Abbrechen</button>
 </div>
 
-<style>
-.tm-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all 0.2s;}
-.tm-dot.active{background:white;width:24px;border-radius:4px;}
-.tm-quick{padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;}
-.tm-activity-btn{padding:12px 16px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;text-align:left;}
-.tm-activity-btn.selected{background:rgba(255,255,255,0.28);border-color:rgba(255,255,255,0.7);}
-</style>
+<!-- CHECK-OUT OVERLAY (Abends) -->
+<div id="checkout-overlay" style="display:none;position:fixed;inset:0;z-index:4000;background:linear-gradient(160deg,#1a1a3e,#2d2060);flex-direction:column;padding:32px 24px;">
+  <div style="font-family:'DM Serif Display',serif;font-size:1rem;color:rgba(255,255,255,0.7);text-align:center;margin-bottom:16px;">🌙 Guten Abend – Check-out</div>
+  <div style="display:flex;gap:8px;margin-bottom:32px;justify-content:center;">
+    <div class="tm-dot active" id="co-dot-0"></div>
+    <div class="tm-dot" id="co-dot-1"></div>
+    <div class="tm-dot" id="co-dot-2"></div>
+    <div class="tm-dot" id="co-dot-3"></div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+
+    <!-- Step 0: Aktivität bestätigen -->
+    <div id="co-step-0" style="text-align:center;">
+      <div style="font-size:3rem;margin-bottom:12px;" id="co-act-icon">🏃</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin-bottom:8px;" id="co-act-title">Warst du aktiv?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:24px;" id="co-act-subtitle">Heute geplant oder spontan</div>
+      <div id="co-act-planned" style="display:none;margin-bottom:20px;">
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:8px;">HEUTE GEPLANT</div>
+        <div id="co-act-planned-name" style="font-weight:700;font-size:1.1rem;color:white;margin-bottom:16px;"></div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:6px;">Wie viel hast du gemacht?</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:3rem;color:white;margin-bottom:6px;" id="co-dur-val">0 Min</div>
+        <input type="range" id="co-dur-slider" min="0" max="90" step="5" value="0"
+          style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:8px;"
+          oninput="coDurUpdate(this.value)">
+        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
+          <span>Nicht gemacht</span><span id="co-dur-max">geplant</span>
+        </div>
+      </div>
+      <div id="co-act-unplanned" style="display:none;">
+        <div style="font-size:0.82rem;color:rgba(255,255,255,0.6);margin-bottom:12px;">Wähle eine Aktivität</div>
+        <div id="co-act-list" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;"></div>
+        <div id="co-dur-unplanned" style="display:none;margin-top:16px;">
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:6px;">Wie lange?</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:2.5rem;color:white;margin-bottom:6px;" id="co-dur-val2">30 Min</div>
+          <input type="range" id="co-dur-slider2" min="5" max="180" step="5" value="30"
+            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;"
+            oninput="document.getElementById('co-dur-val2').textContent=this.value+' Min'">
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1: Wasser -->
+    <div id="co-step-1" style="display:none;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:12px;">💧</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Wasser heute?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:24px;">Tagesziel: <span id="co-water-goal">2000</span> ml</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:3rem;color:#a8d8ea;margin-bottom:12px;" id="co-water-val">0 ml</div>
+      <input type="range" id="co-water-slider" min="0" max="3000" step="100" value="0"
+        style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:16px;"
+        oninput="document.getElementById('co-water-val').textContent=this.value+' ml'">
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="coSetWater(500)" class="tm-quick">500 ml</button>
+        <button onclick="coSetWater(1000)" class="tm-quick">1 L</button>
+        <button onclick="coSetWater(1500)" class="tm-quick">1.5 L</button>
+        <button onclick="coSetWater(2000)" class="tm-quick">2 L</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Ernährung -->
+    <div id="co-step-2" style="display:none;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:12px;">🍷</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Heute konsumiert?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:24px;">Einfach ehrlich – kein Druck</div>
+      <div style="display:flex;gap:12px;justify-content:center;margin-bottom:20px;">
+        <button id="co-alc-yes" onclick="coToggle('alc','yes')" style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;cursor:pointer;">🍷 Alkohol</button>
+        <button id="co-alc-no" onclick="coToggle('alc','no')" style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;cursor:pointer;">✅ Nüchtern</button>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button id="co-sw-yes" onclick="coToggle('sw','yes')" style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;cursor:pointer;">🍬 Süssigkeiten</button>
+        <button id="co-sw-no" onclick="coToggle('sw','no')" style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;cursor:pointer;">✅ Ohne</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Dankbarkeit -->
+    <div id="co-step-3" style="display:none;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:12px;">🌟</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Wofür bist du dankbar?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:20px;">Optional – oder einfach fertig</div>
+      <textarea id="co-note" placeholder="Heute war ich dankbar für…" rows="4"
+        style="width:100%;padding:14px;border:none;border-radius:14px;background:rgba(255,255,255,0.12);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;resize:none;outline:none;box-sizing:border-box;"></textarea>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px;margin-top:24px;">
+    <button onclick="coBack()" id="co-back-btn" style="display:none;padding:14px 20px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">← Zurück</button>
+    <button onclick="coNext()" id="co-next-btn" style="flex:1;padding:14px;border-radius:14px;border:none;background:white;color:#1a1a3e;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;">Weiter →</button>
+  </div>
+  <button onclick="closeCheckout()" style="margin-top:10px;background:none;border:none;color:rgba(255,255,255,0.3);font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;width:100%;text-align:center;">Abbrechen</button>
+</div>
 <div id="section-feeling" class="section">
   <div class="card">
     <h2>Wie fühlst du dich?</h2>
@@ -1111,7 +1195,7 @@
 <!-- AKTIVITÄTEN -->
 <div id="section-activity" class="section">
   <div class="card">
-    <h2>Aktivität planen & loggen</h2>
+    <h2>Aktivitäten</h2>
     <div class="activity-list" id="activity-list"></div>
     <hr class="divider">
     <h3>Eigene hinzufügen</h3>
@@ -1247,6 +1331,7 @@
       <hr class="divider">
 
       <h3 style="margin-bottom:8px;">Monatliche Joker</h3>
+      <p style="font-size:0.82rem;color:var(--muted);line-height:1.5;margin-bottom:10px;">Ein Joker erlaubt dir diese Woche <strong>einen Trinktag mehr</strong> als dein Limit – ohne dass die Woche als überschritten gilt. Du hast <strong id="alc-jokers-left">—</strong> Joker diesen Monat übrig.</p>
       <div id="alc-joker-dots" style="display:flex;gap:8px;margin-bottom:6px;"></div>
       <div id="alc-joker-status" style="font-size:0.82rem;color:var(--muted);margin-bottom:10px;"></div>
       <button class="alc-reset" onclick="useJoker()">🃏 Joker für diese Woche einsetzen</button>
@@ -2053,21 +2138,6 @@
     </div>
   </div>
 
-  <div class="card">
-    <h2>🏆 Wie verdiene ich Punkte?</h2>
-    <div style="display:flex;flex-direction:column;gap:8px;font-size:0.84rem;">
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>💧 Wasser (pro Portion)</span><span style="color:var(--gold);font-weight:600;">+5</span></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>💧 Tagesziel Wasser erreicht</span><span style="color:var(--gold);font-weight:600;">+30</span></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🏃 Aktivität (Min × Pkt/Min)</span><span style="color:var(--gold);font-weight:600;">individuell</span></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🪷 Achtsamkeit (Min × Pkt/Min)</span><span style="color:var(--gold);font-weight:600;">individuell</span></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🔥 Streak-Tag</span><span style="color:var(--gold);font-weight:600;">+20</span></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>✅ Nüchtern-Tag</span><span style="color:var(--gold);font-weight:600;">+15</span></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🍷 Woche im Alkohol-Limit</span><span style="color:var(--gold);font-weight:600;">+50</span></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>🏆 Challenge-Tag clean</span><span style="color:var(--gold);font-weight:600;">+10</span></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>🏅 Badge freischalten</span><span style="color:var(--gold);font-weight:600;">→ Rewards</span></div>
-    </div>
-  </div>
-
   <div class="card" style="text-align:center;padding:24px;">
     <div style="font-size:2rem;margin-bottom:8px;">🌿</div>
     <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:8px;">Vitalis</div>
@@ -2436,7 +2506,8 @@ function loadState() {
     waterDays: 0,
     lastWaterDate: null,
     onboardingDone: false,
-    activeActivity: null, // { idx, name, icon, startTs, feelingBefore }
+    activeActivity: null,
+    activeMindfulness: null,
     alcMax: 3,         // Max Tage pro Woche
     jokerMax: 2,       // Joker pro Monat
     jokersUsed: 0,     // Joker diese Woche genutzt
@@ -2623,6 +2694,8 @@ function renderHome() {
   renderDailyCheck();
   renderWeeklySummary();
   renderIntention();
+  renderPlannedActivity();
+  updateQuickBtn();
   const subEl = document.getElementById('home-goal-sub');
   if (subEl) {
     if (goal && GOAL_SUBS[goal]) {
@@ -3093,58 +3166,62 @@ function renderActivities() {
     const isSteps = a.steps === true;
     const stepsVal = a.stepsDefault || 5000;
     const totalPts = isSteps ? Math.round(stepsVal / 1000) * 10 : a.min * ppm;
-    const div = document.createElement('div');
-    div.className = 'activity-item' + (state.selectedActivity === i ? ' selected' : '');
-
-    const inputFields = isSteps ? `
-      <input type="number" value="${stepsVal}" min="100" max="100000" step="100"
-        style="width:72px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.78rem;text-align:center;"
-        onclick="event.stopPropagation()" onchange="updateActivitySteps(event,${i})">
-      <span style="font-size:0.72rem;color:var(--muted);">Schritte</span>
-      <span style="font-size:0.72rem;color:var(--gold);font-weight:600;">= ${totalPts} Pkt</span>
-    ` : `
-      <input type="number" value="${a.min}" min="1" max="300"
-        style="width:50px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.78rem;text-align:center;"
-        onclick="event.stopPropagation()" onchange="updateActivityDuration(event,${i})">
-      <span style="font-size:0.72rem;color:var(--muted);">Min</span>
-      <span style="font-size:0.72rem;color:var(--muted);">·</span>
-      <input type="number" value="${ppm}" min="1" max="20"
-        style="width:40px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.78rem;text-align:center;"
-        onclick="event.stopPropagation()" onchange="updateActivityPts(event,${i})">
-      <span style="font-size:0.72rem;color:var(--muted);">Pkt/Min</span>
-      <span style="font-size:0.72rem;color:var(--gold);font-weight:600;">= ${totalPts} Pkt</span>
-    `;
-
     const isActive = state.activeActivity?.idx === i;
-    const startStopBtn = isActive
-      ? `<button onclick="stopActivity()" style="padding:6px 12px;border-radius:10px;border:none;background:var(--accent2);color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;" onclick="event.stopPropagation()">⏹ Stopp</button>`
-      : `<button onclick="startActivity(event,${i})" style="padding:6px 12px;border-radius:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;">▶ Start</button>`;
+
+    const div = document.createElement('div');
+    div.style.cssText = `background:${isActive ? 'linear-gradient(135deg,#1a3a2a,#2d5a3d)' : 'var(--bg)'};border:2px solid ${isActive ? 'transparent' : 'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:10px;`;
 
     div.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:2px;margin-right:4px;">
-        <button onclick="moveActivity(event,${i},-1)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.7rem;padding:1px 4px;line-height:1;" ${i===0?'disabled':''}>▲</button>
-        <button onclick="moveActivity(event,${i},1)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.7rem;padding:1px 4px;line-height:1;" ${i===state.activities.length-1?'disabled':''}>▼</button>
-      </div>
-      <span class="activity-icon" onclick="selectActivity(${i})" style="cursor:pointer;">${a.icon || '🏃'}</span>
-      <div class="activity-info" onclick="selectActivity(${i})" style="cursor:pointer;flex:1;">
-        <div class="name">${a.name}</div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;">
-          ${inputFields}
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:1.8rem;">${a.icon||'🏃'}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:1rem;color:${isActive?'white':'var(--ink)'};">${a.name}</div>
+          <div style="font-size:0.78rem;color:${isActive?'rgba(255,255,255,0.7)':'var(--muted)'};margin-top:2px;">
+            ${isSteps ? stepsVal.toLocaleString('de-DE')+' Schritte' : a.min+' Min'} · <span style="color:${isActive?'#f4c261':'var(--gold)'};">+${totalPts} Pkt</span>
+            ${isActive ? `<span id="act-timer-${i}" style="margin-left:8px;font-weight:700;color:white;"></span>` : ''}
+          </div>
         </div>
-        <div style="margin-top:6px;display:${state.selectedActivity === i ? 'flex' : 'none'};align-items:center;gap:6px;" onclick="event.stopPropagation()" id="link-field-${i}">
-          <input type="url" value="${a.link||''}" placeholder="🔗 Link (optional)"
-            style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.75rem;color:var(--muted);"
-            onchange="updateActivityLink(${i}, this.value)"
-            onclick="event.stopPropagation()">
+        ${isActive
+          ? `<button onclick="stopActivity()" style="padding:10px 18px;border-radius:12px;border:2px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.15);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;white-space:nowrap;">⏹ Stopp</button>`
+          : `<button onclick="startActivity(event,${i})" style="padding:10px 18px;border-radius:12px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;white-space:nowrap;">▶ Start</button>`
+        }
+        <button onclick="deleteActivity(event,${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:0;flex-shrink:0;">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        ${isSteps ? `
+          <input type="number" value="${stepsVal}" min="100" max="100000" step="500"
+            style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;background:var(--bg);color:var(--ink);"
+            onclick="event.stopPropagation()" onchange="updateActivitySteps(event,${i})">
+          <span style="font-size:0.78rem;color:var(--muted);">Schritte</span>
+        ` : `
+          <input type="number" value="${a.min}" min="1" max="300"
+            style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;background:var(--bg);color:var(--ink);"
+            onclick="event.stopPropagation()" onchange="updateActivityDuration(event,${i})">
+          <span style="font-size:0.78rem;color:var(--muted);">Min</span>
+          <input type="number" value="${ppm}" min="1" max="20"
+            style="width:50px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;background:var(--bg);color:var(--ink);"
+            onclick="event.stopPropagation()" onchange="updateActivityPts(event,${i})">
+          <span style="font-size:0.78rem;color:var(--muted);">Pkt/Min</span>
+        `}
+        <div style="display:flex;gap:4px;margin-left:auto;">
+          <button onclick="moveActivity(event,${i},-1)" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:0.7rem;padding:3px 7px;" ${i===0?'disabled':''}>▲</button>
+          <button onclick="moveActivity(event,${i},1)" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:0.7rem;padding:3px 7px;" ${i===state.activities.length-1?'disabled':''}>▼</button>
         </div>
       </div>
-      ${startStopBtn}
-      <div class="check" onclick="selectActivity(${i})" style="cursor:pointer;">${state.selectedActivity === i ? '✓' : ''}</div>
-      <button class="del-activity" onclick="deleteActivity(event,${i})">✕</button>
     `;
     list.appendChild(div);
   });
   renderActivityLog();
+  if (state.activeActivity && !activityTimerInterval) {
+    activityTimerInterval = setInterval(() => {
+      if (!state.activeActivity) return;
+      const el = document.getElementById("act-timer-" + state.activeActivity.idx);
+      if (el) {
+        const elapsed = Math.floor((new Date() - new Date(state.activeActivity.startTs)) / 1000);
+        el.textContent = String(Math.floor(elapsed/60)).padStart(2,"0") + ":" + String(elapsed%60).padStart(2,"0");
+      }
+    }, 1000);
+  }
 }
 
 function moveActivity(e, i, dir) {
@@ -3643,9 +3720,16 @@ function renderAlcohol() {
   const drinkDays = weekDays.filter(e => e.drank).length;
   const jokerDaysMonth = getJokersUsedMonth();
   const jokersLeft = state.jokerMax - jokerDaysMonth;
+  const jokersLeftEl = document.getElementById('alc-jokers-left');
+  if (jokersLeftEl) jokersLeftEl.textContent = jokersLeft + ' von ' + state.jokerMax;
   const todayStr = new Date().toDateString();
   const todayEntry = (state.alcDaysLog || []).find(e => new Date(e.date).toDateString() === todayStr);
-  const over = drinkDays > state.alcMax;
+
+  // Joker dieser Woche abziehen
+  const weekStart = getWeekStart();
+  const jokersThisWeek = (state.alcDaysLog||[]).filter(e => new Date(e.date) >= weekStart && e.joker).length;
+  const effectiveDrinkDays = Math.max(0, drinkDays - jokersThisWeek);
+  const over = effectiveDrinkDays > state.alcMax;
 
   const yesBtn = document.getElementById('alc-yes-btn');
   const noBtn  = document.getElementById('alc-no-btn');
@@ -3679,10 +3763,16 @@ function renderAlcohol() {
   }
 
   const statusEl = document.getElementById('alc-week-status');
-  statusEl.textContent = over
-    ? `⚠️ Limit überschritten (${drinkDays}/${state.alcMax} Tage)`
-    : `${drinkDays} von ${state.alcMax} Tagen diese Woche`;
-  statusEl.style.color = over ? 'var(--accent2)' : 'var(--muted)';
+  if (over) {
+    statusEl.textContent = `⚠️ Limit überschritten (${effectiveDrinkDays}/${state.alcMax} Tage)`;
+    statusEl.style.color = 'var(--accent2)';
+  } else if (jokersThisWeek > 0) {
+    statusEl.textContent = `${drinkDays} Tage – ${jokersThisWeek} Joker eingesetzt → ${effectiveDrinkDays}/${state.alcMax} effektiv ✅`;
+    statusEl.style.color = 'var(--accent)';
+  } else {
+    statusEl.textContent = `${drinkDays} von ${state.alcMax} Tagen diese Woche`;
+    statusEl.style.color = 'var(--muted)';
+  }
 
   const jokerDots = document.getElementById('alc-joker-dots');
   jokerDots.innerHTML = '';
@@ -5580,32 +5670,40 @@ function renderMindfulness() {
 
   ex.forEach((a, i) => {
     const pts = a.min * (a.ptsPerMin || 3);
+    const isActive = state.activeMindfulness?.idx === i;
     const div = document.createElement('div');
-    div.className = 'activity-item' + (state.selectedMindfulness === i ? ' selected' : '');
+    div.style.cssText = `background:${isActive ? 'linear-gradient(135deg,#1a1a3e,#2d3561)' : 'var(--bg)'};border:2px solid ${isActive ? 'transparent' : 'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:10px;`;
+
     div.innerHTML = `
-      <span class="activity-icon" onclick="selectMindfulnessEx(${i})" style="cursor:pointer;">${a.icon||'🧘'}</span>
-      <div class="activity-info" onclick="selectMindfulnessEx(${i})" style="cursor:pointer;flex:1;">
-        <div class="name">${a.name}</div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;">
-          <input type="number" value="${a.min}" min="1" max="120"
-            style="width:50px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.78rem;text-align:center;"
-            onclick="event.stopPropagation()" onchange="updateMindfulnessDur(event,${i})">
-          <span style="font-size:0.72rem;color:var(--muted);">Min</span>
-          <span style="font-size:0.72rem;color:var(--muted);">·</span>
-          <input type="number" value="${a.ptsPerMin||3}" min="1" max="20"
-            style="width:40px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.78rem;text-align:center;"
-            onclick="event.stopPropagation()" onchange="updateMindfulnessPts(event,${i})">
-          <span style="font-size:0.72rem;color:var(--muted);">Pkt/Min</span>
-          <span style="font-size:0.72rem;color:var(--gold);font-weight:600;">= ${pts} Pkt</span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:1.8rem;">${a.icon||'🪷'}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:1rem;color:${isActive?'white':'var(--ink)'};">${a.name}</div>
+          <div style="font-size:0.78rem;color:${isActive?'rgba(255,255,255,0.7)':'var(--muted)'};margin-top:2px;">
+            ${a.min} Min · <span style="color:${isActive?'#f4c261':'var(--gold)'};">+${pts} Pkt</span>
+            ${isActive ? `<span id="mind-timer-${i}" style="margin-left:8px;font-weight:700;color:white;"></span>` : ''}
+          </div>
         </div>
-        <div style="margin-top:6px;display:${state.selectedMindfulness===i?'flex':'none'};align-items:center;gap:6px;" onclick="event.stopPropagation()">
-          <input type="url" value="${a.link||''}" placeholder="🔗 Link (optional)"
-            style="flex:1;padding:3px 8px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.75rem;color:var(--muted);"
-            onchange="updateMindfulnessLink(${i}, this.value)" onclick="event.stopPropagation()">
-        </div>
+        ${isActive
+          ? `<button onclick="stopMindfulness()" style="padding:10px 18px;border-radius:12px;border:2px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.15);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;white-space:nowrap;">⏹ Stopp</button>`
+          : `<button onclick="startMindfulness(event,${i})" style="padding:10px 18px;border-radius:12px;border:2px solid #5b7fa6;background:transparent;color:#5b7fa6;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;white-space:nowrap;">▶ Start</button>`
+        }
+        ${a.custom ? `<button onclick="deleteMindfulnessEx(event,${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:0;flex-shrink:0;">✕</button>` : ''}
       </div>
-      <div class="check" onclick="selectMindfulnessEx(${i})" style="cursor:pointer;">${state.selectedMindfulness === i ? '✓' : ''}</div>
-      ${a.custom ? `<button class="del-activity" onclick="deleteMindfulnessEx(event,${i})">✕</button>` : ''}
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <input type="number" value="${a.min}" min="1" max="120"
+          style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;background:var(--bg);color:var(--ink);"
+          onclick="event.stopPropagation()" onchange="updateMindfulnessDur(event,${i})">
+        <span style="font-size:0.78rem;color:var(--muted);">Min</span>
+        <input type="number" value="${a.ptsPerMin||3}" min="1" max="20"
+          style="width:50px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;background:var(--bg);color:var(--ink);"
+          onclick="event.stopPropagation()" onchange="updateMindfulnessPts(event,${i})">
+        <span style="font-size:0.78rem;color:var(--muted);">Pkt/Min</span>
+        ${a.link ? `<a href="${a.link}" target="_blank" style="font-size:0.78rem;color:#457b9d;text-decoration:none;">🔗 Link</a>` : ''}
+        <input type="url" value="${a.link||''}" placeholder="🔗 Link (optional)"
+          style="flex:1;min-width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.75rem;color:var(--muted);background:var(--bg);"
+          onchange="updateMindfulnessLink(${i}, this.value)" onclick="event.stopPropagation()">
+      </div>
     `;
     list.appendChild(div);
   });
@@ -6181,10 +6279,251 @@ function deleteBug(i) {
 }
 
 // =====================
-// 2-MINUTEN MODUS
+// CHECK-IN / CHECK-OUT LOGIK
+// =====================
+function getTimeOfDay() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 11) return 'morning';
+  if (h >= 18 && h < 23) return 'evening';
+  return 'day';
+}
+
+function updateQuickBtn() {
+  const btn = document.getElementById('quick-checkin-btn');
+  if (!btn) return;
+  const tod = getTimeOfDay();
+  if (tod === 'evening') {
+    btn.textContent = '🌙 Schnell Check-out';
+    btn.style.background = 'linear-gradient(135deg,#1a1a3e,#2d2060)';
+    btn.onclick = startCheckout;
+  } else {
+    btn.textContent = '⚡ 30-Sekunden Check-in';
+    btn.style.background = 'linear-gradient(135deg,#1a3a2a,#2d5a3d)';
+    btn.onclick = startTwoMin;
+  }
+}
+
+// =====================
+// CHECK-OUT
+// =====================
+let coStep = 0;
+let coAlc = null;
+let coSw = null;
+let coSelectedActivity = null;
+
+function startCheckout() {
+  coStep = 0; coAlc = null; coSw = null; coSelectedActivity = null;
+
+  // Init water
+  const slider = document.getElementById('co-water-slider');
+  if (slider) { slider.value = state.waterMl || 0; }
+  document.getElementById('co-water-val').textContent = (state.waterMl||0) + ' ml';
+  document.getElementById('co-water-goal').textContent = state.waterGoal || 2000;
+
+  // Init nutrition buttons
+  ['co-alc-yes','co-alc-no','co-sw-yes','co-sw-no'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(255,255,255,0.2)'; }
+  });
+
+  // Check if activities were planned this morning
+  const planned = state.profile?.morningPlanned;
+  const plannedDiv = document.getElementById('co-act-planned');
+  const unplannedDiv = document.getElementById('co-act-unplanned');
+  const todayStr = new Date().toDateString();
+
+  const indices = planned?.date === todayStr
+    ? (planned.actIndices || (planned.actIdx != null ? [planned.actIdx] : []))
+    : [];
+
+  if (indices.length > 0) {
+    const acts = indices.map(i => state.activities[i]).filter(Boolean);
+    let html = `<div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:12px;">HEUTE GEPLANT</div>`;
+    acts.forEach((a, j) => {
+      const idx = indices[j];
+      html += `
+        <div style="margin-bottom:16px;">
+          <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🏃'} ${a.name} – ${a.min} Min geplant</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-dur-val-${idx}">0 Min</div>
+          <input type="range" id="co-dur-slider-${idx}" min="0" max="${Math.max(a.min,120)}" step="5" value="0"
+            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;accent-color:white;"
+            oninput="document.getElementById('co-dur-val-${idx}').textContent=this.value+' Min'">
+          <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
+            <span>Nicht gemacht</span><span>${a.min} Min</span>
+          </div>
+        </div>`;
+    });
+    document.getElementById('co-act-planned').innerHTML = html;
+    document.getElementById('co-act-icon').textContent = acts.length > 1 ? '📋' : (acts[0]?.icon||'🏃');
+    document.getElementById('co-act-title').textContent = acts.length > 1 ? 'Wie war dein Tag?' : 'Wie war dein Training?';
+    document.getElementById('co-act-subtitle').textContent = '';
+    plannedDiv.style.display = '';
+    unplannedDiv.style.display = 'none';
+  } else {
+    document.getElementById('co-act-icon').textContent = '🏃';
+    document.getElementById('co-act-title').textContent = 'Warst du aktiv?';
+    document.getElementById('co-act-subtitle').textContent = 'Spontan oder vergessen einzutragen?';
+    plannedDiv.style.display = 'none';
+    unplannedDiv.style.display = '';
+    // Build activity list
+    const list = document.getElementById('co-act-list');
+    list.innerHTML = (state.activities||[]).map((a,i) => `
+      <button class="tm-activity-btn" onclick="coSelectActivity(${i},this)">
+        <span style="font-size:1.2rem;">${a.icon||'🏃'}</span>
+        <span style="flex:1;margin-left:10px;">${a.name}</span>
+        <span style="font-size:0.8rem;opacity:0.6;">${a.min} Min</span>
+      </button>`).join('');
+  }
+
+  document.getElementById('co-note').value = '';
+  coGoStep(0);
+  document.getElementById('checkout-overlay').style.display = 'flex';
+}
+
+function coDurUpdate(v) {
+  document.getElementById('co-dur-val').textContent = v + ' Min';
+}
+
+function coSetWater(ml) {
+  document.getElementById('co-water-slider').value = ml;
+  document.getElementById('co-water-val').textContent = ml + ' ml';
+}
+
+function coToggle(type, val) {
+  if (type === 'alc') {
+    coAlc = val;
+    document.getElementById('co-alc-yes').style.background = val==='yes' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
+    document.getElementById('co-alc-no').style.background  = val==='no'  ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
+  } else {
+    coSw = val;
+    document.getElementById('co-sw-yes').style.background = val==='yes' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
+    document.getElementById('co-sw-no').style.background  = val==='no'  ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
+  }
+}
+
+function coSelectActivity(i, el) {
+  document.querySelectorAll('#co-act-list .tm-activity-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  coSelectedActivity = i;
+  document.getElementById('co-dur-unplanned').style.display = '';
+  const a = state.activities[i];
+  const slider = document.getElementById('co-dur-slider2');
+  if (slider && a) slider.value = a.min;
+  document.getElementById('co-dur-val2').textContent = (a?.min||30) + ' Min';
+  const nextBtn = document.getElementById('co-next-btn');
+  if (nextBtn) nextBtn.textContent = 'Weiter →';
+}
+
+function coGoStep(step) {
+  for (let i = 0; i < 4; i++) {
+    const s = document.getElementById('co-step-' + i);
+    const d = document.getElementById('co-dot-' + i);
+    if (s) s.style.display = i === step ? '' : 'none';
+    if (d) d.classList.toggle('active', i === step);
+  }
+  coStep = step;
+  const backBtn = document.getElementById('co-back-btn');
+  const nextBtn = document.getElementById('co-next-btn');
+  if (backBtn) backBtn.style.display = step === 0 ? 'none' : '';
+  if (nextBtn) nextBtn.textContent = step === 3 ? '✅ Gute Nacht!' : 'Weiter →';
+  // Step 0: show skip if nothing planned and nothing selected
+  if (step === 0) {
+    const planned = state.profile?.morningPlanned;
+    const todayStr = new Date().toDateString();
+    const hasPlanned = planned?.date === todayStr &&
+      (planned.actIndices?.length > 0 || planned.actIdx != null);
+    if (!hasPlanned && !coSelectedActivity && nextBtn) nextBtn.textContent = 'Überspringen →';
+  }
+}
+
+function coNext() {
+  if (coStep === 3) { coSave(); return; }
+  coGoStep(coStep + 1);
+}
+
+function coBack() {
+  if (coStep > 0) coGoStep(coStep - 1);
+}
+
+function coSave() {
+  const todayStr = new Date().toDateString();
+
+  // 1. Aktivitäten
+  const planned = state.profile?.morningPlanned;
+  if (planned && planned.date === todayStr) {
+    const indices = planned.actIndices || (planned.actIdx != null ? [planned.actIdx] : []);
+    indices.forEach(idx => {
+      const durMin = parseInt(document.getElementById(`co-dur-slider-${idx}`)?.value || 0);
+      if (durMin > 0) {
+        const a = state.activities[idx];
+        if (a) {
+          const pts = durMin * (a.ptsPerMin||1);
+          state.activityLog.unshift({ name:a.name, icon:a.icon||'🏃', min:durMin, pts, label:durMin+' min', ts:new Date().toISOString(), ptsPerMin:a.ptsPerMin||1, steps:false, feeling:{} });
+          if (state.activityLog.length > 200) state.activityLog.pop();
+          addPoints(pts, (a.icon||'🏃') + ' ' + a.name);
+          checkStreak();
+        }
+      }
+    });
+  } else if (coSelectedActivity !== null) {
+    const durMin = parseInt(document.getElementById('co-dur-slider2')?.value || 30);
+    const a = state.activities[coSelectedActivity];
+    if (a && durMin > 0) {
+      const pts = durMin * (a.ptsPerMin||1);
+      state.activityLog.unshift({ name:a.name, icon:a.icon||'🏃', min:durMin, pts, label:durMin+' min', ts:new Date().toISOString(), ptsPerMin:a.ptsPerMin||1, steps:false, feeling:{} });
+      if (state.activityLog.length > 200) state.activityLog.pop();
+      addPoints(pts, (a.icon||'🏃') + ' ' + a.name);
+      checkStreak();
+    }
+  }
+
+  // 2. Wasser
+  const waterMl = parseInt(document.getElementById('co-water-slider')?.value || 0);
+  if (waterMl > 0) {
+    if (waterMl >= state.waterGoal && state.waterMl < state.waterGoal) {
+      state.waterDays++; addPoints(30, '💧 Tagesziel Wasser erreicht');
+    }
+    state.waterMl = waterMl;
+  }
+
+  // 3. Alkohol
+  if (coAlc !== null) {
+    const entry = (state.alcDaysLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+    if (entry) { entry.drank = coAlc === 'yes'; }
+    else { if (!state.alcDaysLog) state.alcDaysLog=[]; state.alcDaysLog.push({ date: new Date().toISOString(), drank: coAlc === 'yes' }); }
+    if (coAlc === 'no') addPoints(15, '✅ Nüchtern-Tag');
+  }
+
+  // 4. Süssigkeiten
+  if (coSw !== null) {
+    const entry = (state.sweetsDaysLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+    if (entry) { entry.had = coSw === 'yes'; }
+    else { if (!state.sweetsDaysLog) state.sweetsDaysLog=[]; state.sweetsDaysLog.push({ date: new Date().toISOString(), had: coSw === 'yes' }); }
+  }
+
+  // 5. Dankbarkeit
+  const note = document.getElementById('co-note').value.trim();
+  if (note) {
+    state.gratitudeLog.unshift({ ts: new Date().toISOString(), text: note });
+    if (state.gratitudeLog.length > 200) state.gratitudeLog.pop();
+  }
+
+  // Clear morning plan
+  if (state.profile) state.profile.morningPlanned = null;
+
+  saveState();
+  closeCheckout();
+  renderHome();
+  showToast('🌙 Gute Nacht! Alles gespeichert.');
+}
+
+function closeCheckout() {
+  document.getElementById('checkout-overlay').style.display = 'none';
+}
 // =====================
 let tmStep = 0;
-let tmSelectedActivity = null;
+let tmSelectedActivities = []; // array of planned activity indices
 let tmSelectedTime = 'ganztags';
 const TM_FEEL_DESCS = ['','miserabel','sehr schlecht','schlecht','eher schlecht','okay','ganz gut','gut','sehr gut','ausgezeichnet','super!'];
 const TM_TIME_HOURS = { ganztags: 12, morgens: 8, mittags: 13, abends: 19 };
@@ -6196,9 +6535,11 @@ function tmSetTime(slot, el) {
 }
 
 function startTwoMin() {
+  const tod = getTimeOfDay();
+  const titleEl = document.getElementById('twomin-title');
+  if (titleEl) titleEl.textContent = tod === 'morning' ? '☀️ Guten Morgen – Check-in' : '🌤 Schnell Check-in';
   tmStep = 0;
-  tmSelectedActivity = null;
-  tmSelectedTime = 'ganztags';
+  tmSelectedActivities = [];
   const timeRow = document.getElementById('tm-time-row');
   if (timeRow) timeRow.style.display = 'none';
   const durRow = document.getElementById('tm-dur-row');
@@ -6233,22 +6574,21 @@ function tmSetWater(ml) {
 }
 
 function tmSelectActivity(i, el) {
-  document.querySelectorAll('.tm-activity-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  tmSelectedActivity = i;
-  // Show time + duration
-  const timeRow = document.getElementById('tm-time-row');
-  const durRow  = document.getElementById('tm-dur-row');
-  if (timeRow) timeRow.style.display = 'flex';
-  if (durRow)  durRow.style.display  = '';
-  tmSelectedTime = 'ganztags';
-  document.querySelectorAll('.tm-time-btn').forEach((b,j) => b.style.background = j===0 ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.1)');
-  // Set default duration from activity
-  const a = state.activities[i];
-  const defaultMin = (a && a.min > 0) ? a.min : 30;
-  const slider = document.getElementById('tm-dur-slider');
-  if (slider) { slider.value = defaultMin; }
-  document.getElementById('tm-dur-val').textContent = defaultMin + ' Min';
+  if (tmSelectedActivities.includes(i)) {
+    tmSelectedActivities = tmSelectedActivities.filter(x => x !== i);
+    el.classList.remove('selected');
+    el.querySelector('.tm-check')?.remove();
+  } else {
+    tmSelectedActivities.push(i);
+    el.classList.add('selected');
+    if (!el.querySelector('.tm-check')) {
+      const chk = document.createElement('span');
+      chk.className = 'tm-check';
+      chk.textContent = ' ✓';
+      chk.style.cssText = 'color:white;font-weight:700;';
+      el.appendChild(chk);
+    }
+  }
   tmUpdateNextBtn();
 }
 
@@ -6286,10 +6626,12 @@ function tmUpdateNextBtn() {
   const nextBtn = document.getElementById('tm-next-btn');
   if (!nextBtn) return;
   if (tmStep === 3) { nextBtn.textContent = '✅ Fertig!'; return; }
-  if (tmStep === 1 && tmSelectedActivity === null) {
+  if (tmStep === 1 && tmSelectedActivities.length === 0) {
     nextBtn.textContent = 'Überspringen →';
   } else {
-    nextBtn.textContent = 'Weiter →';
+    nextBtn.textContent = tmSelectedActivities.length > 1
+      ? `Weiter → (${tmSelectedActivities.length} geplant)`
+      : 'Weiter →';
   }
 }
 
@@ -6310,25 +6652,13 @@ function tmSave() {
     state.waterMl = waterMl;
   }
 
-  // 2. Aktivität
-  if (tmSelectedActivity !== null) {
-    const a = state.activities[tmSelectedActivity];
-    if (a) {
-      const durMin = parseInt(document.getElementById('tm-dur-slider')?.value || a.min || 30);
-      const pts = a.steps ? Math.round((a.stepsDefault||5000)/1000)*10 : durMin*(a.ptsPerMin||1);
-      const label = a.steps ? (a.stepsDefault||5000).toLocaleString('de-DE')+' Schritte' : durMin+' min';
-      const ts = new Date();
-      ts.setHours(TM_TIME_HOURS[tmSelectedTime]||12, 0, 0, 0);
-      state.activityLog.unshift({
-        name: a.name, icon: a.icon||'🏃', min: durMin, pts, label,
-        ts: ts.toISOString(), ptsPerMin: a.ptsPerMin||1,
-        steps: !!a.steps, feeling: {}
-      });
-      if (state.activityLog.length > 200) state.activityLog.pop();
-      state.activitiesLogged++;
-      addPoints(pts, (a.icon||'🏃') + ' ' + a.name);
-      checkStreak();
-    }
+  // 2. Aktivitäten – als Tagesplan speichern (mehrere möglich)
+  if (tmSelectedActivities.length > 0) {
+    if (!state.profile) state.profile = {};
+    state.profile.morningPlanned = {
+      date: new Date().toDateString(),
+      actIndices: tmSelectedActivities.slice()
+    };
   }
 
   // 3. Gefühl → bodyLog
@@ -6424,6 +6754,26 @@ function renderWeeklySummary() {
   saveState();
 }
 
+function renderPlannedActivity() {
+  const card = document.getElementById('planned-activity-card');
+  if (!card) return;
+  const planned = state.profile?.morningPlanned;
+  const todayStr = new Date().toDateString();
+  if (!planned || planned.date !== todayStr) { card.style.display = 'none'; return; }
+
+  // Support both old (actIdx) and new (actIndices) format
+  const indices = planned.actIndices || (planned.actIdx != null ? [planned.actIdx] : []);
+  if (!indices.length) { card.style.display = 'none'; return; }
+
+  const acts = indices.map(i => state.activities[i]).filter(Boolean);
+  if (!acts.length) { card.style.display = 'none'; return; }
+
+  document.getElementById('planned-act-icon').textContent = acts.length === 1 ? (acts[0].icon||'🏃') : '📋';
+  document.getElementById('planned-act-name').textContent = acts.map(a => `${a.icon||'🏃'} ${a.name} (${a.min} Min)`).join(' · ');
+  window._plannedActIdx = indices[0];
+  card.style.display = '';
+}
+
 function renderDailyCheck() {
   const card = document.getElementById('daily-check-card');
   if (!card) return;
@@ -6509,6 +6859,57 @@ let feelingOverlayContext = null; // { type: 'activity'|'mindfulness'|'active', 
 // ACTIVITY TIMER
 // =====================
 let activityTimerInterval = null;
+
+// =====================
+// MINDFULNESS START / STOP
+// =====================
+let mindfulnessTimerInterval = null;
+
+function startMindfulness(event, i) {
+  event.stopPropagation();
+  if (state.activeMindfulness) { showToast('Erst die laufende Übung stoppen.'); return; }
+  const ex = getMindfulnessExercises();
+  const a = ex[i];
+  state.activeMindfulness = { idx: i, name: a.name, icon: a.icon||'🪷', startTs: new Date().toISOString() };
+  saveState();
+  renderMindfulness();
+  // Start inline timer
+  if (mindfulnessTimerInterval) clearInterval(mindfulnessTimerInterval);
+  mindfulnessTimerInterval = setInterval(() => {
+    const el = document.getElementById('mind-timer-' + i);
+    if (!el || !state.activeMindfulness) return;
+    const elapsed = Math.floor((new Date() - new Date(state.activeMindfulness.startTs)) / 1000);
+    const m = Math.floor(elapsed / 60);
+    const s = elapsed % 60;
+    el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }, 1000);
+  setTimeout(() => showFeelingOverlay({ type: 'mindfulness', logIndex: -1, phase: 'before' }), 300);
+}
+
+function stopMindfulness() {
+  if (!state.activeMindfulness) return;
+  const a = state.activeMindfulness;
+  const minElapsed = Math.max(1, Math.round((new Date() - new Date(a.startTs)) / 60000));
+  const ex = getMindfulnessExercises();
+  const exItem = ex[a.idx];
+  if (!exItem) { state.activeMindfulness = null; saveState(); renderMindfulness(); return; }
+  const pts = minElapsed * (exItem.ptsPerMin || 3);
+  const entry = {
+    name: exItem.name, icon: exItem.icon||'🪷', min: minElapsed,
+    pts, ts: a.startTs, ptsPerMin: exItem.ptsPerMin||3,
+    feeling: { before: null, after: null }
+  };
+  if (!state.mindfulnessLog) state.mindfulnessLog = [];
+  state.mindfulnessLog.unshift(entry);
+  if (state.mindfulnessLog.length > 200) state.mindfulnessLog.pop();
+  state.activeMindfulness = null;
+  addPoints(pts, exItem.icon + ' ' + exItem.name);
+  saveState();
+  clearInterval(mindfulnessTimerInterval); mindfulnessTimerInterval = null;
+  renderMindfulness();
+  showToast(`✅ ${exItem.name} – ${minElapsed} Min! +${pts} Punkte`);
+  setTimeout(() => showFeelingOverlay({ type: 'mindfulness', logIndex: 0, phase: 'after' }), 400);
+}
 
 function startActivity(event, i) {
   event.stopPropagation();
