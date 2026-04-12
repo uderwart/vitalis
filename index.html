@@ -874,7 +874,10 @@
 
   <!-- GEPLANTE AKTIVITÄT -->
   <div id="planned-activity-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
-    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">📋 Heute geplant</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;">📋 Heute geplant</div>
+      <button onclick="editTodayPlan()" style="background:none;border:none;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;padding:0;">✏️ Ändern</button>
+    </div>
     <div style="display:flex;align-items:center;gap:10px;">
       <span style="font-size:1.6rem;" id="planned-act-icon">🏃</span>
       <div style="flex:1;">
@@ -1510,6 +1513,7 @@
   <div class="card">
     <h2>Einträge</h2>
     <div id="weight-log-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="weight-log-empty">Noch keine Einträge.</p>
     <p class="small-note" id="weight-empty">Noch keine Einträge.</p>
   </div>
 </div>
@@ -1603,6 +1607,7 @@
     <h2>Verlauf</h2>
     <canvas id="sleep-canvas" height="120" style="width:100%;display:block;margin-bottom:12px;" id="sleep-chart"></canvas>
     <div id="sleep-log-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <p class="small-note" id="sleep-log-empty">Noch keine Einträge.</p>
     <p class="small-note" id="sleep-empty">Noch keine Einträge.</p>
   </div>
 </div>
@@ -2489,12 +2494,15 @@
   </div>
 
   <!-- DATENSICHERUNG -->
-  <div class="card">
+  <div class="card" style="border:2px solid var(--gold);">
     <h2>💾 Datensicherung</h2>
-    <p class="small-note" style="margin-bottom:14px;line-height:1.5;">Exportiere alle Daten als JSON-Datei und importiere sie auf einem anderen Gerät.</p>
+    <div style="background:#fdf9ec;border-radius:10px;padding:10px 12px;margin-bottom:14px;">
+      <div style="font-size:0.82rem;font-weight:600;color:var(--gold);margin-bottom:4px;">⚠️ Wichtig</div>
+      <p style="font-size:0.8rem;color:var(--ink);line-height:1.6;">Alle Daten liegen <strong>nur auf diesem Gerät</strong>. Wenn du den Browser-Speicher löschst oder das Gerät wechselst, sind sie weg. Exportiere regelmäßig – empfohlen einmal pro Woche.</p>
+    </div>
 
     <button onclick="exportData()" class="log-btn" style="width:100%;margin-bottom:10px;">
-      📤 Daten exportieren
+      📤 Daten exportieren (JSON)
     </button>
 
     <div style="position:relative;">
@@ -2568,6 +2576,7 @@
   <div class="card">
     <h2>Heute geloggt</h2>
     <div id="mindfulness-log-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="mindfulness-log-empty">Noch keine Einträge.</p>
     <p class="small-note" id="mindfulness-empty">Noch nichts geloggt.</p>
   </div>
 </div>
@@ -2728,6 +2737,7 @@ function loadState() {
     waterDays: 0,
     lastWaterDate: null,
     onboardingDone: false,
+    lastExportReminder: null,
     activeActivity: null,
     activeMindfulness: null,
     devTimeOverride: null,
@@ -2893,6 +2903,17 @@ function showToast(msg) {
 // HOME (Kacheln)
 // =====================
 function renderHome() {
+  // Weekly export reminder (every Sunday)
+  const today = new Date();
+  if (today.getDay() === 0) { // Sunday
+    const lastReminder = state.lastExportReminder;
+    const thisWeek = today.toISOString().slice(0,10);
+    if (lastReminder !== thisWeek) {
+      state.lastExportReminder = thisWeek;
+      saveState();
+      setTimeout(() => showToast('💾 Tipp: Daten heute sichern – Export in Einstellungen'), 2000);
+    }
+  }
   const now = new Date();
   const hour = now.getHours();
   const todayStr = now.toDateString();
@@ -5011,11 +5032,11 @@ function logSleep() {
 
 function renderSleepLog() {
   const list  = document.getElementById('sleep-log-list');
-  const empty = document.getElementById('sleep-empty');
+  const empty = document.getElementById('sleep-log-empty') || document.getElementById('sleep-empty');
   list.innerHTML = '';
 
-  if (!state.sleepLog.length) { empty.style.display=''; drawSleepChart(); return; }
-  empty.style.display = 'none';
+  if (!state.sleepLog.length) { if(empty) empty.style.display=''; drawSleepChart(); return; }
+  if(empty) empty.style.display = 'none';
   drawSleepChart();
 
   state.sleepLog.slice(0,10).forEach((e, i) => {
@@ -5408,7 +5429,10 @@ function renderWeight() {
 
   // Log list
   const list = document.getElementById('weight-log-list');
+  const wEmpty = document.getElementById('weight-log-empty');
   list.innerHTML = '';
+  if (!log.length) { if(wEmpty) wEmpty.style.display=''; return; }
+  if(wEmpty) wEmpty.style.display='none';
   log.slice(0, 10).forEach((e, i) => {
     const d = new Date(e.ts);
     const dateStr = d.toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'2-digit'});
@@ -5421,12 +5445,29 @@ function renderWeight() {
     div.className = 'activity-log-entry';
     div.innerHTML = `
       <span style="color:var(--muted);">${dateStr}</span>
-      <span style="font-weight:600;">${e.kg.toFixed(1)} kg</span>
+      <span style="font-weight:600;flex:1;">${e.kg.toFixed(1)} kg</span>
       ${deltaStr}
+      <button onclick="editWeightEntry(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;padding:0 4px;">✏️</button>
       <button onclick="deleteWeightEntry(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;">✕</button>
     `;
     list.appendChild(div);
   });
+}
+
+function editWeightEntry(i) {
+  const log = [...state.weightLog].sort((a,b) => new Date(b.ts)-new Date(a.ts));
+  const e = log[i];
+  if (!e) return;
+  const realIdx = state.weightLog.indexOf(e);
+  const current = e.kg.toFixed(1);
+  const newVal = prompt(`Gewicht korrigieren (aktuell: ${current} kg):`, current);
+  if (newVal === null) return;
+  const parsed = parseFloat(String(newVal).replace(',','.'));
+  if (isNaN(parsed) || parsed < 20 || parsed > 500) { showToast('Ungültiges Gewicht.'); return; }
+  state.weightLog[realIdx].kg = parsed;
+  saveState();
+  renderWeight();
+  showToast(`⚖️ Auf ${parsed.toFixed(1)} kg korrigiert.`);
 }
 
 function logWeight() {
@@ -6054,7 +6095,7 @@ function logMindfulness() {
 
 function renderMindfulnessLog() {
   const list  = document.getElementById('mindfulness-log-list');
-  const empty = document.getElementById('mindfulness-empty');
+  const empty = document.getElementById('mindfulness-log-empty') || document.getElementById('mindfulness-empty');
   if (!list) return;
   list.innerHTML = '';
   const todayStr = new Date().toDateString();
@@ -6261,11 +6302,23 @@ function renderGratitudeSection() {
     const d = new Date(e.ts);
     const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
     return `<div style="padding:10px 12px;background:var(--bg);border-radius:10px;position:relative;">
-      <div style="font-size:0.85rem;line-height:1.5;color:var(--ink);padding-right:24px;">"${e.text}"</div>
+      <div style="font-size:0.85rem;line-height:1.5;color:var(--ink);padding-right:48px;">"${e.text}"</div>
       <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">${ds}</div>
+      <button onclick="editGratitudeEntry(${i})" style="position:absolute;top:8px;right:28px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;">✏️</button>
       <button onclick="deleteGratitudeEntry(${i})" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;">✕</button>
     </div>`;
   }).join('');
+}
+
+function editGratitudeEntry(i) {
+  const e = state.gratitudeLog[i];
+  if (!e) return;
+  const newText = prompt('Eintrag bearbeiten:', e.text);
+  if (newText === null || !newText.trim()) return;
+  state.gratitudeLog[i].text = newText.trim();
+  saveState();
+  renderGratitudeSection();
+  showToast('🌟 Eintrag aktualisiert.');
 }
 
 function deleteGratitudeEntry(i) {
@@ -7315,6 +7368,40 @@ function exportPlanToCalendar() {
   showToast('📅 Kalender-Datei heruntergeladen!');
 }
 
+function editTodayPlan() {
+  // Open check-in at step 1 (planning) with current plan pre-selected
+  startTwoMin();
+  // Pre-select existing plan
+  const planned = state.profile?.morningPlanned;
+  if (!planned || planned.date !== new Date().toDateString()) return;
+
+  // Pre-select activities
+  (planned.actIndices||[]).forEach(idx => {
+    const btn = document.querySelector(`#tm-activity-list .tm-activity-btn:nth-child(${idx+1})`);
+    if (btn) { tmSelectedActivities.push(idx); btn.classList.add('selected'); }
+  });
+
+  // Pre-select mindfulness
+  (planned.mindIndices||[]).forEach(idx => {
+    const btn = document.querySelector(`#tm-mindfulness-list .tm-activity-btn:nth-child(${idx+1})`);
+    if (btn) { tmSelectedMindfulnesses.push(idx); btn.classList.add('selected'); }
+  });
+
+  // Pre-select contacts
+  (planned.contactPlans||[]).forEach(plan => {
+    const btn = document.querySelector(`.tm-contact-type-btn[data-id="${plan.masterId}"][data-type="${plan.how}"]`);
+    if (btn) {
+      tmSelectedContactPlans.push(plan);
+      btn.style.background = 'rgba(255,255,255,0.3)';
+      btn.style.borderColor = 'rgba(255,255,255,0.7)';
+    }
+  });
+
+  // Jump directly to planning step
+  tmGoStep(1);
+  tmUpdateNextBtn();
+}
+
 function renderPlannedActivity() {
   const card = document.getElementById('planned-activity-card');
   if (!card) return;
@@ -7414,6 +7501,8 @@ function obFinish() {
     renderHome();
     const nameInput = document.getElementById('profile-name');
     if (nameInput && state.profile?.name) nameInput.value = state.profile.name;
+    // First-start data safety reminder
+    setTimeout(() => showToast('💾 Tipp: Daten regelmäßig sichern – Export in Einstellungen'), 3000);
   }, 500);
 }
 
@@ -7760,9 +7849,27 @@ function renderSymptoms(){
         ${e.note?`<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">"${e.note}"</div>`:''}
       </div>
       <span style="font-size:0.72rem;color:var(--muted);">${ts}</span>
+      <button onclick="editSymptom(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;padding:0 2px;">✏️</button>
       <button onclick="deleteSymptom(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;">✕</button>
     </div>`;
   }).join('');
+}
+
+function editSymptom(i) {
+  const todayStr = new Date().toDateString();
+  const entries = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+  const e = entries[i];
+  if (!e) return;
+  const newInt = prompt(`Intensität korrigieren (aktuell: ${e.intensity}/10):`, e.intensity);
+  if (newInt === null) return;
+  const parsed = parseInt(newInt);
+  if (isNaN(parsed) || parsed < 1 || parsed > 10) { showToast('Bitte 1–10 eingeben.'); return; }
+  const realIdx = state.symptomLog.indexOf(e);
+  state.symptomLog[realIdx].intensity = parsed;
+  state.symptomLog[realIdx].color = symIntColor(parsed);
+  saveState();
+  renderSymptoms();
+  showToast('🩹 Intensität aktualisiert.');
 }
 
 function deleteSymptom(i){
