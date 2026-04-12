@@ -1485,6 +1485,10 @@
 
     <div id="meal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;"></div>
     <button id="meal-log-btn" class="log-btn secondary" onclick="logMealFeeling()" style="width:100%;opacity:0.4;cursor:not-allowed;" disabled>Gefühl speichern</button>
+
+    <!-- Mahlzeiten-Verlauf -->
+    <div id="meal-log-list" style="display:flex;flex-direction:column;gap:6px;margin-top:14px;"></div>
+    <p class="small-note" id="meal-log-empty" style="margin-top:10px;">Noch keine Einträge.</p>
   </div>
 
   <!-- FOLGETAG NACH ALKOHOL -->
@@ -4855,6 +4859,41 @@ function renderNutrition() {
     const skipped = state.alcAftermathSkipped === todayStr;
     card.style.display = (drank && !alreadyLogged && !skipped) ? '' : 'none';
   }
+
+  // Meal log verlauf
+  renderMealLog();
+}
+
+function renderMealLog() {
+  const list  = document.getElementById('meal-log-list');
+  const empty = document.getElementById('meal-log-empty');
+  if (!list) return;
+  list.innerHTML = '';
+  const entries = (state.mealFeelingLog||[]).slice(0,10);
+  if (!entries.length) { if(empty) empty.style.display=''; return; }
+  if(empty) empty.style.display='none';
+  entries.forEach((e, i) => {
+    const d = new Date(e.ts);
+    const ds = d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const mealEmoji = (e.meal !== null && e.meal !== undefined && MEAL_FEELINGS[e.meal])
+      ? MEAL_FEELINGS[e.meal].emoji + ' ' + MEAL_FEELINGS[e.meal].label : '—';
+    const hunger = (e.hunger !== null && e.hunger !== undefined) ? e.hunger : '—';
+    const color = v => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg);border-radius:10px;font-size:0.82rem;';
+    div.innerHTML = `
+      <span style="flex:1;">${mealEmoji}</span>
+      ${typeof hunger === 'number' ? `<span style="font-size:0.75rem;color:${color(hunger)};">Hunger ${hunger}/10</span>` : ''}
+      <span style="font-size:0.72rem;color:var(--muted);">${ds}</span>
+      <button onclick="deleteMealEntry(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;padding:0;">✕</button>`;
+    list.appendChild(div);
+  });
+}
+
+function deleteMealEntry(i) {
+  state.mealFeelingLog.splice(i, 1);
+  saveState();
+  renderMealLog();
 }
 
 let bodyMealNutrition = null;
@@ -4867,7 +4906,13 @@ function mealReadyCheck() {
 }
 
 function renderBodyGridNutrition() {
-  bodyMealNutrition !== null && mealReadyCheck();
+  const btn = document.getElementById('meal-log-btn');
+  if (btn) {
+    const active = bodyMealNutrition !== null || mealHungerTouched;
+    btn.disabled = !active;
+    btn.style.opacity = active ? '1' : '0.4';
+    btn.style.cursor = active ? 'pointer' : 'not-allowed';
+  }
 }
 
 function logMealFeeling() {
@@ -5414,15 +5459,17 @@ function renderBodyGrid(containerId, items, stateKey, selectable) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
+  const inNutrition = containerId === 'meal-grid' && document.getElementById('section-nutrition')?.classList.contains('visible');
   items.forEach((item, idx) => {
     const btn = document.createElement('button');
-    const isSelected = stateKey === 'meal' ? bodyMeal === idx : false;
+    const isSelected = stateKey === 'meal'
+      ? (inNutrition ? bodyMealNutrition === idx : bodyMeal === idx)
+      : false;
     btn.style.cssText = `padding:10px 8px;border-radius:10px;border:2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};background:${isSelected ? '#eef6f1' : 'var(--bg)'};cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;transition:all 0.15s;`;
     btn.innerHTML = `<div style="font-size:1.4rem;">${item.emoji}</div><div style="margin-top:3px;color:var(--muted);font-size:0.72rem;">${item.label}</div>`;
     btn.onclick = () => {
       if (stateKey === 'meal') {
-        // Check which context we're in
-        if (containerId === 'meal-grid' && document.getElementById('section-nutrition')?.classList.contains('visible')) {
+        if (inNutrition) {
           bodyMealNutrition = bodyMealNutrition === idx ? null : idx;
           renderBodyGrid(containerId, items, stateKey, selectable);
           renderBodyGridNutrition();
@@ -5496,9 +5543,7 @@ function renderBodyLog() {
     summary.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;cursor:pointer;';
     summary.innerHTML = `
       <div style="display:flex;gap:12px;align-items:center;">
-        <span style="font-size:0.78rem;color:var(--muted);">Hunger <span style="font-family:'DM Serif Display',serif;font-size:1rem;color:${color(h)};">${h}</span></span>
         <span style="font-size:0.78rem;color:var(--muted);">Wohl <span style="font-family:'DM Serif Display',serif;font-size:1rem;color:${color(f)};">${f}</span></span>
-        ${m ? `<span style="font-size:1rem;">${m}</span>` : ''}
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:0.72rem;color:var(--muted);">${date}</span>
@@ -5510,15 +5555,6 @@ function renderBodyLog() {
     detail.id = uid;
     detail.style.cssText = 'display:none;padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);';
     detail.innerHTML = `
-      <div style="margin-bottom:10px;">
-        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;">Hunger & Sättigung</label>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <input type="range" min="1" max="10" value="${e.hunger||5}"
-            style="-webkit-appearance:none;flex:1;height:5px;border-radius:10px;background:var(--border);outline:none;cursor:pointer;"
-            onchange="editBodyEntry(${i},'hunger',this.value);this.nextElementSibling.textContent=this.value">
-          <span style="font-family:'DM Serif Display',serif;font-size:1rem;color:${color(h)};min-width:20px;">${h}</span>
-        </div>
-      </div>
       <div style="margin-bottom:12px;">
         <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;">Wohlbefinden</label>
         <div style="display:flex;align-items:center;gap:10px;">
