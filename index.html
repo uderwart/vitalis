@@ -1442,6 +1442,47 @@
   <div style="padding:4px 4px 16px;">
     <h1 style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);">🥗 Ernährung</h1>
   </div>
+
+  <!-- GEFÜHL NACH MAHLZEIT -->
+  <div class="card">
+    <h2>Wie habe ich mich nach der letzten Mahlzeit gefühlt?</h2>
+    <p class="small-note" style="margin-bottom:12px;">Körpersignale wahrnehmen – kein Druck, nur Bewusstsein.</p>
+    <div id="meal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;"></div>
+    <button id="meal-log-btn" class="log-btn secondary" onclick="logMealFeeling()" style="width:100%;opacity:0.4;cursor:not-allowed;" disabled>Gefühl speichern</button>
+  </div>
+
+  <!-- FOLGETAG NACH ALKOHOL -->
+  <div class="card" id="alc-aftermath-card" style="display:none;">
+    <h2>😴 Wie geht es dir heute?</h2>
+    <p class="small-note" style="margin-bottom:12px;">Gestern hattest du Alkohol – wie fühlst du dich jetzt?</p>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">Energie</div>
+      <div class="vitalis-slider-wrap">
+        <div class="vitalis-slider-value" id="aftermath-energy-val">5</div>
+        <div class="vitalis-slider-desc" id="aftermath-energy-desc">okay</div>
+        <input type="range" id="aftermath-energy-slider" min="1" max="10" value="5" step="1"
+          style="width:100%;accent-color:var(--accent);"
+          oninput="aftermathUpdate('energy', this.value)">
+        <div class="slider-labels"><span>😴 Keine</span><span>⚡ Voll</span></div>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">Stimmung</div>
+      <div class="vitalis-slider-wrap">
+        <div class="vitalis-slider-value" id="aftermath-mood-val">5</div>
+        <div class="vitalis-slider-desc" id="aftermath-mood-desc">okay</div>
+        <input type="range" id="aftermath-mood-slider" min="1" max="10" value="5" step="1"
+          style="width:100%;accent-color:var(--accent);"
+          oninput="aftermathUpdate('mood', this.value)">
+        <div class="slider-labels"><span>😔 Schlecht</span><span>😄 Gut</span></div>
+      </div>
+    </div>
+    <textarea id="aftermath-note" placeholder="Notiz (optional)…" rows="2"
+      style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;margin-bottom:10px;background:var(--bg);color:var(--ink);"></textarea>
+    <button class="log-btn" onclick="logAlcAftermath()" style="width:100%;">💾 Speichern</button>
+    <button onclick="skipAlcAftermath()" class="alc-reset" style="margin-top:6px;">Überspringen</button>
+  </div>
+
   <div class="card" style="cursor:pointer;" onclick="showSection('alcohol')">
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <div>
@@ -1628,10 +1669,6 @@
         oninput="updateSlider('hunger', this.value);bodyCheckReady()">
       <div class="slider-labels"><span>😫 Ausgehungert</span><span>😮 Übervoll</span></div>
     </div>
-
-    <!-- ESSEN GETAN -->
-    <h3 style="margin-bottom:8px;">Wie habe ich mich nach der letzten Mahlzeit gefühlt?</h3>
-    <div id="meal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:18px;"></div>
 
     <!-- KÖRPERGEFÜHL -->
     <h3 style="margin-bottom:8px;">Wie wohl fühle ich mich in meinem Körper?</h3>
@@ -2772,6 +2809,10 @@ function loadState() {
     gratitudeSkipped: null,
     socialContacts: [],  // weekly planned [{name, how, done, week, doneAt}]
     masterContacts: [],  // persistent [{name, id}]
+    mealFeelingLog: [],
+    alcAftermathLog: [],
+    alcAftermath: null,
+    alcAftermathSkipped: null,
     breathingEnabled: true,
     breathingTechnique: 'box',
     breathingPausesPerDay: 2,
@@ -2793,7 +2834,7 @@ function loadState() {
     const arrays = ['activityLog','feelingLog','weightLog','bodyLog','sleepLog',
       'gratitudeLog','socialContacts','mindfulnessLog','breathingLog','bugReports',
       'alcDaysLog','sweetsDaysLog','sweetsLog','pointsLog',
-      'waterLog','activeDaysLog','symptomLog','masterContacts'];
+      'waterLog','activeDaysLog','symptomLog','masterContacts','mealFeelingLog','alcAftermathLog'];
     arrays.forEach(k => { if (!Array.isArray(saved[k])) saved[k] = []; });
     return saved;
   }
@@ -4701,6 +4742,72 @@ function renderNutrition() {
   const el2 = document.getElementById('nutrition-sweets-status');
   if (el1) el1.textContent = `${drinkDays} von ${state.alcMax||3} Tagen diese Woche`;
   if (el2) el2.textContent = `${sweetsDays} von ${state.sweetsMax||3} Tagen diese Woche`;
+
+  // Meal feeling grid
+  renderBodyGrid('meal-grid', MEAL_FEELINGS, 'meal', true);
+  const mealBtn = document.getElementById('meal-log-btn');
+  if (mealBtn) { mealBtn.disabled = true; mealBtn.style.opacity = '0.4'; mealBtn.style.cursor = 'not-allowed'; }
+
+  // Alcohol aftermath card – show if yesterday was a drink day and not yet logged today
+  const card = document.getElementById('alc-aftermath-card');
+  if (card) {
+    const todayStr = new Date().toDateString();
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+    const yStr = yesterday.toDateString();
+    const drank = (state.alcDaysLog||[]).find(e => new Date(e.date).toDateString() === yStr && e.drank);
+    const alreadyLogged = state.alcAftermath?.date === todayStr;
+    const skipped = state.alcAftermathSkipped === todayStr;
+    card.style.display = (drank && !alreadyLogged && !skipped) ? '' : 'none';
+  }
+}
+
+let bodyMealNutrition = null;
+
+function renderBodyGridNutrition() {
+  // Called when meal emoji selected in nutrition
+  const mealBtn = document.getElementById('meal-log-btn');
+  if (mealBtn && bodyMealNutrition !== null) {
+    mealBtn.disabled = false; mealBtn.style.opacity = '1'; mealBtn.style.cursor = 'pointer';
+  }
+}
+
+function logMealFeeling() {
+  if (bodyMealNutrition === null) { showToast('Bitte zuerst ein Gefühl auswählen.'); return; }
+  if (!state.mealFeelingLog) state.mealFeelingLog = [];
+  state.mealFeelingLog.unshift({ ts: new Date().toISOString(), meal: bodyMealNutrition });
+  if (state.mealFeelingLog.length > 100) state.mealFeelingLog.pop();
+  bodyMealNutrition = null;
+  saveState();
+  renderNutrition();
+  showToast('🥗 Gefühl gespeichert.');
+}
+
+const AFTERMATH_DESCS = ['','sehr schlecht','schlecht','eher schlecht','mässig','okay','ganz gut','gut','sehr gut','ausgezeichnet','super'];
+
+function aftermathUpdate(type, v) {
+  const iv = parseInt(v);
+  document.getElementById(`aftermath-${type}-val`).textContent = iv;
+  document.getElementById(`aftermath-${type}-desc`).textContent = AFTERMATH_DESCS[iv]||'';
+}
+
+function logAlcAftermath() {
+  const energy = parseInt(document.getElementById('aftermath-energy-slider').value);
+  const mood   = parseInt(document.getElementById('aftermath-mood-slider').value);
+  const note   = document.getElementById('aftermath-note').value.trim();
+  if (!state.alcAftermath) state.alcAftermath = {};
+  state.alcAftermath = { date: new Date().toDateString(), energy, mood, note, ts: new Date().toISOString() };
+  if (!state.alcAftermathLog) state.alcAftermathLog = [];
+  state.alcAftermathLog.unshift({ ...state.alcAftermath });
+  if (state.alcAftermathLog.length > 100) state.alcAftermathLog.pop();
+  saveState();
+  renderNutrition();
+  showToast('😴 Gespeichert – danke für deine Ehrlichkeit.');
+}
+
+function skipAlcAftermath() {
+  state.alcAftermathSkipped = new Date().toDateString();
+  saveState();
+  renderNutrition();
 }
 
 // =====================
@@ -5212,9 +5319,18 @@ function renderBodyGrid(containerId, items, stateKey, selectable) {
     btn.style.cssText = `padding:10px 8px;border-radius:10px;border:2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};background:${isSelected ? '#eef6f1' : 'var(--bg)'};cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;transition:all 0.15s;`;
     btn.innerHTML = `<div style="font-size:1.4rem;">${item.emoji}</div><div style="margin-top:3px;color:var(--muted);font-size:0.72rem;">${item.label}</div>`;
     btn.onclick = () => {
-      if (stateKey === 'meal') { bodyMeal = bodyMeal === idx ? null : idx; }
-      bodyCheckReady();
-      renderBodyGrid(containerId, items, stateKey, selectable);
+      if (stateKey === 'meal') {
+        // Check which context we're in
+        if (containerId === 'meal-grid' && document.getElementById('section-nutrition')?.classList.contains('visible')) {
+          bodyMealNutrition = bodyMealNutrition === idx ? null : idx;
+          renderBodyGrid(containerId, items, stateKey, selectable);
+          renderBodyGridNutrition();
+        } else {
+          bodyMeal = bodyMeal === idx ? null : idx;
+          bodyCheckReady();
+          renderBodyGrid(containerId, items, stateKey, selectable);
+        }
+      }
     };
     container.appendChild(btn);
   });
@@ -5234,7 +5350,6 @@ function renderBody() {
   if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
   initSlider('hunger', bodyHunger !== null ? bodyHunger : 5);
   initSlider('body-feeling', bodyFeeling !== null ? bodyFeeling : 5);
-  renderBodyGrid('meal-grid', MEAL_FEELINGS, 'meal', true);
   renderBodyLog();
 }
 
@@ -5245,7 +5360,7 @@ function logBody() {
   state.bodyLog.unshift({
     ts: new Date().toISOString(),
     hunger,
-    meal: bodyMeal,
+    meal: null,
     feeling,
     note,
   });
