@@ -1447,6 +1447,17 @@
   <div class="card">
     <h2>Wie habe ich mich nach der letzten Mahlzeit gefühlt?</h2>
     <p class="small-note" style="margin-bottom:12px;">Körpersignale wahrnehmen – kein Druck, nur Bewusstsein.</p>
+
+    <!-- HUNGER / SÄTTIGUNG -->
+    <h3 style="margin-bottom:8px;">Hunger & Sättigung – gerade jetzt</h3>
+    <div class="vitalis-slider-wrap" style="margin-bottom:16px;">
+      <div class="vitalis-slider-value" id="hunger-val">5</div>
+      <div class="vitalis-slider-desc" id="hunger-desc">neutral</div>
+      <input type="range" id="hunger-slider" min="1" max="10" value="5"
+        oninput="updateSlider('hunger', this.value);mealReadyCheck()">
+      <div class="slider-labels"><span>😫 Ausgehungert</span><span>😮 Übervoll</span></div>
+    </div>
+
     <div id="meal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;"></div>
     <button id="meal-log-btn" class="log-btn secondary" onclick="logMealFeeling()" style="width:100%;opacity:0.4;cursor:not-allowed;" disabled>Gefühl speichern</button>
   </div>
@@ -1659,16 +1670,6 @@
   <div class="card">
     <h2>🧘 Wohlbefinden</h2>
     <p class="small-note" style="margin-bottom:16px;line-height:1.5;">Kein Muss, keine Punkte, kein Druck. Einfach beobachten – was nimmst du gerade wahr?</p>
-
-    <!-- HUNGER / SÄTTIGUNG -->
-    <h3 style="margin-bottom:8px;">Hunger & Sättigung – gerade jetzt</h3>
-    <div class="vitalis-slider-wrap">
-      <div class="vitalis-slider-value" id="hunger-val">5</div>
-      <div class="vitalis-slider-desc" id="hunger-desc">neutral</div>
-      <input type="range" id="hunger-slider" min="1" max="10" value="5"
-        oninput="updateSlider('hunger', this.value);bodyCheckReady()">
-      <div class="slider-labels"><span>😫 Ausgehungert</span><span>😮 Übervoll</span></div>
-    </div>
 
     <!-- KÖRPERGEFÜHL -->
     <h3 style="margin-bottom:8px;">Wie wohl fühle ich mich in meinem Körper?</h3>
@@ -4762,23 +4763,28 @@ function renderNutrition() {
 }
 
 let bodyMealNutrition = null;
+let mealHungerTouched = false;
+
+function mealReadyCheck() {
+  mealHungerTouched = true;
+  const btn = document.getElementById('meal-log-btn');
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+}
 
 function renderBodyGridNutrition() {
-  // Called when meal emoji selected in nutrition
-  const mealBtn = document.getElementById('meal-log-btn');
-  if (mealBtn && bodyMealNutrition !== null) {
-    mealBtn.disabled = false; mealBtn.style.opacity = '1'; mealBtn.style.cursor = 'pointer';
-  }
+  bodyMealNutrition !== null && mealReadyCheck();
 }
 
 function logMealFeeling() {
-  if (bodyMealNutrition === null) { showToast('Bitte zuerst ein Gefühl auswählen.'); return; }
+  const hunger = parseInt(document.getElementById('hunger-slider')?.value || 5);
   if (!state.mealFeelingLog) state.mealFeelingLog = [];
-  state.mealFeelingLog.unshift({ ts: new Date().toISOString(), meal: bodyMealNutrition });
+  state.mealFeelingLog.unshift({ ts: new Date().toISOString(), meal: bodyMealNutrition, hunger });
   if (state.mealFeelingLog.length > 100) state.mealFeelingLog.pop();
   bodyMealNutrition = null;
+  mealHungerTouched = false;
+  const btn = document.getElementById('meal-log-btn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
   saveState();
-  renderNutrition();
   showToast('🥗 Gefühl gespeichert.');
 }
 
@@ -5348,7 +5354,6 @@ function renderBody() {
   bodyTouched = false;
   const btn = document.getElementById('body-log-btn');
   if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
-  initSlider('hunger', bodyHunger !== null ? bodyHunger : 5);
   initSlider('body-feeling', bodyFeeling !== null ? bodyFeeling : 5);
   renderBodyLog();
 }
