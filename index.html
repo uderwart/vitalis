@@ -2,7 +2,11 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vitalis">
+<meta name="theme-color" content="#2d5a3d">
 <title>Vitalis – Dein Gesundheits-Tracker</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -27,8 +31,8 @@
     font-family: 'DM Sans', sans-serif;
     background: var(--bg);
     color: var(--ink);
-    min-height: 100vh;
-    padding-bottom: 90px;
+    min-height: 100vh; min-height: -webkit-fill-available;
+    padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
   }
 
   header {
@@ -67,10 +71,11 @@
     display: flex;
     z-index: 200;
     box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   #bottom-nav button {
     flex: 1;
-    padding: 10px 8px 14px;
+    padding: 10px 8px 10px;
     border: none;
     background: transparent;
     font-family: 'DM Sans', sans-serif;
@@ -952,7 +957,7 @@
 </div>
 
 <!-- 2-MINUTEN OVERLAY -->
-<div id="twomin-overlay" style="display:none;position:fixed;inset:0;z-index:4000;background:linear-gradient(160deg,#1a3a2a,#2d5a3d);flex-direction:column;padding:32px 24px;">
+<div id="twomin-overlay" style="display:none;position:fixed;inset:0;z-index:4000;background:linear-gradient(160deg,#1a3a2a,#2d5a3d);flex-direction:column;padding:env(safe-area-inset-top,32px) 24px env(safe-area-inset-bottom,32px) 24px;padding-top:max(32px,env(safe-area-inset-top));padding-bottom:max(32px,env(safe-area-inset-bottom));">
   <div style="font-family:'DM Serif Display',serif;font-size:1rem;color:rgba(255,255,255,0.7);text-align:center;margin-bottom:16px;" id="twomin-title">⚡ Schnell Check-in</div>
   <div style="display:flex;gap:8px;margin-bottom:32px;justify-content:center;">
     <div class="tm-dot active" id="tm-dot-0"></div>
@@ -984,15 +989,15 @@
 
       <!-- Aktivitäten -->
       <div style="font-size:0.7rem;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🏃 Aktivitäten</div>
-      <div id="tm-activity-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:140px;overflow-y:auto;"></div>
+      <div id="tm-activity-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:140px;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
 
       <!-- Achtsamkeit -->
       <div style="font-size:0.7rem;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🪷 Achtsamkeit</div>
-      <div id="tm-mindfulness-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:120px;overflow-y:auto;"></div>
+      <div id="tm-mindfulness-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
 
       <!-- Kontakte -->
       <div style="font-size:0.7rem;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">❤️ Kontakte</div>
-      <div id="tm-contacts-list" style="display:flex;flex-direction:column;gap:6px;max-height:100px;overflow-y:auto;"></div>
+      <div id="tm-contacts-list" style="display:flex;flex-direction:column;gap:6px;max-height:100px;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
     </div>
     <!-- Step 2: Gefühl -->
     <div id="tm-step-2" style="display:none;text-align:center;">
@@ -1025,7 +1030,7 @@
 </div>
 
 <!-- CHECK-OUT OVERLAY (Abends) -->
-<div id="checkout-overlay" style="display:none;position:fixed;inset:0;z-index:4000;background:linear-gradient(160deg,#1a1a3e,#2d2060);flex-direction:column;padding:32px 24px;">
+<div id="checkout-overlay" style="display:none;position:fixed;inset:0;z-index:4000;background:linear-gradient(160deg,#1a1a3e,#2d2060);flex-direction:column;padding:32px 24px;padding-top:max(32px,env(safe-area-inset-top));padding-bottom:max(32px,env(safe-area-inset-bottom));">
   <div style="font-family:'DM Serif Display',serif;font-size:1rem;color:rgba(255,255,255,0.7);text-align:center;margin-bottom:16px;">🌙 Guten Abend – Check-out</div>
   <div style="display:flex;gap:8px;margin-bottom:32px;justify-content:center;">
     <div class="tm-dot active" id="co-dot-0"></div>
@@ -1054,7 +1059,7 @@
       </div>
       <div id="co-act-unplanned" style="display:none;">
         <div style="font-size:0.82rem;color:rgba(255,255,255,0.6);margin-bottom:12px;">Wähle eine Aktivität</div>
-        <div id="co-act-list" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;"></div>
+        <div id="co-act-list" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
         <div id="co-dur-unplanned" style="display:none;margin-top:16px;">
           <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:6px;">Wie lange?</div>
           <div style="font-family:'DM Serif Display',serif;font-size:2.5rem;color:white;margin-bottom:6px;" id="co-dur-val2">30 Min</div>
@@ -1234,7 +1239,7 @@
     </div>
     <div id="custom-date-row" style="display:none;padding:8px 12px;background:var(--bg);border-radius:10px;border:2px solid var(--border);margin-bottom:8px;">
       <input type="date" id="activity-custom-date"
-        style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;color:var(--ink);outline:none;width:100%;"
+        style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;color:var(--ink);outline:none;width:100%;"
         onchange="selectCustomDate(this.value)">
     </div>
 
@@ -1248,7 +1253,7 @@
     <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:10px;border:2px solid var(--border);" id="custom-time-row">
       <label style="font-size:0.82rem;color:var(--muted);white-space:nowrap;">🕐 Eigene Uhrzeit:</label>
       <input type="time" id="activity-custom-time"
-        style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;color:var(--ink);outline:none;cursor:pointer;"
+        style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;color:var(--ink);outline:none;cursor:pointer;"
         onchange="selectCustomTime(this.value)" onclick="activateCustomTime()">
     </div>
     <div style="font-size:0.78rem;color:var(--muted);margin:8px 0 12px;padding:8px 12px;background:var(--bg);border-radius:8px;" id="activity-time-preview">
@@ -1378,7 +1383,7 @@
       <div style="margin-bottom:12px;">
         <label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:6px;">Startdatum</label>
         <input type="date" id="challenge-start-date"
-          style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.95rem;">
+          style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:1rem;">
       </div>
       <button class="log-btn" onclick="startChallenge()">Challenge starten 🚀</button>
       <div id="challenge-done-note" style="display:none;margin-top:10px;" class="small-note"></div>
@@ -1576,12 +1581,12 @@
       <div style="flex:1;">
         <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;">Ins Bett</label>
         <input type="time" id="sleep-bedtime"
-          style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;">
+          style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;">
       </div>
       <div style="flex:1;">
         <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;">Aufgestanden</label>
         <input type="time" id="sleep-waketime"
-          style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;">
+          style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;">
       </div>
     </div>
 
@@ -1776,6 +1781,13 @@
     <p class="small-note" id="vl-activity-empty">Keine Einträge im Zeitraum.</p>
   </div>
 
+  <!-- Wasser -->
+  <div class="card">
+    <h2>💧 Wasser</h2>
+    <div id="vl-water-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-water-empty">Keine Einträge im Zeitraum.</p>
+  </div>
+
   <!-- Gefühl -->
   <div class="card" id="vl-feeling-card">
     <h2>😊 Gefühl</h2>
@@ -1916,12 +1928,12 @@
       <div style="flex:3;min-width:140px;">
         <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:3px;">Belohnung</label>
         <input type="text" id="reward-name-input" placeholder="z.B. Massage buchen 💆"
-          style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
+          style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;">
       </div>
       <div style="flex:2;min-width:90px;">
         <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:3px;">ab Punkte</label>
         <input type="number" id="reward-pts-input" placeholder="10000" min="10" max="99999" step="10"
-          style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;text-align:center;">
+          style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;">
       </div>
       <button onclick="addCustomReward()" style="padding:8px 14px;background:var(--gold);color:white;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;">+ Hinzufügen</button>
     </div>
@@ -1981,12 +1993,12 @@
       <div style="margin-bottom:10px;">
         <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Meine Gewohnheit</label>
         <input type="text" id="habit-name-input" placeholder="z.B. Täglich 30 Min bewegen"
-          style="width:100%;padding:10px 14px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;">
+          style="width:100%;padding:10px 14px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;">
       </div>
       <div style="margin-bottom:14px;">
         <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Startdatum</label>
         <input type="date" id="habit-start-input"
-          style="width:100%;padding:10px 12px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;">
+          style="width:100%;padding:10px 12px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;">
       </div>
       <button onclick="startHabit()" class="log-btn" style="width:100%;background:#3a5bc7;border-color:#3a5bc7;">
         🌱 90-Tage-Commitment starten
@@ -2029,40 +2041,40 @@
 
   <div style="padding:4px 4px 16px;">
     <h1 style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);">❤️ Kontakte</h1>
-    <p style="font-size:0.82rem;color:var(--muted);margin-top:4px;line-height:1.5;">Wer verdient diese Woche deine Aufmerksamkeit? Aufschreiben erhöht die Wahrscheinlichkeit deutlich.</p>
+    <p style="font-size:0.82rem;color:var(--muted);margin-top:4px;line-height:1.5;">Wer verdient diese Woche deine Aufmerksamkeit?</p>
   </div>
 
-  <!-- Diese Woche -->
+  <!-- MEINE KONTAKTE (dauerhaft gespeichert) -->
   <div class="card">
-    <h2>Diese Woche</h2>
-    <div id="social-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
-    <p class="small-note" id="social-empty" style="margin-bottom:12px;">Noch niemanden eingetragen.</p>
+    <h2>Meine Kontakte</h2>
+    <p class="small-note" style="margin-bottom:12px;">Einmal anlegen – dann jede Woche auswählen.</p>
+    <div id="contacts-master-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
+    <p class="small-note" id="contacts-master-empty" style="margin-bottom:12px;">Noch keine Kontakte angelegt.</p>
 
-    <!-- Neuen Kontakt hinzufügen -->
+    <!-- Neuen Kontakt anlegen -->
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <input type="text" id="social-name-input" placeholder="Name (z.B. Maria, Papa, Kai…)"
-        style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;">
-      <div style="display:flex;gap:8px;">
-        <select id="social-how-input"
-          style="flex:1;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.88rem;background:white;color:var(--ink);">
-          <option value="Treffen">☕ Treffen</option>
-          <option value="Anruf">📞 Anruf</option>
-          <option value="Nachricht">💬 Nachricht</option>
-          <option value="Brief">✉️ Brief</option>
-        </select>
-        <button onclick="addSocialContact()" class="log-btn" style="padding:10px 18px;white-space:nowrap;">+ Hinzufügen</button>
-      </div>
+      <input type="text" id="contact-name-input" placeholder="Name (z.B. Maria, Papa, Kai…)"
+        style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;background:var(--bg);color:var(--ink);">
+      <button onclick="addMasterContact()" class="log-btn" style="width:100%;">+ Kontakt speichern</button>
     </div>
-    <button class="alc-reset" style="margin-top:10px;" onclick="resetSocialWeek()">Neue Woche starten</button>
   </div>
 
-  <!-- Warum das wichtig ist -->
+  <!-- DIESE WOCHE -->
+  <div class="card">
+    <h2>Diese Woche planen</h2>
+    <p class="small-note" style="margin-bottom:12px;">Kontakt antippen → Kontaktart wählen → zu dieser Woche hinzufügen.</p>
+    <div id="social-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px;"></div>
+    <p class="small-note" id="social-empty" style="margin-bottom:8px;">Noch niemanden für diese Woche eingeplant.</p>
+    <button class="alc-reset" style="margin-top:6px;" onclick="resetSocialWeek()">Woche zurücksetzen</button>
+  </div>
+
+  <!-- WARUM DAS ZÄHLT -->
   <div class="card" style="background:linear-gradient(135deg,#fff5f5,#ffe8e8);border-color:transparent;">
     <h2 style="color:#c0392b;">Warum das zählt</h2>
     <p style="font-size:0.85rem;line-height:1.6;color:var(--ink);">
-      Die Harvard Study of Adult Development – die längste Wohlbefindensstudie der Geschichte (80+ Jahre) – zeigt: <strong>Qualität der Beziehungen ist der stärkste Prädiktor für Gesundheit und Lebenszufriedenheit.</strong> Stärker als Geld, Fitness oder Erfolg.
+      Die Harvard Study of Adult Development – die längste Wohlbefindensstudie der Geschichte (80+ Jahre) – zeigt: <strong>Qualität der Beziehungen ist der stärkste Prädiktor für Gesundheit und Lebenszufriedenheit.</strong>
     </p>
-    <p style="font-size:0.78rem;color:var(--muted);margin-top:8px;font-style:italic;">Vaillant & Mukamal, 2001 · Waldinger & Schulz, 2023</p>
+    <p style="font-size:0.78rem;color:var(--muted);margin-top:8px;font-style:italic;">Waldinger & Schulz, 2023</p>
   </div>
 
 </div>
@@ -2367,7 +2379,7 @@
         <div>
           <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;">Geburtsdatum</label>
           <input type="date" id="profile-birthdate"
-            style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;"
+            style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;"
             onchange="saveProfile()">
         </div>
         <div>
@@ -2385,7 +2397,7 @@
       <div>
         <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;">💡 Wenn-Dann-Plan</label>
         <input type="text" id="profile-intention" placeholder="z.B. Wenn ich Kaffee mache, logge ich mein Wasser."
-          style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.88rem;"
+          style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;"
           onchange="saveProfile()">
         <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">Erscheint täglich auf der Heute-Seite als Erinnerung.</div>
       </div>
@@ -2753,7 +2765,8 @@ function loadState() {
     sleepCheckinSkipped: null,
     gratitudeLog: [],
     gratitudeSkipped: null,
-    socialContacts: [],  // [{name, how, done, week}]
+    socialContacts: [],  // weekly planned [{name, how, done, week, doneAt}]
+    masterContacts: [],  // persistent [{name, id}]
     breathingEnabled: true,
     breathingTechnique: 'box',
     breathingPausesPerDay: 2,
@@ -2775,7 +2788,7 @@ function loadState() {
     const arrays = ['activityLog','feelingLog','weightLog','bodyLog','sleepLog',
       'gratitudeLog','socialContacts','mindfulnessLog','breathingLog','bugReports',
       'alcDaysLog','sweetsDaysLog','sweetsLog','pointsLog',
-      'waterLog','activeDaysLog','symptomLog'];
+      'waterLog','activeDaysLog','symptomLog','masterContacts'];
     arrays.forEach(k => { if (!Array.isArray(saved[k])) saved[k] = []; });
     return saved;
   }
@@ -3401,16 +3414,16 @@ function renderActivities() {
       <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
         ${isSteps ? `
           <input type="number" value="${stepsVal}" min="100" max="100000" step="500"
-            style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;background:var(--bg);color:var(--ink);"
+            style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
             onclick="event.stopPropagation()" onchange="updateActivitySteps(event,${i})">
           <span style="font-size:0.78rem;color:var(--muted);">Schritte</span>
         ` : `
           <input type="number" value="${a.min}" min="1" max="300"
-            style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;background:var(--bg);color:var(--ink);"
+            style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
             onclick="event.stopPropagation()" onchange="updateActivityDuration(event,${i})">
           <span style="font-size:0.78rem;color:var(--muted);">Min</span>
           <input type="number" value="${ppm}" min="1" max="20"
-            style="width:50px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;background:var(--bg);color:var(--ink);"
+            style="width:50px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
             onclick="event.stopPropagation()" onchange="updateActivityPts(event,${i})">
           <span style="font-size:0.78rem;color:var(--muted);">Pkt/Min</span>
         `}
@@ -3749,26 +3762,26 @@ function renderActivityLog() {
           <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">${e.label?.includes('Schritte') ? 'Schritte' : 'Minuten'}</label>
           <input type="number" value="${e.label?.includes('Schritte') ? parseInt(e.label) : e.min}"
             min="1" max="${e.label?.includes('Schritte') ? 100000 : 300}"
-            style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;"
+            style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;"
             onchange="editActivityLogField(${i},'min',this.value)">
         </div>
         <div>
           <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">Datum</label>
           <input type="date" value="${tsDate}" max="${new Date().toISOString().split('T')[0]}"
-            style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.88rem;"
+            style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;"
             onchange="editActivityLogField(${i},'date',this.value)">
         </div>
         <div>
           <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">Uhrzeit</label>
           <input type="time" value="${tsTime}"
-            style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.88rem;"
+            style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;"
             onchange="editActivityLogField(${i},'time',this.value)">
         </div>
         <div>
           <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">Punkte</label>
           <input type="number" value="${e.pts}"
             min="0" max="9999"
-            style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;"
+            style="width:100%;padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;"
             onchange="editActivityLogField(${i},'pts',this.value)">
         </div>
       </div>
@@ -5697,6 +5710,38 @@ function renderVerlauf() {
     return `<span style="font-size:1rem;">${e.icon||'🏃'}</span><span style="flex:1;font-weight:600;">${e.name} · ${e.label||e.min+' min'}${feelBefore}${feelAfter}</span><span style="color:var(--muted);font-size:0.75rem;white-space:nowrap;">${ds}</span><span class="pts">+${e.pts}</span><button onclick="deleteActivityLog(${idx})" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:1rem;padding:0;flex-shrink:0;">✕</button>`;
   });
 
+  // Wasser – waterLog hat {date: dateString, ml}
+  const allWater = (state.waterLog||[]).filter(e => e.ml > 0);
+  const now2 = new Date();
+  const waterEntries = allWater.filter(e => {
+    const d = new Date(e.date);
+    if (verlaufFilter === 'heute') return e.date === now2.toDateString();
+    if (verlaufFilter === 'woche') { const ws = new Date(now2); ws.setDate(now2.getDate()-7); return d >= ws; }
+    if (verlaufFilter === 'monat') { const ms = new Date(now2); ms.setDate(now2.getDate()-30); return d >= ms; }
+    return true;
+  }).sort((a,b) => new Date(b.date)-new Date(a.date));
+
+  const wList = document.getElementById('vl-water-list');
+  const wEmpty = document.getElementById('vl-water-empty');
+  if (wList) {
+    wList.innerHTML = '';
+    if (!waterEntries.length) { if(wEmpty) wEmpty.style.display=''; }
+    else {
+      if(wEmpty) wEmpty.style.display='none';
+      waterEntries.forEach(e => {
+        const d = new Date(e.date);
+        const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+        const goal = state.waterGoal || 2000;
+        const pct = Math.min(100, Math.round(e.ml / goal * 100));
+        const color = pct >= 100 ? 'var(--accent)' : pct >= 60 ? 'var(--gold)' : 'var(--accent2)';
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg);border-radius:8px;font-size:0.82rem;';
+        div.innerHTML = `<span style="font-size:1rem;">💧</span><span style="flex:1;font-weight:600;">${e.ml} ml</span><span style="font-size:0.78rem;color:${color};font-weight:600;">${pct}%</span><span style="color:var(--muted);font-size:0.75rem;">${ds}</span>`;
+        wList.appendChild(div);
+      });
+    }
+  }
+
   // Gefühl – aus feelingLog UND aus activityLog/mindfulnessLog
   const feelsManual = filterByDate(state.feelingLog, verlaufFilter);
   const feelsFromActs = filterByDate(state.activityLog, verlaufFilter)
@@ -5903,16 +5948,16 @@ function renderMindfulness() {
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
         <input type="number" value="${a.min}" min="1" max="120"
-          style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;background:var(--bg);color:var(--ink);"
+          style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
           onclick="event.stopPropagation()" onchange="updateMindfulnessDur(event,${i})">
         <span style="font-size:0.78rem;color:var(--muted);">Min</span>
         <input type="number" value="${a.ptsPerMin||3}" min="1" max="20"
-          style="width:50px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-align:center;background:var(--bg);color:var(--ink);"
+          style="width:50px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
           onclick="event.stopPropagation()" onchange="updateMindfulnessPts(event,${i})">
         <span style="font-size:0.78rem;color:var(--muted);">Pkt/Min</span>
         ${a.link ? `<a href="${a.link}" target="_blank" style="font-size:0.78rem;color:#457b9d;text-decoration:none;">🔗 Link</a>` : ''}
         <input type="url" value="${a.link||''}" placeholder="🔗 Link (optional)"
-          style="flex:1;min-width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.75rem;color:var(--muted);background:var(--bg);"
+          style="flex:1;min-width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;color:var(--muted);background:var(--bg);"
           onchange="updateMindfulnessLink(${i}, this.value)" onclick="event.stopPropagation()">
       </div>
     `;
@@ -6237,6 +6282,15 @@ function deleteGratitudeEntry(i) {
 // =====================
 // SOCIAL CONTACTS
 // =====================
+// KONTAKTE
+// =====================
+const CONTACT_TYPES = [
+  { key: 'Nachricht', emoji: '💬', label: 'Nachricht' },
+  { key: 'Anruf',     emoji: '📞', label: 'Anruf' },
+  { key: 'Treffen',   emoji: '☕', label: 'Treffen' },
+  { key: 'Brief',     emoji: '✉️', label: 'Brief / Karte' },
+];
+
 function getCurrentWeekKey() {
   const d = new Date();
   const jan1 = new Date(d.getFullYear(), 0, 1);
@@ -6244,45 +6298,105 @@ function getCurrentWeekKey() {
   return d.getFullYear() + '-W' + week;
 }
 
-function renderSocial() {
-  const list  = document.getElementById('social-list');
-  const empty = document.getElementById('social-empty');
-  const week  = getCurrentWeekKey();
-  const weekContacts = (state.socialContacts || []).filter(c => c.week === week);
+function addMasterContact() {
+  const name = document.getElementById('contact-name-input').value.trim();
+  if (!name) { showToast('Bitte einen Namen eingeben.'); return; }
+  if (!state.masterContacts) state.masterContacts = [];
+  if (state.masterContacts.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+    showToast('Kontakt bereits vorhanden.'); return;
+  }
+  state.masterContacts.push({ id: Date.now(), name });
+  document.getElementById('contact-name-input').value = '';
+  saveState();
+  renderSocial();
+  showToast('❤️ ' + name + ' gespeichert.');
+}
 
-  list.innerHTML = '';
-  if (!weekContacts.length) { empty.style.display = ''; return; }
-  empty.style.display = 'none';
-
-  weekContacts.forEach((c, idx) => {
-    const realIdx = state.socialContacts.indexOf(c);
-    const div = document.createElement('div');
-    div.style.cssText = `display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:2px solid ${c.done ? 'var(--accent)' : 'var(--border)'};background:${c.done ? '#eef6f1' : 'white'};transition:all 0.2s;`;
-    div.innerHTML = `
-      <button onclick="toggleSocialDone(${realIdx})"
-        style="width:28px;height:28px;border-radius:50%;border:2px solid ${c.done ? 'var(--accent)' : 'var(--border)'};background:${c.done ? 'var(--accent)' : 'white'};color:white;font-size:0.9rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-        ${c.done ? '✓' : ''}
-      </button>
-      <div style="flex:1;">
-        <div style="font-weight:600;font-size:0.92rem;${c.done ? 'text-decoration:line-through;color:var(--muted);' : ''}">${c.name}</div>
-        <div style="font-size:0.75rem;color:var(--muted);">${c.how}</div>
-      </div>
-      <button onclick="deleteSocialContact(${realIdx})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0;">✕</button>
-    `;
-    list.appendChild(div);
+function deleteMasterContact(id) {
+  showConfirm('Kontakt löschen?', 'Diesen Kontakt dauerhaft entfernen?', () => {
+    state.masterContacts = (state.masterContacts||[]).filter(c => c.id !== id);
+    saveState();
+    renderSocial();
   });
 }
 
-function addSocialContact() {
-  const name = document.getElementById('social-name-input').value.trim();
-  const how  = document.getElementById('social-how-input').value;
-  if (!name) { showToast('Bitte einen Namen eingeben.'); return; }
+function addToWeek(masterId, how) {
+  const master = (state.masterContacts||[]).find(c => c.id === masterId);
+  if (!master) return;
+  const week = getCurrentWeekKey();
   if (!state.socialContacts) state.socialContacts = [];
-  state.socialContacts.push({ name, how, done: false, week: getCurrentWeekKey(), ts: new Date().toISOString() });
-  document.getElementById('social-name-input').value = '';
+  // Avoid duplicate same contact+how this week
+  const exists = state.socialContacts.find(c => c.week === week && c.masterId === masterId && c.how === how);
+  if (exists) { showToast('Bereits für diese Woche geplant.'); return; }
+  state.socialContacts.push({ masterId, name: master.name, how, done: false, week, ts: new Date().toISOString() });
   saveState();
   renderSocial();
-  showToast('❤️ ' + name + ' hinzugefügt.');
+  const t = CONTACT_TYPES.find(t => t.key === how);
+  showToast(`${t?.emoji||'❤️'} ${master.name} – ${how} geplant!`);
+}
+
+function renderSocial() {
+  // Master contacts list
+  const masterList  = document.getElementById('contacts-master-list');
+  const masterEmpty = document.getElementById('contacts-master-empty');
+  const masters = state.masterContacts || [];
+
+  if (masterList) {
+    masterList.innerHTML = '';
+    if (!masters.length) { masterEmpty.style.display = ''; }
+    else {
+      masterEmpty.style.display = 'none';
+      masters.forEach(m => {
+        const div = document.createElement('div');
+        div.style.cssText = 'background:var(--bg);border-radius:12px;padding:12px 14px;';
+        div.innerHTML = `
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <span style="font-size:1.1rem;">❤️</span>
+            <span style="font-weight:600;font-size:0.92rem;flex:1;">${m.name}</span>
+            <button onclick="deleteMasterContact(${m.id})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;padding:0;">✕</button>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${CONTACT_TYPES.map(t => `
+              <button onclick="addToWeek(${m.id},'${t.key}')"
+                style="padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;color:var(--ink);">
+                ${t.emoji} ${t.label}
+              </button>`).join('')}
+          </div>`;
+        masterList.appendChild(div);
+      });
+    }
+  }
+
+  // This week
+  const list  = document.getElementById('social-list');
+  const empty = document.getElementById('social-empty');
+  const week  = getCurrentWeekKey();
+  const weekContacts = (state.socialContacts||[]).filter(c => c.week === week);
+
+  if (list) {
+    list.innerHTML = '';
+    if (!weekContacts.length) { empty.style.display = ''; }
+    else {
+      empty.style.display = 'none';
+      weekContacts.forEach(c => {
+        const realIdx = state.socialContacts.indexOf(c);
+        const t = CONTACT_TYPES.find(t => t.key === c.how) || { emoji: '❤️' };
+        const div = document.createElement('div');
+        div.style.cssText = `display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:2px solid ${c.done ? 'var(--accent)' : 'var(--border)'};background:${c.done ? '#eef6f1' : 'var(--card)'};`;
+        div.innerHTML = `
+          <button onclick="toggleSocialDone(${realIdx})"
+            style="width:28px;height:28px;border-radius:50%;border:2px solid ${c.done ? 'var(--accent)' : 'var(--border)'};background:${c.done ? 'var(--accent)' : 'transparent'};color:white;font-size:0.9rem;cursor:pointer;flex-shrink:0;">
+            ${c.done ? '✓' : ''}
+          </button>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:0.9rem;${c.done ? 'text-decoration:line-through;color:var(--muted);' : ''}">${c.name}</div>
+            <div style="font-size:0.75rem;color:var(--muted);">${t.emoji} ${c.how}</div>
+          </div>
+          <button onclick="deleteSocialContact(${realIdx})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0;">✕</button>`;
+        list.appendChild(div);
+      });
+    }
+  }
 }
 
 function toggleSocialDone(i) {
@@ -6295,19 +6409,18 @@ function toggleSocialDone(i) {
 }
 
 function deleteSocialContact(i) {
-  showConfirm('Kontakt entfernen?', 'Diesen Eintrag löschen?', () => {
-    state.socialContacts.splice(i, 1);
-    saveState();
-    renderSocial();
-  });
+  state.socialContacts.splice(i, 1);
+  saveState();
+  renderSocial();
 }
 
 function resetSocialWeek() {
-  showConfirm('Neue Woche?', 'Die Liste wird für diese Woche zurückgesetzt.', () => {
-    // Keep old entries but mark as old week (they won't show)
+  showConfirm('Woche zurücksetzen?', 'Alle Einträge dieser Woche werden entfernt.', () => {
+    const week = getCurrentWeekKey();
+    state.socialContacts = (state.socialContacts||[]).filter(c => c.week !== week);
     saveState();
     renderSocial();
-    showToast('Neue Woche, neue Kontakte! ❤️');
+    showToast('Neue Woche! ❤️');
   });
 }
 
@@ -6575,9 +6688,11 @@ function startCheckout() {
     const acts = indices.map(i => state.activities[i]).filter(Boolean);
     const exs = getMindfulnessExercises ? getMindfulnessExercises() : [];
     const minds = (planned?.mindIndices||[]).map(i => exs[i]).filter(Boolean);
-    const week = getCurrentWeekKey ? getCurrentWeekKey() : '';
-    const weekContacts = (state.socialContacts||[]).filter(c => c.week === week && !c.done);
-    const contacts = (planned?.contactIndices||[]).map(i => weekContacts[i]).filter(Boolean);
+    const contactPlans = planned?.contactPlans || [];
+    const contacts = contactPlans.map(p => {
+      const m = (state.masterContacts||[]).find(m => m.id === p.masterId);
+      return m ? { ...p, name: m.name } : null;
+    }).filter(Boolean);
 
     let html = `<div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:12px;">HEUTE GEPLANT</div>`;
 
@@ -6589,7 +6704,7 @@ function startCheckout() {
           <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
           <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-dur-val-${idx}">0 Min</div>
           <input type="range" id="co-dur-slider-${idx}" min="0" max="${Math.max(a.min,120)}" step="5" value="0"
-            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;accent-color:white;"
+            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
             oninput="document.getElementById('co-dur-val-${idx}').textContent=this.value+' Min'">
           <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
             <span>Nicht gemacht</span><span>${a.min} Min</span>
@@ -6605,7 +6720,7 @@ function startCheckout() {
           <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
           <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-mind-val-${idx}">0 Min</div>
           <input type="range" id="co-mind-slider-${idx}" min="0" max="${Math.max(a.min,60)}" step="5" value="0"
-            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;accent-color:white;"
+            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
             oninput="document.getElementById('co-mind-val-${idx}').textContent=this.value+' Min'">
           <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
             <span>Nicht gemacht</span><span>${a.min} Min</span>
@@ -6614,11 +6729,11 @@ function startCheckout() {
     });
 
     contacts.forEach((c, j) => {
-      const idx = (planned.contactIndices||[])[j];
+      const t = CONTACT_TYPES.find(t => t.key === c.how)||{emoji:'❤️'};
       html += `
         <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;">
-          <div style="flex:1;font-weight:700;font-size:1rem;color:white;">❤️ ${c.name}</div>
-          <button id="co-contact-btn-${idx}" onclick="coToggleContact(${idx},this)"
+          <div style="flex:1;font-weight:700;font-size:1rem;color:white;">${t.emoji} ${c.name} – ${c.how}</div>
+          <button id="co-contact-btn-${j}" onclick="coToggleContact(${j},this)"
             style="padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;">
             Erledigt ✓
           </button>
@@ -6768,9 +6883,11 @@ function coSave() {
 
   // 1c. Kontakte
   const week = getCurrentWeekKey ? getCurrentWeekKey() : '';
-  const weekContacts = (state.socialContacts||[]).filter(c => c.week === week && !c.done);
-  coCompletedContacts.forEach(idx => {
-    const c = weekContacts[idx];
+  const contactPlans = planned?.contactPlans || [];
+  coCompletedContacts.forEach(j => {
+    const plan = contactPlans[j];
+    if (!plan) return;
+    const c = (state.socialContacts||[]).find(sc => sc.masterId === plan.masterId && sc.how === plan.how && sc.week === week);
     if (c) { c.done = true; c.doneAt = new Date().toISOString(); }
   });
   const waterMl = parseInt(document.getElementById('co-water-slider')?.value || 0);
@@ -6838,6 +6955,7 @@ function startTwoMin() {
   tmSelectedActivities = [];
   tmSelectedMindfulnesses = [];
   tmSelectedContacts = [];
+  tmSelectedContactPlans = [];
   const timeRow = document.getElementById('tm-time-row');
   if (timeRow) timeRow.style.display = 'none';
   const durRow = document.getElementById('tm-dur-row');
@@ -6873,20 +6991,26 @@ function startTwoMin() {
       </button>`).join('');
   }
 
-  // Build contacts list
+  // Build contacts list from master contacts
   const clist = document.getElementById('tm-contacts-list');
   if (clist) {
-    const week = getCurrentWeekKey ? getCurrentWeekKey() : '';
-    const contacts = (state.socialContacts||[]).filter(c => c.week === week && !c.done);
-    if (contacts.length) {
-      clist.innerHTML = contacts.map((c,i) => `
-        <button class="tm-activity-btn" onclick="tmSelectContact(${i},this)">
-          <span style="font-size:1.2rem;">❤️</span>
-          <span style="flex:1;margin-left:8px;">${c.name}</span>
-          <span style="font-size:0.78rem;opacity:0.6;">${c.type||'Kontakt'}</span>
-        </button>`).join('');
+    const masters = state.masterContacts || [];
+    if (masters.length) {
+      clist.innerHTML = masters.map((m, i) => `
+        <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:10px 12px;margin-bottom:4px;">
+          <div style="font-weight:600;font-size:0.88rem;color:white;margin-bottom:8px;">❤️ ${m.name}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${CONTACT_TYPES.map(t => `
+              <button onclick="tmSelectContactType(${m.id},'${t.key}',this)"
+                class="tm-contact-type-btn"
+                data-id="${m.id}" data-type="${t.key}"
+                style="padding:5px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;">
+                ${t.emoji} ${t.label}
+              </button>`).join('')}
+          </div>
+        </div>`).join('');
     } else {
-      clist.innerHTML = `<div style="font-size:0.82rem;color:rgba(255,255,255,0.4);padding:6px 0;">Keine Kontakte diese Woche geplant</div>`;
+      clist.innerHTML = `<div style="font-size:0.82rem;color:rgba(255,255,255,0.4);padding:6px 0;">Keine Kontakte gespeichert – zuerst in der Kontakte-Sektion anlegen.</div>`;
     }
   }
   // Show overlay
@@ -6907,6 +7031,30 @@ function tmToggleSelection(arr, i, el) {
   } else {
     arr.push(i);
     el.classList.add('selected');
+  }
+  tmUpdateNextBtn();
+}
+
+// For contacts: store {masterId, how} pairs
+let tmSelectedContactPlans = []; // [{masterId, how}]
+
+function tmSelectContactType(masterId, how, btn) {
+  // Toggle: if already selected with same type, deselect
+  const existing = tmSelectedContactPlans.findIndex(p => p.masterId === masterId && p.how === how);
+  if (existing >= 0) {
+    tmSelectedContactPlans.splice(existing, 1);
+    btn.style.background = 'rgba(255,255,255,0.08)';
+    btn.style.borderColor = 'rgba(255,255,255,0.25)';
+  } else {
+    // Deselect other types for same contact
+    tmSelectedContactPlans = tmSelectedContactPlans.filter(p => p.masterId !== masterId);
+    document.querySelectorAll(`.tm-contact-type-btn[data-id="${masterId}"]`).forEach(b => {
+      b.style.background = 'rgba(255,255,255,0.08)';
+      b.style.borderColor = 'rgba(255,255,255,0.25)';
+    });
+    tmSelectedContactPlans.push({ masterId, how });
+    btn.style.background = 'rgba(255,255,255,0.3)';
+    btn.style.borderColor = 'rgba(255,255,255,0.7)';
   }
   tmUpdateNextBtn();
 }
@@ -6949,7 +7097,7 @@ function tmUpdateNextBtn() {
   const nextBtn = document.getElementById('tm-next-btn');
   if (!nextBtn) return;
   if (tmStep === 3) { nextBtn.textContent = '✅ Fertig!'; return; }
-  const total = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContacts.length;
+  const total = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContactPlans.length;
   if (tmStep === 1 && total === 0) {
     nextBtn.textContent = 'Überspringen →';
   } else if (tmStep === 1 && total > 0) {
@@ -6977,15 +7125,29 @@ function tmSave() {
   }
 
   // 2. Tagesplan speichern
-  const total = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContacts.length;
+  const total = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContactPlans.length;
   if (total > 0) {
     if (!state.profile) state.profile = {};
     state.profile.morningPlanned = {
       date: new Date().toDateString(),
       actIndices: tmSelectedActivities.slice(),
       mindIndices: tmSelectedMindfulnesses.slice(),
-      contactIndices: tmSelectedContacts.slice()
+      contactPlans: tmSelectedContactPlans.slice()
     };
+  }
+
+  // Add contact plans to weekly contacts
+  if (tmSelectedContactPlans.length > 0) {
+    if (!state.socialContacts) state.socialContacts = [];
+    const week = getCurrentWeekKey();
+    tmSelectedContactPlans.forEach(plan => {
+      const master = (state.masterContacts||[]).find(m => m.id === plan.masterId);
+      if (!master) return;
+      const exists = state.socialContacts.find(c => c.week === week && c.masterId === plan.masterId && c.how === plan.how);
+      if (!exists) {
+        state.socialContacts.push({ masterId: plan.masterId, name: master.name, how: plan.how, done: false, week, ts: new Date().toISOString() });
+      }
+    });
   }
 
   // 3. Gefühl → bodyLog
@@ -7162,14 +7324,18 @@ function renderPlannedActivity() {
 
   const acts = (planned.actIndices||[]).map(i => state.activities[i]).filter(Boolean);
   const minds = (planned.mindIndices||[]).map(i => (getMindfulnessExercises?.()||[])[i]).filter(Boolean);
-  const week = getCurrentWeekKey?.() || '';
-  const weekContacts = (state.socialContacts||[]).filter(c => c.week === week && !c.done);
-  const contacts = (planned.contactIndices||[]).map(i => weekContacts[i]).filter(Boolean);
+  const contacts = (planned.contactPlans||planned.contactIndices||[]).map(p => {
+    if (typeof p === 'object' && p.masterId) {
+      const m = (state.masterContacts||[]).find(m => m.id === p.masterId);
+      return m ? `${m.name} (${p.how})` : null;
+    }
+    return null;
+  }).filter(Boolean);
 
   const all = [
     ...acts.map(a => `${a.icon||'🏃'} ${a.name}`),
     ...minds.map(a => `${a.icon||'🪷'} ${a.name}`),
-    ...contacts.map(c => `❤️ ${c.name}`)
+    ...contacts
   ];
 
   if (!all.length) { card.style.display = 'none'; return; }
