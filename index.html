@@ -2302,6 +2302,15 @@
     <hr class="divider">
     <button onclick="resetAllData()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--accent2);background:transparent;color:var(--accent2);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">🗑 Alle Daten zurücksetzen (Test)</button>
     <button onclick="restartOnboarding()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;margin-top:8px;">🌿 Startschuss-Intro nochmal anzeigen</button>
+    <hr class="divider">
+    <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">🛠 Test-Modus</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="setTimeOverride('morning')" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">☀️ Morgens</button>
+      <button onclick="setTimeOverride('day')" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">🌤 Tagsüber</button>
+      <button onclick="setTimeOverride('evening')" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">🌙 Abends</button>
+      <button onclick="setTimeOverride(null)" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;color:var(--muted);">↺ Echtzeit</button>
+    </div>
+    <div id="time-override-status" style="font-size:0.75rem;color:var(--muted);margin-top:6px;text-align:center;"></div>
   </div>
 </div>
 
@@ -2508,6 +2517,7 @@ function loadState() {
     onboardingDone: false,
     activeActivity: null,
     activeMindfulness: null,
+    devTimeOverride: null,
     alcMax: 3,         // Max Tage pro Woche
     jokerMax: 2,       // Joker pro Monat
     jokersUsed: 0,     // Joker diese Woche genutzt
@@ -6281,7 +6291,19 @@ function deleteBug(i) {
 // =====================
 // CHECK-IN / CHECK-OUT LOGIK
 // =====================
+function setTimeOverride(val) {
+  state.devTimeOverride = val;
+  saveState();
+  const labels = { morning: '☀️ Morgens aktiv', day: '🌤 Tagsüber aktiv', evening: '🌙 Abends aktiv' };
+  const el = document.getElementById('time-override-status');
+  if (el) el.textContent = val ? labels[val] : 'Echtzeit';
+  renderHome();
+  showToast(val ? `Test-Modus: ${labels[val]}` : '↺ Echtzeit wiederhergestellt');
+}
+
 function getTimeOfDay() {
+  const override = state.devTimeOverride;
+  if (override) return override;
   const h = new Date().getHours();
   if (h >= 5 && h < 11) return 'morning';
   if (h >= 18 && h < 23) return 'evening';
@@ -7055,6 +7077,9 @@ function renderSettings() {
 
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
+  const overrideEl = document.getElementById('time-override-status');
+  const labels = { morning: '☀️ Morgens aktiv', day: '🌤 Tagsüber aktiv', evening: '🌙 Abends aktiv' };
+  if (overrideEl) overrideEl.textContent = state.devTimeOverride ? labels[state.devTimeOverride] : 'Echtzeit';
   renderBugList();
 
   const s = state;
