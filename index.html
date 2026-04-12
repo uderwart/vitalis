@@ -872,11 +872,12 @@
     <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">📋 Heute geplant</div>
     <div style="display:flex;align-items:center;gap:10px;">
       <span style="font-size:1.6rem;" id="planned-act-icon">🏃</span>
-      <div>
+      <div style="flex:1;">
         <div style="font-weight:700;font-size:0.95rem;color:var(--ink);" id="planned-act-name"></div>
         <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Abends beim Check-out bestätigen</div>
       </div>
     </div>
+    <button onclick="exportPlanToCalendar()" style="margin-top:10px;width:100%;padding:9px;border-radius:10px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">📅 In Kalender exportieren</button>
   </div>
 
   <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
@@ -976,12 +977,22 @@
         <button onclick="tmSetWater(2000)" class="tm-quick">2 L</button>
       </div>
     </div>
-    <!-- Step 1: Aktivität -->
-    <div id="tm-step-1" style="display:none;text-align:center;">
-      <div style="font-size:3rem;margin-bottom:12px;">🏃</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Was planst du heute?</div>
-      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:20px;">Tippe auf eine oder mehrere – abends bestätigst du wie viel du gemacht hast.</div>
-      <div id="tm-activity-list" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;"></div>
+    <!-- Step 1: Planung -->
+    <div id="tm-step-1" style="display:none;">
+      <div style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin-bottom:6px;text-align:center;">Was planst du heute?</div>
+      <div style="font-size:0.82rem;color:rgba(255,255,255,0.6);margin-bottom:16px;text-align:center;">Abends bestätigst du was du gemacht hast.</div>
+
+      <!-- Aktivitäten -->
+      <div style="font-size:0.7rem;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🏃 Aktivitäten</div>
+      <div id="tm-activity-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:140px;overflow-y:auto;"></div>
+
+      <!-- Achtsamkeit -->
+      <div style="font-size:0.7rem;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🪷 Achtsamkeit</div>
+      <div id="tm-mindfulness-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:120px;overflow-y:auto;"></div>
+
+      <!-- Kontakte -->
+      <div style="font-size:0.7rem;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">❤️ Kontakte</div>
+      <div id="tm-contacts-list" style="display:flex;flex-direction:column;gap:6px;max-height:100px;overflow-y:auto;"></div>
     </div>
     <!-- Step 2: Gefühl -->
     <div id="tm-step-2" style="display:none;text-align:center;">
@@ -6333,8 +6344,20 @@ let coAlc = null;
 let coSw = null;
 let coSelectedActivity = null;
 
+let coCompletedContacts = [];
+
+function coToggleContact(idx, btn) {
+  if (coCompletedContacts.includes(idx)) {
+    coCompletedContacts = coCompletedContacts.filter(x => x !== idx);
+    btn.style.background = 'rgba(255,255,255,0.08)';
+  } else {
+    coCompletedContacts.push(idx);
+    btn.style.background = 'rgba(255,255,255,0.3)';
+  }
+}
+
 function startCheckout() {
-  coStep = 0; coAlc = null; coSw = null; coSelectedActivity = null;
+  coStep = 0; coAlc = null; coSw = null; coSelectedActivity = null; coCompletedContacts = [];
 
   // Init water
   const slider = document.getElementById('co-water-slider');
@@ -6358,9 +6381,16 @@ function startCheckout() {
     ? (planned.actIndices || (planned.actIdx != null ? [planned.actIdx] : []))
     : [];
 
-  if (indices.length > 0) {
+  if (indices.length > 0 || planned?.mindIndices?.length > 0 || planned?.contactIndices?.length > 0) {
     const acts = indices.map(i => state.activities[i]).filter(Boolean);
+    const exs = getMindfulnessExercises ? getMindfulnessExercises() : [];
+    const minds = (planned?.mindIndices||[]).map(i => exs[i]).filter(Boolean);
+    const week = getCurrentWeekKey ? getCurrentWeekKey() : '';
+    const weekContacts = (state.socialContacts||[]).filter(c => c.week === week && !c.done);
+    const contacts = (planned?.contactIndices||[]).map(i => weekContacts[i]).filter(Boolean);
+
     let html = `<div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:12px;">HEUTE GEPLANT</div>`;
+
     acts.forEach((a, j) => {
       const idx = indices[j];
       html += `
@@ -6376,9 +6406,39 @@ function startCheckout() {
           </div>
         </div>`;
     });
+
+    minds.forEach((a, j) => {
+      const idx = (planned.mindIndices||[])[j];
+      html += `
+        <div style="margin-bottom:16px;">
+          <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🪷'} ${a.name} – ${a.min} Min geplant</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-mind-val-${idx}">0 Min</div>
+          <input type="range" id="co-mind-slider-${idx}" min="0" max="${Math.max(a.min,60)}" step="5" value="0"
+            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;accent-color:white;"
+            oninput="document.getElementById('co-mind-val-${idx}').textContent=this.value+' Min'">
+          <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
+            <span>Nicht gemacht</span><span>${a.min} Min</span>
+          </div>
+        </div>`;
+    });
+
+    contacts.forEach((c, j) => {
+      const idx = (planned.contactIndices||[])[j];
+      html += `
+        <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+          <div style="flex:1;font-weight:700;font-size:1rem;color:white;">❤️ ${c.name}</div>
+          <button id="co-contact-btn-${idx}" onclick="coToggleContact(${idx},this)"
+            style="padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;">
+            Erledigt ✓
+          </button>
+        </div>`;
+    });
+
+    const total = acts.length + minds.length + contacts.length;
     document.getElementById('co-act-planned').innerHTML = html;
-    document.getElementById('co-act-icon').textContent = acts.length > 1 ? '📋' : (acts[0]?.icon||'🏃');
-    document.getElementById('co-act-title').textContent = acts.length > 1 ? 'Wie war dein Tag?' : 'Wie war dein Training?';
+    document.getElementById('co-act-icon').textContent = total > 1 ? '📋' : (acts[0]?.icon || minds[0]?.icon || '❤️');
+    document.getElementById('co-act-title').textContent = 'Wie war dein Tag?';
     document.getElementById('co-act-subtitle').textContent = '';
     plannedDiv.style.display = '';
     unplannedDiv.style.display = 'none';
@@ -6500,7 +6560,29 @@ function coSave() {
     }
   }
 
-  // 2. Wasser
+  // 1b. Achtsamkeit
+  const plannedMinds = planned?.mindIndices || [];
+  plannedMinds.forEach(idx => {
+    const durMin = parseInt(document.getElementById(`co-mind-slider-${idx}`)?.value || 0);
+    if (durMin > 0) {
+      const exs = getMindfulnessExercises ? getMindfulnessExercises() : [];
+      const a = exs[idx];
+      if (a) {
+        const pts = durMin * (a.ptsPerMin||3);
+        if (!state.mindfulnessLog) state.mindfulnessLog = [];
+        state.mindfulnessLog.unshift({ name:a.name, icon:a.icon||'🪷', min:durMin, pts, ts:new Date().toISOString(), ptsPerMin:a.ptsPerMin||3, feeling:{} });
+        addPoints(pts, (a.icon||'🪷') + ' ' + a.name);
+      }
+    }
+  });
+
+  // 1c. Kontakte
+  const week = getCurrentWeekKey ? getCurrentWeekKey() : '';
+  const weekContacts = (state.socialContacts||[]).filter(c => c.week === week && !c.done);
+  coCompletedContacts.forEach(idx => {
+    const c = weekContacts[idx];
+    if (c) { c.done = true; c.doneAt = new Date().toISOString(); }
+  });
   const waterMl = parseInt(document.getElementById('co-water-slider')?.value || 0);
   if (waterMl > 0) {
     if (waterMl >= state.waterGoal && state.waterMl < state.waterGoal) {
@@ -6546,6 +6628,8 @@ function closeCheckout() {
 // =====================
 let tmStep = 0;
 let tmSelectedActivities = []; // array of planned activity indices
+let tmSelectedMindfulnesses = [];
+let tmSelectedContacts = [];
 let tmSelectedTime = 'ganztags';
 const TM_FEEL_DESCS = ['','miserabel','sehr schlecht','schlecht','eher schlecht','okay','ganz gut','gut','sehr gut','ausgezeichnet','super!'];
 const TM_TIME_HOURS = { ganztags: 12, morgens: 8, mittags: 13, abends: 19 };
@@ -6562,6 +6646,8 @@ function startTwoMin() {
   if (titleEl) titleEl.textContent = tod === 'morning' ? '☀️ Guten Morgen – Check-in' : '🌤 Schnell Check-in';
   tmStep = 0;
   tmSelectedActivities = [];
+  tmSelectedMindfulnesses = [];
+  tmSelectedContacts = [];
   const timeRow = document.getElementById('tm-time-row');
   if (timeRow) timeRow.style.display = 'none';
   const durRow = document.getElementById('tm-dur-row');
@@ -6581,9 +6667,38 @@ function startTwoMin() {
   list.innerHTML = (state.activities||[]).map((a,i) => `
     <button class="tm-activity-btn" onclick="tmSelectActivity(${i},this)">
       <span style="font-size:1.2rem;">${a.icon||'🏃'}</span>
-      <span style="flex:1;">${a.name}</span>
-      <span style="font-size:0.8rem;opacity:0.6;">${a.steps ? (a.stepsDefault||5000)+' Schr.' : a.min+' Min'}</span>
+      <span style="flex:1;margin-left:8px;">${a.name}</span>
+      <span style="font-size:0.78rem;opacity:0.6;">${a.steps ? (a.stepsDefault||5000)+' Schr.' : a.min+' Min'}</span>
     </button>`).join('');
+
+  // Build mindfulness list
+  const mlist = document.getElementById('tm-mindfulness-list');
+  if (mlist) {
+    const exs = getMindfulnessExercises ? getMindfulnessExercises() : [];
+    mlist.innerHTML = exs.map((a,i) => `
+      <button class="tm-activity-btn" onclick="tmSelectMindfulness(${i},this)">
+        <span style="font-size:1.2rem;">${a.icon||'🪷'}</span>
+        <span style="flex:1;margin-left:8px;">${a.name}</span>
+        <span style="font-size:0.78rem;opacity:0.6;">${a.min} Min</span>
+      </button>`).join('');
+  }
+
+  // Build contacts list
+  const clist = document.getElementById('tm-contacts-list');
+  if (clist) {
+    const week = getCurrentWeekKey ? getCurrentWeekKey() : '';
+    const contacts = (state.socialContacts||[]).filter(c => c.week === week && !c.done);
+    if (contacts.length) {
+      clist.innerHTML = contacts.map((c,i) => `
+        <button class="tm-activity-btn" onclick="tmSelectContact(${i},this)">
+          <span style="font-size:1.2rem;">❤️</span>
+          <span style="flex:1;margin-left:8px;">${c.name}</span>
+          <span style="font-size:0.78rem;opacity:0.6;">${c.type||'Kontakt'}</span>
+        </button>`).join('');
+    } else {
+      clist.innerHTML = `<div style="font-size:0.82rem;color:rgba(255,255,255,0.4);padding:6px 0;">Keine Kontakte diese Woche geplant</div>`;
+    }
+  }
   // Show overlay
   tmGoStep(0);
   document.getElementById('twomin-overlay').style.display = 'flex';
@@ -6595,24 +6710,20 @@ function tmSetWater(ml) {
   document.getElementById('tm-water-val').textContent = ml + ' ml';
 }
 
-function tmSelectActivity(i, el) {
-  if (tmSelectedActivities.includes(i)) {
-    tmSelectedActivities = tmSelectedActivities.filter(x => x !== i);
+function tmToggleSelection(arr, i, el) {
+  if (arr.includes(i)) {
+    arr.splice(arr.indexOf(i), 1);
     el.classList.remove('selected');
-    el.querySelector('.tm-check')?.remove();
   } else {
-    tmSelectedActivities.push(i);
+    arr.push(i);
     el.classList.add('selected');
-    if (!el.querySelector('.tm-check')) {
-      const chk = document.createElement('span');
-      chk.className = 'tm-check';
-      chk.textContent = ' ✓';
-      chk.style.cssText = 'color:white;font-weight:700;';
-      el.appendChild(chk);
-    }
   }
   tmUpdateNextBtn();
 }
+
+function tmSelectActivity(i, el)    { tmToggleSelection(tmSelectedActivities, i, el); }
+function tmSelectMindfulness(i, el) { tmToggleSelection(tmSelectedMindfulnesses, i, el); }
+function tmSelectContact(i, el)     { tmToggleSelection(tmSelectedContacts, i, el); }
 
 function tmUpdateFeel(v) {
   const iv = parseInt(v);
@@ -6648,12 +6759,13 @@ function tmUpdateNextBtn() {
   const nextBtn = document.getElementById('tm-next-btn');
   if (!nextBtn) return;
   if (tmStep === 3) { nextBtn.textContent = '✅ Fertig!'; return; }
-  if (tmStep === 1 && tmSelectedActivities.length === 0) {
+  const total = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContacts.length;
+  if (tmStep === 1 && total === 0) {
     nextBtn.textContent = 'Überspringen →';
+  } else if (tmStep === 1 && total > 0) {
+    nextBtn.textContent = `Weiter → (${total} geplant)`;
   } else {
-    nextBtn.textContent = tmSelectedActivities.length > 1
-      ? `Weiter → (${tmSelectedActivities.length} geplant)`
-      : 'Weiter →';
+    nextBtn.textContent = 'Weiter →';
   }
 }
 
@@ -6674,12 +6786,15 @@ function tmSave() {
     state.waterMl = waterMl;
   }
 
-  // 2. Aktivitäten – als Tagesplan speichern (mehrere möglich)
-  if (tmSelectedActivities.length > 0) {
+  // 2. Tagesplan speichern
+  const total = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContacts.length;
+  if (total > 0) {
     if (!state.profile) state.profile = {};
     state.profile.morningPlanned = {
       date: new Date().toDateString(),
-      actIndices: tmSelectedActivities.slice()
+      actIndices: tmSelectedActivities.slice(),
+      mindIndices: tmSelectedMindfulnesses.slice(),
+      contactIndices: tmSelectedContacts.slice()
     };
   }
 
@@ -6776,6 +6891,78 @@ function renderWeeklySummary() {
   saveState();
 }
 
+function exportPlanToCalendar() {
+  const planned = state.profile?.morningPlanned;
+  const todayStr = new Date().toDateString();
+  if (!planned || planned.date !== todayStr) { showToast('Kein Plan für heute.'); return; }
+
+  const acts  = (planned.actIndices||[]).map(i => state.activities[i]).filter(Boolean);
+  const exs   = getMindfulnessExercises ? getMindfulnessExercises() : [];
+  const minds = (planned.mindIndices||[]).map(i => exs[i]).filter(Boolean);
+  const week  = getCurrentWeekKey ? getCurrentWeekKey() : '';
+  const weekContacts = (state.socialContacts||[]).filter(c => c.week === week && !c.done);
+  const contacts = (planned.contactIndices||[]).map(i => weekContacts[i]).filter(Boolean);
+
+  const today = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const dateStr = today.getFullYear() + pad(today.getMonth()+1) + pad(today.getDate());
+  const now = today.toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+
+  // Default start times
+  const startHours = { act: 9, mind: 7, contact: 12 };
+
+  let events = '';
+  let uid = 1;
+
+  function makeEvent(title, summary, startHour, durationMin) {
+    const start = dateStr + 'T' + pad(startHour) + '0000';
+    const endD = new Date(today);
+    endD.setHours(startHour, durationMin, 0, 0);
+    const end = dateStr + 'T' + pad(endD.getHours()) + pad(endD.getMinutes()) + '00';
+    return `BEGIN:VEVENT\r\nUID:vitalis-${dateStr}-${uid++}@vitalis\r\nDTSTAMP:${now}\r\nDTSTART;TZID=Europe/Berlin:${start}\r\nDTEND;TZID=Europe/Berlin:${end}\r\nSUMMARY:${title}\r\nDESCRIPTION:${summary}\r\nEND:VEVENT\r\n`;
+  }
+
+  acts.forEach(a => {
+    events += makeEvent(
+      `${a.icon||'🏃'} ${a.name}`,
+      `Geplant in Vitalis · ${a.min} Min`,
+      startHours.act, a.min
+    );
+    startHours.act += Math.ceil(a.min / 60) + 1;
+  });
+
+  minds.forEach(a => {
+    events += makeEvent(
+      `${a.icon||'🪷'} ${a.name}`,
+      `Achtsamkeit · ${a.min} Min`,
+      startHours.mind, a.min
+    );
+    startHours.mind += Math.ceil(a.min / 60) + 1;
+  });
+
+  contacts.forEach(c => {
+    events += makeEvent(
+      `❤️ ${c.name} kontaktieren`,
+      `Geplanter Kontakt in Vitalis`,
+      startHours.contact, 30
+    );
+    startHours.contact += 1;
+  });
+
+  if (!events) { showToast('Nichts zu exportieren.'); return; }
+
+  const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Vitalis//DE\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n${events}END:VCALENDAR`;
+
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `vitalis-plan-${dateStr}.ics`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📅 Kalender-Datei heruntergeladen!');
+}
+
 function renderPlannedActivity() {
   const card = document.getElementById('planned-activity-card');
   if (!card) return;
@@ -6783,16 +6970,22 @@ function renderPlannedActivity() {
   const todayStr = new Date().toDateString();
   if (!planned || planned.date !== todayStr) { card.style.display = 'none'; return; }
 
-  // Support both old (actIdx) and new (actIndices) format
-  const indices = planned.actIndices || (planned.actIdx != null ? [planned.actIdx] : []);
-  if (!indices.length) { card.style.display = 'none'; return; }
+  const acts = (planned.actIndices||[]).map(i => state.activities[i]).filter(Boolean);
+  const minds = (planned.mindIndices||[]).map(i => (getMindfulnessExercises?.()||[])[i]).filter(Boolean);
+  const week = getCurrentWeekKey?.() || '';
+  const weekContacts = (state.socialContacts||[]).filter(c => c.week === week && !c.done);
+  const contacts = (planned.contactIndices||[]).map(i => weekContacts[i]).filter(Boolean);
 
-  const acts = indices.map(i => state.activities[i]).filter(Boolean);
-  if (!acts.length) { card.style.display = 'none'; return; }
+  const all = [
+    ...acts.map(a => `${a.icon||'🏃'} ${a.name}`),
+    ...minds.map(a => `${a.icon||'🪷'} ${a.name}`),
+    ...contacts.map(c => `❤️ ${c.name}`)
+  ];
 
-  document.getElementById('planned-act-icon').textContent = acts.length === 1 ? (acts[0].icon||'🏃') : '📋';
-  document.getElementById('planned-act-name').textContent = acts.map(a => `${a.icon||'🏃'} ${a.name} (${a.min} Min)`).join(' · ');
-  window._plannedActIdx = indices[0];
+  if (!all.length) { card.style.display = 'none'; return; }
+
+  document.getElementById('planned-act-icon').textContent = all.length === 1 ? (acts[0]?.icon || minds[0]?.icon || '📋') : '📋';
+  document.getElementById('planned-act-name').textContent = all.join(' · ');
   card.style.display = '';
 }
 
