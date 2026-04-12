@@ -749,25 +749,13 @@
     <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:white;margin-bottom:12px;line-height:1.3;">Ab heute.<br>Nicht perfekt.<br>Aber beständig.</div>
     <div style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:12px;line-height:1.6;font-style:italic;">„Ein ausgelassener Tag schadet nicht.<br>Was zählt ist der Gesamteinsatz."</div>
     <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-bottom:24px;">Lally et al. (2010)</div>
-    <div style="text-align:left;margin-bottom:20px;">
-      <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Dein Wenn-Dann-Plan</div>
-      <div style="font-size:0.82rem;color:rgba(255,255,255,0.7);margin-bottom:10px;line-height:1.5;">Wann wirst du Vitalis öffnen? Konkrete Pläne werden 3× häufiger umgesetzt.</div>
-      <select id="ob-intention-when" style="width:100%;padding:10px 14px;border:2px solid rgba(255,255,255,0.2);border-radius:12px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;margin-bottom:8px;outline:none;">
-        <option value="">Wann? (wählen)</option>
-        <option value="morgens nach dem Aufstehen">Morgens nach dem Aufstehen</option>
-        <option value="beim ersten Kaffee">Beim ersten Kaffee</option>
-        <option value="nach dem Mittagessen">Nach dem Mittagessen</option>
-        <option value="nach der Aktivität">Nach der Aktivität</option>
-        <option value="abends vor dem Schlafen">Abends vor dem Schlafen</option>
-      </select>
-      <select id="ob-intention-what" style="width:100%;padding:10px 14px;border:2px solid rgba(255,255,255,0.2);border-radius:12px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;">
-        <option value="">Was? (wählen)</option>
-        <option value="trage ich meine Aktivität ein">Trage ich meine Aktivität ein</option>
-        <option value="logge ich mein Wasser">Logge ich mein Wasser</option>
-        <option value="mache ich den Tages-Check">Mache ich den Tages-Check</option>
-        <option value="notiere ich meine Dankbarkeit">Notiere ich meine Dankbarkeit</option>
-      </select>
+
+    <div style="text-align:left;margin-bottom:24px;background:rgba(255,255,255,0.08);border-radius:14px;padding:16px;">
+      <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">🔮 Tipp: WOOP</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.85);line-height:1.6;">Beim morgendlichen Check-in kannst du WOOP aktivieren – dann planst du nicht nur was du tun willst, sondern auch was dich hindern könnte und was du dann tust. Das verdoppelt die Umsetzungswahrscheinlichkeit.</div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:8px;">Oettingen (2014) · Einstellungen → WOOP aktivieren</div>
     </div>
+
     <button onclick="obFinish()"
       style="width:100%;padding:18px;border-radius:16px;border:none;background:white;color:#1a3a2a;font-family:'DM Serif Display',serif;font-size:1.2rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;">
       🌿 Los geht's
@@ -832,10 +820,99 @@
 <!-- HOME / HEUTE -->
 <div id="section-home" class="section visible">
 
-  <!-- TAGES-CHECK -->
+  <!-- 1. BEGRÜSSUNG -->
+  <div style="padding:4px 4px 16px;">
+    <h1 id="home-greeting" style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);"></h1>
+    <div id="home-date" style="font-size:0.82rem;color:var(--muted);margin-top:2px;"></div>
+  </div>
+
+  <!-- 2. CHECK-IN / CHECK-OUT BUTTON -->
+  <button id="quick-checkin-btn" onclick="startTwoMin()" style="width:100%;margin-bottom:14px;padding:16px;border-radius:16px;border:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;font-family:'DM Serif Display',serif;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+    ⚡ 30-Sekunden Check-in
+  </button>
+
+  <!-- 3. WÖCHENTLICHE ZUSAMMENFASSUNG -->
+  <div id="weekly-summary-card" style="display:none;background:linear-gradient(135deg,#f4c261,#e8a020);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">📊 Deine letzte Woche</div>
+    <div id="weekly-summary-content" style="font-size:0.85rem;line-height:1.8;opacity:0.95;"></div>
+    <button onclick="document.getElementById('weekly-summary-card').style.display='none'" style="margin-top:12px;background:none;border:1.5px solid rgba(255,255,255,0.4);border-radius:10px;padding:6px 16px;color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">Verstanden ✓</button>
+  </div>
+
+  <!-- 4. HEUTE GEPLANT -->
+  <div id="planned-activity-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;">📋 Heute geplant</div>
+      <button onclick="editTodayPlan()" style="background:none;border:none;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;padding:0;">✏️ Ändern</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:1.6rem;" id="planned-act-icon">🏃</span>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:0.95rem;color:var(--ink);" id="planned-act-name"></div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Abends beim Check-out bestätigen</div>
+      </div>
+    </div>
+    <button onclick="exportPlanToCalendar()" style="margin-top:10px;width:100%;padding:9px;border-radius:10px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">📅 In Kalender exportieren</button>
+  </div>
+
+  <!-- 5. SCHLAF MORGEN-CHECK -->
+  <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌙 Guten Morgen!</div>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht? (1 = schlecht · 10 = super)</div>
+    <div style="text-align:center;font-family:'DM Serif Display',serif;font-size:2.5rem;color:#f4c261;margin-bottom:6px;" id="checkin-sleep-val">5</div>
+    <input type="range" id="checkin-sleep-slider" min="1" max="10" value="5"
+      style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.3);outline:none;cursor:pointer;margin-bottom:16px;"
+      oninput="document.getElementById('checkin-sleep-val').textContent=this.value">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button onclick="skipSleepCheckin()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+      <button onclick="quickLogSleepSlider()" style="padding:8px 20px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Speichern ✓</button>
+    </div>
+  </div>
+
+  <!-- 6. AKTIVE AKTIVITÄT BANNER -->
+  <div id="active-activity-banner" style="display:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;border-radius:16px;padding:16px 18px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:1.8rem;" id="active-act-icon">🏃</div>
+      <div style="flex:1;">
+        <div style="font-family:'DM Serif Display',serif;font-size:1rem;" id="active-act-name">Aktivität</div>
+        <div style="font-size:0.82rem;opacity:0.7;margin-top:2px;" id="active-act-timer">00:00</div>
+      </div>
+      <button onclick="stopActivity()"
+        style="padding:10px 18px;border-radius:12px;border:2px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">
+        ⏹ Stopp
+      </button>
+    </div>
+  </div>
+
+  <!-- 7. KACHELN -->
+  <div id="home-tiles" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;"></div>
+
+  <!-- 8. TIPP DER WOCHE -->
+  <div id="home-tip-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
+    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Wussten Sie?</div>
+    <div id="home-tip-text" style="font-size:0.85rem;color:var(--ink);line-height:1.5;"></div>
+    <div id="home-tip-source" style="font-size:0.72rem;color:var(--muted);margin-top:6px;font-style:italic;"></div>
+    <button id="home-tip-btn" onclick="" style="margin-top:10px;padding:8px 16px;border-radius:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;display:none;">Jetzt eintragen →</button>
+  </div>
+
+  <!-- 9. DANKBARKEIT ABEND -->
+  <div id="gratitude-checkin-card" style="display:none;background:linear-gradient(135deg,#2d1b4e,#4a2060);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌟 Guten Abend!</div>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:12px;">Wofür bist du heute dankbar?</div>
+    <textarea id="gratitude-input" placeholder="Heute war ich dankbar für…"
+      style="width:100%;padding:10px 12px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:70px;background:rgba(255,255,255,0.15);color:white;outline:none;"
+      onfocus="this.style.background='rgba(255,255,255,0.2)'"
+      onblur="this.style.background='rgba(255,255,255,0.15)'"
+    ></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+      <button onclick="skipGratitude()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+      <button onclick="logGratitude()" style="padding:8px 18px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Notieren ✓</button>
+    </div>
+  </div>
+
+  <!-- 10. TAGES-CHECK (morgens, einmal täglich) -->
   <div id="daily-check-card" style="display:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
-    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">⚡ Guten Morgen!</div>
-    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:16px;">30 Sekunden – wie startest du in den Tag?</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">⚡ Wie startest du?</div>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:16px;">30 Sekunden – optional</div>
     <div style="margin-bottom:12px;">
       <div style="font-size:0.78rem;opacity:0.7;margin-bottom:6px;">Energie gerade</div>
       <div style="display:flex;gap:8px;">
@@ -859,99 +936,11 @@
     </div>
   </div>
 
-  <!-- WÖCHENTLICHE ZUSAMMENFASSUNG -->
-  <div id="weekly-summary-card" style="display:none;background:linear-gradient(135deg,#f4c261,#e8a020);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
-    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">📊 Deine letzte Woche</div>
-    <div id="weekly-summary-content" style="font-size:0.85rem;line-height:1.8;opacity:0.95;"></div>
-    <button onclick="document.getElementById('weekly-summary-card').style.display='none'" style="margin-top:12px;background:none;border:1.5px solid rgba(255,255,255,0.4);border-radius:10px;padding:6px 16px;color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">Verstanden ✓</button>
-  </div>
-
-  <!-- IMPLEMENTATION INTENTION -->
+  <!-- 11. WENN-DANN PLAN (ganz unten) -->
   <div id="intention-card" style="display:none;background:var(--card);border:2px solid var(--accent);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
     <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Dein Plan für heute</div>
     <div id="intention-text" style="font-size:0.88rem;color:var(--ink);line-height:1.5;font-style:italic;"></div>
   </div>
-
-  <!-- GEPLANTE AKTIVITÄT -->
-  <div id="planned-activity-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-      <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;">📋 Heute geplant</div>
-      <button onclick="editTodayPlan()" style="background:none;border:none;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;padding:0;">✏️ Ändern</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:1.6rem;" id="planned-act-icon">🏃</span>
-      <div style="flex:1;">
-        <div style="font-weight:700;font-size:0.95rem;color:var(--ink);" id="planned-act-name"></div>
-        <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Abends beim Check-out bestätigen</div>
-      </div>
-    </div>
-    <button onclick="exportPlanToCalendar()" style="margin-top:10px;width:100%;padding:9px;border-radius:10px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">📅 In Kalender exportieren</button>
-  </div>
-
-  <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
-    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌙 Guten Morgen!</div>
-    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht? (1 = schlecht · 10 = super)</div>
-    <div style="text-align:center;font-family:'DM Serif Display',serif;font-size:2.5rem;color:#f4c261;margin-bottom:6px;" id="checkin-sleep-val">5</div>
-    <input type="range" id="checkin-sleep-slider" min="1" max="10" value="5"
-      style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.3);outline:none;cursor:pointer;margin-bottom:16px;"
-      oninput="document.getElementById('checkin-sleep-val').textContent=this.value">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <button onclick="skipSleepCheckin()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
-      <button onclick="quickLogSleepSlider()" style="padding:8px 20px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Speichern ✓</button>
-    </div>
-  </div>
-
-  <!-- DANKBARKEIT ABEND-CHECKIN -->
-  <div id="gratitude-checkin-card" style="display:none;background:linear-gradient(135deg,#2d1b4e,#4a2060);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
-    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌟 Guten Abend!</div>
-    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:12px;">Wofür bist du heute dankbar?</div>
-    <textarea id="gratitude-input" placeholder="Heute war ich dankbar für…"
-      style="width:100%;padding:10px 12px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:70px;background:rgba(255,255,255,0.15);color:white;outline:none;"
-      onfocus="this.style.background='rgba(255,255,255,0.2)'"
-      onblur="this.style.background='rgba(255,255,255,0.15)'"
-    ></textarea>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
-      <button onclick="skipGratitude()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
-      <button onclick="logGratitude()" style="padding:8px 18px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Notieren ✓</button>
-    </div>
-  </div>
-
-  <!-- GREETING -->
-  <div style="padding:4px 4px 16px;">
-    <h1 id="home-greeting" style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);"></h1>
-    <div id="home-date" style="font-size:0.82rem;color:var(--muted);margin-top:2px;"></div>
-  </div>
-
-  <!-- TIPP DER WOCHE -->
-  <div id="home-tip-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
-    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Wussten Sie?</div>
-    <div id="home-tip-text" style="font-size:0.85rem;color:var(--ink);line-height:1.5;"></div>
-    <div id="home-tip-source" style="font-size:0.72rem;color:var(--muted);margin-top:6px;font-style:italic;"></div>
-    <button id="home-tip-btn" onclick="" style="margin-top:10px;padding:8px 16px;border-radius:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;display:none;">Jetzt eintragen →</button>
-  </div>
-
-  <!-- AKTIVE AKTIVITÄT BANNER -->
-  <div id="active-activity-banner" style="display:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;border-radius:16px;padding:16px 18px;margin-bottom:12px;">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div style="font-size:1.8rem;" id="active-act-icon">🏃</div>
-      <div style="flex:1;">
-        <div style="font-family:'DM Serif Display',serif;font-size:1rem;" id="active-act-name">Aktivität</div>
-        <div style="font-size:0.82rem;opacity:0.7;margin-top:2px;" id="active-act-timer">00:00</div>
-      </div>
-      <button onclick="stopActivity()"
-        style="padding:10px 18px;border-radius:12px;border:2px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">
-        ⏹ Stopp
-      </button>
-    </div>
-  </div>
-
-  <!-- 2-MINUTEN BUTTON – dynamisch je nach Uhrzeit -->
-  <button id="quick-checkin-btn" onclick="startTwoMin()" style="width:100%;margin-bottom:14px;padding:16px;border-radius:16px;border:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;font-family:'DM Serif Display',serif;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
-    ⚡ 30-Sekunden Check-in
-  </button>
-
-  <!-- KACHELN -->
-  <div id="home-tiles" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;"></div>
 
 </div>
 
@@ -963,6 +952,7 @@
     <div class="tm-dot" id="tm-dot-1"></div>
     <div class="tm-dot" id="tm-dot-2"></div>
     <div class="tm-dot" id="tm-dot-3"></div>
+    <div class="tm-dot" id="tm-dot-4"></div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
     <!-- Step 0: Wasser -->
@@ -998,7 +988,13 @@
       <div style="font-size:0.7rem;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">❤️ Kontakte</div>
       <div id="tm-contacts-list" style="display:flex;flex-direction:column;gap:6px;max-height:100px;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
     </div>
-    <!-- Step 2: Gefühl -->
+    <!-- Step 2: WOOP (nur wenn aktiviert und etwas geplant) -->
+    <div id="tm-step-woop" style="display:none;">
+      <div style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin-bottom:6px;text-align:center;">🔮 WOOP</div>
+      <div style="font-size:0.82rem;color:rgba(255,255,255,0.6);margin-bottom:20px;text-align:center;">Was könnte deinen Plan heute durchkreuzen – und was tust du dann?</div>
+      <div id="woop-items-list" style="display:flex;flex-direction:column;gap:14px;max-height:55vh;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
+    </div>
+    <!-- Step 3: Gefühl -->
     <div id="tm-step-2" style="display:none;text-align:center;">
       <div style="font-size:3rem;margin-bottom:12px;">😊</div>
       <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Wie geht es dir?</div>
@@ -2185,10 +2181,10 @@
         <div style="font-size:0.7rem;color:var(--accent);margin-top:6px;font-style:italic;">Lally et al. (2010)</div>
       </div>
       <div style="background:var(--bg);border-radius:12px;padding:14px;">
-        <div style="font-size:1.3rem;margin-bottom:6px;">🎯</div>
-        <div style="font-size:0.82rem;font-weight:600;margin-bottom:4px;">Wenn-Dann-Pläne</div>
-        <div style="font-size:0.75rem;color:var(--muted);line-height:1.5;">Konkrete Pläne erhöhen die Umsetzung um bis zu 300%.</div>
-        <div style="font-size:0.7rem;color:var(--accent);margin-top:6px;font-style:italic;">Gollwitzer (1999)</div>
+        <div style="font-size:1.3rem;margin-bottom:6px;">🔮</div>
+        <div style="font-size:0.82rem;font-weight:600;margin-bottom:4px;">WOOP</div>
+        <div style="font-size:0.75rem;color:var(--muted);line-height:1.5;">Hindernis vorab durchdenken verdoppelt die Umsetzung. Wunsch → Ergebnis → Hindernis → Plan.</div>
+        <div style="font-size:0.7rem;color:var(--accent);margin-top:6px;font-style:italic;">Oettingen (2014)</div>
       </div>
       <div style="background:var(--bg);border-radius:12px;padding:14px;">
         <div style="font-size:1.3rem;margin-bottom:6px;">🔄</div>
@@ -2197,6 +2193,50 @@
         <div style="font-size:0.7rem;color:var(--accent);margin-top:6px;font-style:italic;">Clear (2018)</div>
       </div>
     </div>
+  </div>
+
+  <!-- WOOP -->
+  <div class="card" style="background:linear-gradient(135deg,#f0edf8,#e4ddf0);">
+    <h2>🔮 Was ist WOOP?</h2>
+    <p style="font-size:0.85rem;line-height:1.7;color:var(--ink);margin-bottom:16px;">
+      WOOP ist eine wissenschaftlich entwickelte Methode der Psychologin Gabriele Oettingen. Im Gegensatz zu reinem positivem Denken kombiniert sie Wunschvorstellung mit realistischer Hindernisanalyse – und das macht den Unterschied.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(255,255,255,0.6);border-radius:12px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:#8b6ba8;color:white;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;flex-shrink:0;">W</div>
+        <div>
+          <div style="font-size:0.85rem;font-weight:600;margin-bottom:2px;">Wunsch</div>
+          <div style="font-size:0.78rem;color:var(--muted);line-height:1.5;">Was möchte ich heute erreichen? Konkret und erreichbar.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(255,255,255,0.6);border-radius:12px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:#8b6ba8;color:white;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;flex-shrink:0;">O</div>
+        <div>
+          <div style="font-size:0.85rem;font-weight:600;margin-bottom:2px;">Outcome – bestes Ergebnis</div>
+          <div style="font-size:0.78rem;color:var(--muted);line-height:1.5;">Wie fühlt es sich an wenn ich es geschafft habe?</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(255,255,255,0.6);border-radius:12px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:#8b6ba8;color:white;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;flex-shrink:0;">O</div>
+        <div>
+          <div style="font-size:0.85rem;font-weight:600;margin-bottom:2px;">Obstacle – Hindernis</div>
+          <div style="font-size:0.78rem;color:var(--muted);line-height:1.5;">Was könnte mich heute daran hindern? Ehrlich benennen.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(255,255,255,0.6);border-radius:12px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:#8b6ba8;color:white;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;flex-shrink:0;">P</div>
+        <div>
+          <div style="font-size:0.85rem;font-weight:600;margin-bottom:2px;">Plan – Wenn, dann</div>
+          <div style="font-size:0.78rem;color:var(--muted);line-height:1.5;">Wenn das Hindernis auftritt, dann tue ich folgendes.</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.5);border-radius:10px;">
+      <div style="font-size:0.75rem;color:#8b6ba8;font-weight:600;margin-bottom:4px;">Warum es wirkt</div>
+      <div style="font-size:0.78rem;color:var(--muted);line-height:1.5;">Eine Meta-Analyse mit 21 Studien und fast 16.000 Teilnehmern zeigt: WOOP verdoppelt die Umsetzungswahrscheinlichkeit gegenüber reiner Zielsetzung – besonders bei langfristigen Verhaltensänderungen.</div>
+      <div style="font-size:0.7rem;color:#8b6ba8;margin-top:6px;font-style:italic;">Oettingen (2014) · Frontiers in Psychology Meta-Analyse (2021)</div>
+    </div>
+    <button onclick="showSection('settings')" style="margin-top:14px;width:100%;padding:10px;border-radius:10px;border:1.5px solid #8b6ba8;background:transparent;color:#8b6ba8;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">🔮 WOOP in Einstellungen aktivieren →</button>
   </div>
 
   <!-- TAGESABLAUF -->
@@ -2393,9 +2433,9 @@
         <div style="font-size:0.7rem;color:#c0392b;margin-top:4px;font-style:italic;">Holt-Lunstad et al. (2015) · Harvard Study (2023)</div>
       </div>
       <div style="border-left:3px solid #6b8f71;padding-left:12px;">
-        <div style="font-weight:600;font-size:0.85rem;margin-bottom:3px;">Wenn-Dann-Pläne</div>
-        <p style="font-size:0.8rem;line-height:1.6;color:var(--muted);">Konkrete Absichten erhöhen die Umsetzungswahrscheinlichkeit um bis zu 300%.</p>
-        <div style="font-size:0.7rem;color:#6b8f71;margin-top:4px;font-style:italic;">Gollwitzer (1999) · Implementation Intentions</div>
+        <div style="font-weight:600;font-size:0.85rem;margin-bottom:3px;">WOOP – Hindernisplanung</div>
+        <p style="font-size:0.8rem;line-height:1.6;color:var(--muted);">Wer sich vorab vorstellt was ihn an der Umsetzung hindern könnte – und einen Plan dafür macht – verdoppelt die Umsetzungswahrscheinlichkeit. WOOP kombiniert positive Vorstellung mit realistischer Hindernisanalyse.</p>
+        <div style="font-size:0.7rem;color:#6b8f71;margin-top:4px;font-style:italic;">Oettingen (2014) · Gollwitzer (1999) · Meta-Analyse: 21 Studien, 15.907 Teilnehmer</div>
       </div>
       <div style="border-left:3px solid #8b6ba8;padding-left:12px;">
         <div style="font-weight:600;font-size:0.85rem;margin-bottom:3px;">Self-Monitoring</div>
@@ -2450,11 +2490,18 @@
         </div>
       </div>
       <div>
-        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;">💡 Wenn-Dann-Plan</label>
-        <input type="text" id="profile-intention" placeholder="z.B. Wenn ich Kaffee mache, logge ich mein Wasser."
-          style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;"
-          onchange="saveProfile()">
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">Erscheint täglich auf der Heute-Seite als Erinnerung.</div>
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;">🔮 WOOP – Hindernisplanung</label>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border-radius:12px;">
+          <div style="flex:1;">
+            <div style="font-size:0.85rem;font-weight:600;color:var(--ink);">WOOP beim Check-in aktivieren</div>
+            <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">Nach der Aktivitätsplanung: Was könnte mich hindern? Was tue ich dann?</div>
+          </div>
+          <button id="woop-toggle-btn" onclick="toggleWoop()"
+            style="padding:8px 16px;border-radius:20px;border:2px solid var(--border);background:var(--card);font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;color:var(--muted);white-space:nowrap;">
+            Aus
+          </button>
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">Wissenschaftlich belegt: Hindernisse vorab durchdenken erhöht die Umsetzung deutlich. (Oettingen, 2014)</div>
       </div>
     </div>
   </div>
@@ -2462,6 +2509,21 @@
     <h2>❤️ Soziale Kontakte</h2>
     <p class="small-note" style="margin-bottom:10px;">Wöchentliche Kontakt-Intentions-Liste</p>
     <button class="log-btn secondary" onclick="showSection('social')">→ Kontakte öffnen</button>
+  </div>
+
+  <div class="card">
+    <h2>🔮 WOOP – Hindernisplanung</h2>
+    <p class="small-note" style="margin-bottom:16px;line-height:1.5;">Wenn aktiviert, erscheint nach der Tagesplanung ein kurzer WOOP-Schritt: Was könnte meinen Plan durchkreuzen – und was tue ich dann?</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-weight:600;">Aktiv</span>
+      <label style="position:relative;display:inline-block;width:50px;height:28px;">
+        <span id="woop-toggle" onclick="toggleWoop()"
+          style="position:absolute;cursor:pointer;inset:0;border-radius:20px;background:var(--border);transition:0.3s;">
+          <span id="woop-knob" style="position:absolute;width:22px;height:22px;border-radius:50%;background:white;top:3px;left:3px;transition:0.3s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+        </span>
+      </label>
+    </div>
+    <p class="small-note" style="margin-top:12px;line-height:1.5;">Basiert auf WOOP (Oettingen, 2014) – eine der am besten belegten Methoden zur Steigerung der Planumsetzung.</p>
   </div>
 
   <div class="card">
@@ -2800,6 +2862,7 @@ function loadState() {
     waterDays: 0,
     lastWaterDate: null,
     onboardingDone: false,
+    woopEnabled: false,
     lastExportReminder: null,
     activeActivity: null,
     activeMindfulness: null,
@@ -2845,6 +2908,7 @@ function loadState() {
     alcAftermath: null,
     alcAftermathSkipped: null,
     breathingEnabled: true,
+    woopEnabled: false,
     breathingTechnique: 'box',
     breathingPausesPerDay: 2,
     breathingDuration: 3,
@@ -7282,46 +7346,125 @@ function tmUpdateFeel(v) {
   document.getElementById('tm-feel-desc').textContent = TM_FEEL_DESCS[iv] || '';
 }
 
-function tmGoStep(step) {
-  for (let i = 0; i < 4; i++) {
-    const s = document.getElementById('tm-step-' + i);
-    const d = document.getElementById('tm-dot-' + i);
-    if (s) s.style.display = i === step ? '' : 'none';
-    if (d) d.classList.toggle('active', i === step);
+// WOOP step identifier – 'woop' is between step 1 and step 2
+// Steps: 0=Wasser, 1=Planung, 'woop'=WOOP (optional), 2=Gefühl, 3=Dankbarkeit
+let tmStepSequence = [0, 1, 2, 3]; // rebuilt in startTwoMin
+
+function tmBuildSequence() {
+  const hasPlanned = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContactPlans.length > 0;
+  if (state.woopEnabled && hasPlanned) {
+    tmStepSequence = [0, 1, 'woop', 2, 3];
+  } else {
+    tmStepSequence = [0, 1, 2, 3];
   }
+}
+
+function tmGoStep(step) {
+  // Hide all steps
+  [0,1,2,3,'woop'].forEach(s => {
+    const el = document.getElementById('tm-step-' + s);
+    const dot = document.getElementById('tm-dot-' + s);
+    if (el) el.style.display = 'none';
+    if (dot) dot.classList.remove('active');
+  });
+  // Show current
+  const el = document.getElementById('tm-step-' + step);
+  const dot = document.getElementById('tm-dot-' + step);
+  if (el) el.style.display = '';
+  if (dot) dot.classList.add('active');
+
   tmStep = step;
   const backBtn = document.getElementById('tm-back-btn');
   const nextBtn = document.getElementById('tm-next-btn');
-  if (backBtn) backBtn.style.display = step === 0 ? 'none' : '';
+  const seqIdx = tmStepSequence.indexOf(step);
+  const isLast = seqIdx === tmStepSequence.length - 1;
+  if (backBtn) backBtn.style.display = seqIdx === 0 ? 'none' : '';
   if (nextBtn) {
-    nextBtn.textContent = step === 3 ? '✅ Fertig!' : 'Weiter →';
+    nextBtn.textContent = isLast ? '✅ Fertig!' : 'Weiter →';
     nextBtn.style.opacity = '1';
     nextBtn.style.cursor = 'pointer';
   }
+
+  // Build WOOP items when entering WOOP step
+  if (step === 'woop') tmBuildWoopItems();
+
   setTimeout(tmUpdateNextBtn, 0);
 }
 
 function tmNext() {
-  if (tmStep === 3) { tmSave(); return; }
-  tmGoStep(tmStep + 1);
+  const seqIdx = tmStepSequence.indexOf(tmStep);
+  if (seqIdx === tmStepSequence.length - 1) { tmSave(); return; }
+  // After step 1 (planning), rebuild sequence based on what was selected
+  if (tmStep === 1) tmBuildSequence();
+  tmGoStep(tmStepSequence[seqIdx + 1]);
+}
+
+function tmBack() {
+  const seqIdx = tmStepSequence.indexOf(tmStep);
+  if (seqIdx > 0) tmGoStep(tmStepSequence[seqIdx - 1]);
+}
+
+// WOOP data: [{name, obstacle, plan}]
+let tmWoopData = [];
+
+function tmBuildWoopItems() {
+  const list = document.getElementById('woop-items-list');
+  if (!list) return;
+
+  // Collect planned items
+  const acts = tmSelectedActivities.map(i => state.activities[i]).filter(Boolean);
+  const minds = tmSelectedMindfulnesses.map(i => (getMindfulnessExercises()||[])[i]).filter(Boolean);
+  const contacts = tmSelectedContactPlans.map(p => {
+    const m = (state.masterContacts||[]).find(m => m.id === p.masterId);
+    return m ? { name: `${m.name} (${p.how})`, icon: '❤️' } : null;
+  }).filter(Boolean);
+
+  const items = [
+    ...acts.map(a => ({ name: a.name, icon: a.icon||'🏃' })),
+    ...minds.map(a => ({ name: a.name, icon: a.icon||'🪷' })),
+    ...contacts
+  ];
+
+  // Init woop data
+  tmWoopData = items.map(item => ({ name: item.name, obstacle: '', plan: '' }));
+
+  list.innerHTML = items.map((item, i) => `
+    <div style="background:rgba(255,255,255,0.08);border-radius:14px;padding:14px;">
+      <div style="font-weight:600;font-size:0.9rem;color:white;margin-bottom:10px;">${item.icon} ${item.name}</div>
+      <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-bottom:4px;">Was könnte mich daran hindern?</div>
+      <input type="text" id="woop-obstacle-${i}" placeholder="z.B. keine Zeit, zu müde…"
+        style="width:100%;padding:8px 12px;border:none;border-radius:8px;background:rgba(255,255,255,0.12);color:white;font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;box-sizing:border-box;margin-bottom:8px;"
+        oninput="tmWoopData[${i}].obstacle=this.value">
+      <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-bottom:4px;">Was tue ich dann?</div>
+      <input type="text" id="woop-plan-${i}" placeholder="z.B. ich mache es morgen früh…"
+        style="width:100%;padding:8px 12px;border:none;border-radius:8px;background:rgba(255,255,255,0.12);color:white;font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;box-sizing:border-box;"
+        oninput="tmWoopData[${i}].plan=this.value">
+    </div>`).join('');
+}
+
+function toggleWoop() {
+  state.woopEnabled = !state.woopEnabled;
+  saveState();
+  renderSettings();
+  showToast(state.woopEnabled ? '🔮 WOOP aktiviert' : 'WOOP deaktiviert');
 }
 
 function tmUpdateNextBtn() {
   const nextBtn = document.getElementById('tm-next-btn');
   if (!nextBtn) return;
-  if (tmStep === 3) { nextBtn.textContent = '✅ Fertig!'; return; }
+  const seqIdx = tmStepSequence.indexOf(tmStep);
+  const isLast = seqIdx === tmStepSequence.length - 1;
+  if (isLast) { nextBtn.textContent = '✅ Fertig!'; return; }
   const total = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContactPlans.length;
   if (tmStep === 1 && total === 0) {
     nextBtn.textContent = 'Überspringen →';
   } else if (tmStep === 1 && total > 0) {
     nextBtn.textContent = `Weiter → (${total} geplant)`;
+  } else if (tmStep === 'woop') {
+    nextBtn.textContent = 'Weiter →';
   } else {
     nextBtn.textContent = 'Weiter →';
   }
-}
-
-function tmBack() {
-  if (tmStep > 0) tmGoStep(tmStep - 1);
 }
 
 function tmSave() {
@@ -7345,7 +7488,8 @@ function tmSave() {
       date: new Date().toDateString(),
       actIndices: tmSelectedActivities.slice(),
       mindIndices: tmSelectedMindfulnesses.slice(),
-      contactPlans: tmSelectedContactPlans.slice()
+      contactPlans: tmSelectedContactPlans.slice(),
+      woops: tmWoopData.filter(w => w.obstacle || w.plan)
     };
   }
 
@@ -7605,10 +7749,24 @@ function renderIntention() {
   const card = document.getElementById('intention-card');
   const text = document.getElementById('intention-text');
   if (!card || !text) return;
-  const intention = state.profile?.intention;
-  if (!intention) { card.style.display = 'none'; return; }
-  text.textContent = intention;
-  card.style.display = '';
+
+  const woops = state.profile?.morningPlanned?.woops;
+  const todayPlan = state.profile?.morningPlanned?.date === new Date().toDateString();
+
+  if (state.woopEnabled && todayPlan && woops?.length > 0) {
+    const content = woops.map(w => {
+      if (!w.obstacle && !w.plan) return '';
+      return `<div style="margin-bottom:6px;">
+        <span style="font-weight:600;font-size:0.85rem;">${w.name}</span><br>
+        ${w.obstacle ? `<span style="color:var(--muted);font-size:0.8rem;">🚧 ${w.obstacle}</span><br>` : ''}
+        ${w.plan ? `<span style="font-size:0.8rem;">→ ${w.plan}</span>` : ''}
+      </div>`;
+    }).filter(Boolean).join('');
+    if (content) { text.innerHTML = content; card.style.display = ''; }
+    else card.style.display = 'none';
+  } else {
+    card.style.display = 'none';
+  }
 }
 // =====================
 let obSelectedGoal = null;
@@ -7645,10 +7803,6 @@ function obSelectGoal(btn, goal) {
 function obFinish() {
   if (!state.profile) state.profile = {};
   if (obSelectedGoal) state.profile.mainGoal = obSelectedGoal;
-  // Save implementation intention
-  const when = document.getElementById('ob-intention-when')?.value;
-  const what = document.getElementById('ob-intention-what')?.value;
-  if (when && what) state.profile.intention = `Wenn ${when}, dann ${what}.`;
   state.onboardingDone = true;
   saveState();
   const overlay = document.getElementById('onboarding-overlay');
