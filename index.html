@@ -955,6 +955,21 @@
     <div class="tm-dot" id="tm-dot-4"></div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <!-- Step 'sleep': Schlaf (nur morgens wenn noch nicht geloggt) -->
+    <div id="tm-step-sleep" style="display:none;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:12px;">🌙</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Wie war deine Nacht?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:24px;">1 = schlecht · 10 = super</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:4rem;color:#f4c261;margin-bottom:8px;" id="tm-sleep-val">5</div>
+      <input type="range" id="tm-sleep-slider" min="1" max="10" value="5"
+        style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:8px;"
+        oninput="document.getElementById('tm-sleep-val').textContent=this.value">
+      <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:rgba(255,255,255,0.4);margin-bottom:20px;">
+        <span>😴 Schlecht</span><span>✨ Super</span>
+      </div>
+      <button onclick="tmSkipSleep()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">Überspringen</button>
+    </div>
+
     <!-- Step 0: Wasser -->
     <div id="tm-step-0" style="text-align:center;">
       <div style="font-size:3rem;margin-bottom:12px;">💧</div>
@@ -7219,6 +7234,14 @@ function startTwoMin() {
   tmSelectedMindfulnesses = [];
   tmSelectedContacts = [];
   tmSelectedContactPlans = [];
+  tmSleepSkipped = false;
+  // Reset sleep slider
+  const sleepSlider = document.getElementById('tm-sleep-slider');
+  const sleepVal = document.getElementById('tm-sleep-val');
+  if (sleepSlider) sleepSlider.value = 5;
+  if (sleepVal) sleepVal.textContent = '5';
+  // Build initial sequence (with sleep if needed)
+  tmBuildSequence();
   const timeRow = document.getElementById('tm-time-row');
   if (timeRow) timeRow.style.display = 'none';
   const durRow = document.getElementById('tm-dur-row');
@@ -7332,22 +7355,38 @@ function tmUpdateFeel(v) {
   document.getElementById('tm-feel-desc').textContent = TM_FEEL_DESCS[iv] || '';
 }
 
-// WOOP step identifier – 'woop' is between step 1 and step 2
-// Steps: 0=Wasser, 1=Planung, 'woop'=WOOP (optional), 2=Gefühl, 3=Dankbarkeit
+// Steps: 'sleep'=Schlaf (optional morgens), 0=Wasser, 1=Planung, 'woop'=WOOP (optional), 2=Gefühl, 3=Dankbarkeit
 let tmStepSequence = [0, 1, 2, 3]; // rebuilt in startTwoMin
+let tmSleepSkipped = false;
 
 function tmBuildSequence() {
+  const todayStr = new Date().toDateString();
+  const sleepLoggedToday = state.sleepLog?.length > 0 && new Date(state.sleepLog[0].ts).toDateString() === todayStr;
+  const sleepSkipped = state.sleepCheckinSkipped === todayStr;
+  const tod = getTimeOfDay();
+  const needSleep = tod === 'morning' && !sleepLoggedToday && !sleepSkipped && !tmSleepSkipped;
+
   const hasPlanned = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContactPlans.length > 0;
-  if (state.woopEnabled && hasPlanned) {
-    tmStepSequence = [0, 1, 'woop', 2, 3];
-  } else {
-    tmStepSequence = [0, 1, 2, 3];
+  const steps = [];
+  if (needSleep) steps.push('sleep');
+  steps.push(0, 1);
+  if (state.woopEnabled && hasPlanned) steps.push('woop');
+  steps.push(2, 3);
+  tmStepSequence = steps;
+}
+
+function tmSkipSleep() {
+  tmSleepSkipped = true;
+  const seqIdx = tmStepSequence.indexOf('sleep');
+  if (seqIdx >= 0) {
+    tmStepSequence = tmStepSequence.filter(s => s !== 'sleep');
   }
+  tmGoStep(tmStepSequence[0]);
 }
 
 function tmGoStep(step) {
   // Hide all steps
-  [0,1,2,3,'woop'].forEach(s => {
+  [0,1,2,3,'woop','sleep'].forEach(s => {
     const el = document.getElementById('tm-step-' + s);
     const dot = document.getElementById('tm-dot-' + s);
     if (el) el.style.display = 'none';
@@ -7383,8 +7422,7 @@ function tmNext() {
   const seqIdx = tmStepSequence.indexOf(tmStep);
   if (seqIdx === tmStepSequence.length - 1) { tmSave(); return; }
   // After step 1 (planning), rebuild sequence based on what was selected
-  if (tmStep === 1) tmBuildSequence();
-  tmGoStep(tmStepSequence[seqIdx + 1]);
+  if (tmStep === 1) tmBuildSequence();  tmGoStep(tmStepSequence[seqIdx + 1]);
 }
 
 function tmBack() {
@@ -7467,6 +7505,18 @@ function tmUpdateNextBtn() {
 }
 
 function tmSave() {
+  // 0. Schlaf (falls im Overlay geloggt)
+  if (tmStepSequence.includes('sleep') || !tmSleepSkipped) {
+    const sleepSlider = document.getElementById('tm-sleep-slider');
+    const sleepScore = sleepSlider ? parseInt(sleepSlider.value) : null;
+    const todayStr2 = new Date().toDateString();
+    const sleepLoggedToday = state.sleepLog?.length > 0 && new Date(state.sleepLog[0].ts).toDateString() === todayStr2;
+    if (sleepScore && !sleepLoggedToday && !tmSleepSkipped && getTimeOfDay() === 'morning') {
+      if (!state.sleepLog) state.sleepLog = [];
+      state.sleepLog.unshift({ ts: new Date().toISOString(), score: sleepScore, hours: null, note: '' });
+    }
+  }
+
   // 1. Wasser
   const waterMl = parseInt(document.getElementById('tm-water-slider').value || 0);
   if (waterMl > 0) {
