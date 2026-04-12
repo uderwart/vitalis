@@ -1090,14 +1090,32 @@
     <div id="co-step-2" style="display:none;text-align:center;">
       <div style="font-size:3rem;margin-bottom:12px;">🍷</div>
       <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Heute konsumiert?</div>
-      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:24px;">Einfach ehrlich – kein Druck</div>
-      <div style="display:flex;gap:12px;justify-content:center;margin-bottom:20px;">
-        <button id="co-alc-yes" onclick="coToggle('alc','yes')" style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;cursor:pointer;">🍷 Alkohol</button>
-        <button id="co-alc-no" onclick="coToggle('alc','no')" style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;cursor:pointer;">✅ Nüchtern</button>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:28px;">Einfach ehrlich – kein Druck</div>
+
+      <!-- Alkohol -->
+      <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Alkohol</div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-bottom:24px;">
+        <button id="co-alc-yes" onclick="coToggle('alc','yes')"
+          style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+          🍷 Ja, hatte Alkohol
+        </button>
+        <button id="co-alc-no" onclick="coToggle('alc','no')"
+          style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+          ✅ Nein, nüchtern
+        </button>
       </div>
-      <div style="display:flex;gap:12px;justify-content:center;">
-        <button id="co-sw-yes" onclick="coToggle('sw','yes')" style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;cursor:pointer;">🍬 Süssigkeiten</button>
-        <button id="co-sw-no" onclick="coToggle('sw','no')" style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:1rem;cursor:pointer;">✅ Ohne</button>
+
+      <!-- Süssigkeiten -->
+      <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Süssigkeiten</div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button id="co-sw-yes" onclick="coToggle('sw','yes')"
+          style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+          🍬 Ja, hatte Süsses
+        </button>
+        <button id="co-sw-no" onclick="coToggle('sw','no')"
+          style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+          ✅ Nein, ohne
+        </button>
       </div>
     </div>
 
@@ -6808,14 +6826,18 @@ function updateQuickBtn() {
   const btn = document.getElementById('quick-checkin-btn');
   if (!btn) return;
   const tod = getTimeOfDay();
-  if (tod === 'evening') {
+  if (tod === 'morning') {
+    btn.style.display = '';
+    btn.textContent = '⚡ 30-Sekunden Check-in';
+    btn.style.background = 'linear-gradient(135deg,#1a3a2a,#2d5a3d)';
+    btn.onclick = startTwoMin;
+  } else if (tod === 'evening') {
+    btn.style.display = '';
     btn.textContent = '🌙 Schnell Check-out';
     btn.style.background = 'linear-gradient(135deg,#1a1a3e,#2d2060)';
     btn.onclick = startCheckout;
   } else {
-    btn.textContent = '⚡ 30-Sekunden Check-in';
-    btn.style.background = 'linear-gradient(135deg,#1a3a2a,#2d5a3d)';
-    btn.onclick = startTwoMin;
+    btn.style.display = 'none';
   }
 }
 
@@ -6961,12 +6983,19 @@ function coToggle(type, val) {
   if (type === 'alc') {
     coAlc = val;
     document.getElementById('co-alc-yes').style.background = val==='yes' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
+    document.getElementById('co-alc-yes').style.borderColor = val==='yes' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
     document.getElementById('co-alc-no').style.background  = val==='no'  ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
+    document.getElementById('co-alc-no').style.borderColor  = val==='no'  ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
   } else {
     coSw = val;
     document.getElementById('co-sw-yes').style.background = val==='yes' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
+    document.getElementById('co-sw-yes').style.borderColor = val==='yes' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
     document.getElementById('co-sw-no').style.background  = val==='no'  ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
+    document.getElementById('co-sw-no').style.borderColor  = val==='no'  ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
   }
+  // Update next button once something is selected
+  const nextBtn = document.getElementById('co-next-btn');
+  if (nextBtn && coStep === 2) nextBtn.textContent = 'Weiter →';
 }
 
 function coSelectActivity(i, el) {
@@ -6994,13 +7023,17 @@ function coGoStep(step) {
   const nextBtn = document.getElementById('co-next-btn');
   if (backBtn) backBtn.style.display = step === 0 ? 'none' : '';
   if (nextBtn) nextBtn.textContent = step === 3 ? '✅ Gute Nacht!' : 'Weiter →';
-  // Step 0: show skip if nothing planned and nothing selected
+  // Step 0: show skip if nothing planned
   if (step === 0) {
     const planned = state.profile?.morningPlanned;
     const todayStr = new Date().toDateString();
     const hasPlanned = planned?.date === todayStr &&
       (planned.actIndices?.length > 0 || planned.actIdx != null);
     if (!hasPlanned && !coSelectedActivity && nextBtn) nextBtn.textContent = 'Überspringen →';
+  }
+  // Step 2: show skip if nothing selected yet
+  if (step === 2 && nextBtn) {
+    if (coAlc === null && coSw === null) nextBtn.textContent = 'Überspringen →';
   }
 }
 
