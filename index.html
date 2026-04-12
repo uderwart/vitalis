@@ -7378,6 +7378,8 @@ function tmGoStep(step) {
 }
 
 function tmNext() {
+  const nextBtn = document.getElementById('tm-next-btn');
+  if (nextBtn && nextBtn.disabled) return;
   const seqIdx = tmStepSequence.indexOf(tmStep);
   if (seqIdx === tmStepSequence.length - 1) { tmSave(); return; }
   // After step 1 (planning), rebuild sequence based on what was selected
@@ -7420,7 +7422,7 @@ function tmBuildWoopItems() {
       <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-bottom:4px;">Was könnte mich daran hindern?</div>
       <input type="text" id="woop-obstacle-${i}" placeholder="z.B. keine Zeit, zu müde…"
         style="width:100%;padding:8px 12px;border:none;border-radius:8px;background:rgba(255,255,255,0.12);color:white;font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;box-sizing:border-box;margin-bottom:8px;"
-        oninput="tmWoopData[${i}].obstacle=this.value">
+        oninput="tmWoopData[${i}].obstacle=this.value;tmUpdateNextBtn()">
       <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-bottom:4px;">Was tue ich dann?</div>
       <input type="text" id="woop-plan-${i}" placeholder="z.B. ich mache es morgen früh…"
         style="width:100%;padding:8px 12px;border:none;border-radius:8px;background:rgba(255,255,255,0.12);color:white;font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;box-sizing:border-box;"
@@ -7444,12 +7446,23 @@ function tmUpdateNextBtn() {
   const total = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContactPlans.length;
   if (tmStep === 1 && total === 0) {
     nextBtn.textContent = 'Überspringen →';
+    nextBtn.style.opacity = '1'; nextBtn.style.cursor = 'pointer'; nextBtn.disabled = false;
   } else if (tmStep === 1 && total > 0) {
     nextBtn.textContent = `Weiter → (${total} geplant)`;
+    nextBtn.style.opacity = '1'; nextBtn.style.cursor = 'pointer'; nextBtn.disabled = false;
   } else if (tmStep === 'woop') {
-    nextBtn.textContent = 'Weiter →';
+    // Check if at least one obstacle field has content
+    const hasObstacle = tmWoopData.some(w => w.obstacle && w.obstacle.trim().length > 0);
+    if (hasObstacle) {
+      nextBtn.textContent = 'Weiter →';
+      nextBtn.style.opacity = '1'; nextBtn.style.cursor = 'pointer'; nextBtn.disabled = false;
+    } else {
+      nextBtn.textContent = 'Bitte Hindernis eintragen';
+      nextBtn.style.opacity = '0.4'; nextBtn.style.cursor = 'not-allowed'; nextBtn.disabled = true;
+    }
   } else {
     nextBtn.textContent = 'Weiter →';
+    nextBtn.style.opacity = '1'; nextBtn.style.cursor = 'pointer'; nextBtn.disabled = false;
   }
 }
 
