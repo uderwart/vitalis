@@ -2489,20 +2489,6 @@
           </select>
         </div>
       </div>
-      <div>
-        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;">🔮 WOOP – Hindernisplanung</label>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border-radius:12px;">
-          <div style="flex:1;">
-            <div style="font-size:0.85rem;font-weight:600;color:var(--ink);">WOOP beim Check-in aktivieren</div>
-            <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">Nach der Aktivitätsplanung: Was könnte mich hindern? Was tue ich dann?</div>
-          </div>
-          <button id="woop-toggle-btn" onclick="toggleWoop()"
-            style="padding:8px 16px;border-radius:20px;border:2px solid var(--border);background:var(--card);font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;color:var(--muted);white-space:nowrap;">
-            Aus
-          </button>
-        </div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">Wissenschaftlich belegt: Hindernisse vorab durchdenken erhöht die Umsetzung deutlich. (Oettingen, 2014)</div>
-      </div>
     </div>
   </div>
   <div class="card">
@@ -8026,6 +8012,12 @@ function renderSettings() {
     if (g) g.value = state.profile.gender || '';
     if (i) i.value = state.profile.intention || '';
   }
+
+  // WOOP toggle state
+  const woopToggle = document.getElementById('woop-toggle');
+  const woopKnob   = document.getElementById('woop-knob');
+  if (woopToggle) woopToggle.style.background = state.woopEnabled ? '#8b6ba8' : 'var(--border)';
+  if (woopKnob)   woopKnob.style.left = state.woopEnabled ? '25px' : '3px';
 
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
