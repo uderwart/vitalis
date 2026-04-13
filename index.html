@@ -7304,34 +7304,60 @@ function startCheckout() {
 
     acts.forEach((a, j) => {
       const idx = indices[j];
-      html += `
-        <div style="margin-bottom:16px;">
-          <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🏃'} ${a.name} – ${a.min} Min geplant</div>
-          <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
-          <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-dur-val-${idx}">0 Min</div>
-          <input type="range" id="co-dur-slider-${idx}" min="0" max="${Math.max(a.min,120)}" step="5" value="0"
-            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
-            oninput="document.getElementById('co-dur-val-${idx}').textContent=this.value+' Min'">
-          <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
-            <span>Nicht gemacht</span><span>${a.min} Min</span>
-          </div>
-        </div>`;
+      // Check if already logged today
+      const alreadyLogged = state.activityLog.find(e =>
+        new Date(e.ts).toDateString() === todayStr && e.name === a.name
+      );
+      if (alreadyLogged) {
+        html += `
+          <div style="margin-bottom:16px;opacity:0.7;">
+            <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:4px;">${a.icon||'🏃'} ${a.name}</div>
+            <div style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ Bereits geloggt – ${alreadyLogged.min} Min · +${alreadyLogged.pts} Punkte</div>
+            <input type="hidden" id="co-dur-slider-${idx}" value="0">
+          </div>`;
+      } else {
+        html += `
+          <div style="margin-bottom:16px;">
+            <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🏃'} ${a.name} – ${a.min} Min geplant</div>
+            <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-dur-val-${idx}">0 Min</div>
+            <input type="range" id="co-dur-slider-${idx}" min="0" max="${Math.max(a.min,120)}" step="5" value="0"
+              style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
+              oninput="document.getElementById('co-dur-val-${idx}').textContent=this.value+' Min'">
+            <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
+              <span>Nicht gemacht</span><span>${a.min} Min</span>
+            </div>
+          </div>`;
+      }
     });
 
     minds.forEach((a, j) => {
       const idx = (planned.mindIndices||[])[j];
-      html += `
-        <div style="margin-bottom:16px;">
-          <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🪷'} ${a.name} – ${a.min} Min geplant</div>
-          <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
-          <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-mind-val-${idx}">0 Min</div>
-          <input type="range" id="co-mind-slider-${idx}" min="0" max="${Math.max(a.min,60)}" step="5" value="0"
-            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
-            oninput="document.getElementById('co-mind-val-${idx}').textContent=this.value+' Min'">
-          <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
-            <span>Nicht gemacht</span><span>${a.min} Min</span>
-          </div>
-        </div>`;
+      // Check if already logged today
+      const alreadyLogged = (state.mindfulnessLog||[]).find(e =>
+        new Date(e.ts).toDateString() === todayStr && e.name === a.name
+      );
+      if (alreadyLogged) {
+        html += `
+          <div style="margin-bottom:16px;opacity:0.7;">
+            <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:4px;">${a.icon||'🪷'} ${a.name}</div>
+            <div style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ Bereits geloggt – ${alreadyLogged.min} Min · +${alreadyLogged.pts} Punkte</div>
+            <input type="hidden" id="co-mind-slider-${idx}" value="0">
+          </div>`;
+      } else {
+        html += `
+          <div style="margin-bottom:16px;">
+            <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🪷'} ${a.name} – ${a.min} Min geplant</div>
+            <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-mind-val-${idx}">0 Min</div>
+            <input type="range" id="co-mind-slider-${idx}" min="0" max="${Math.max(a.min,60)}" step="5" value="0"
+              style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
+              oninput="document.getElementById('co-mind-val-${idx}').textContent=this.value+' Min'">
+            <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
+              <span>Nicht gemacht</span><span>${a.min} Min</span>
+            </div>
+          </div>`;
+      }
     });
 
     contacts.forEach((c, j) => {
