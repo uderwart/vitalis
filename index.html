@@ -150,17 +150,6 @@
   .home-tile.wide .tile-icon { margin-bottom: 0; font-size: 2.2rem; }
   .home-tile.wide .tile-content { flex: 1; }
 
-  /* Tile reorder mode */
-  .tile-reorder-mode .home-tile {
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  @keyframes tile-pulse-gold {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
-    50% { box-shadow: 0 0 16px 4px rgba(201,168,76,0.35); }
-  }
-  .tile-pulse { animation: tile-pulse-gold 1.5s ease-in-out 2; }
-
   /* MAIN */
   main { padding: 16px; max-width: 480px; margin: 0 auto; }
 
@@ -1056,7 +1045,7 @@
 <!-- CHECK-OUT OVERLAY (Abends) -->
 <div id="checkout-overlay" style="display:none;position:fixed;inset:0;z-index:4000;background:linear-gradient(160deg,#1a1a3e,#2d2060);flex-direction:column;padding:32px 24px;padding-top:max(32px,env(safe-area-inset-top));padding-bottom:max(32px,env(safe-area-inset-bottom));">
   <div style="font-family:'DM Serif Display',serif;font-size:1rem;color:rgba(255,255,255,0.7);text-align:center;margin-bottom:16px;">🌙 Guten Abend – Check-out</div>
-  <div style="display:flex;gap:8px;margin-bottom:32px;justify-content:center;">
+  <div style="display:flex;gap:8px;margin-bottom:32px;justify-content:center;" id="co-dots">
     <div class="tm-dot active" id="co-dot-0"></div>
     <div class="tm-dot" id="co-dot-1"></div>
     <div class="tm-dot" id="co-dot-2"></div>
@@ -1145,25 +1134,12 @@
       </div>
     </div>
 
-    <!-- Step 3: Beschwerden -->
+    <!-- Step 3: Gewohnheitentausch (nur wenn aktiv) -->
     <div id="co-step-3" style="display:none;text-align:center;">
-      <div style="font-size:3rem;margin-bottom:12px;">🩹</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Körperliche Beschwerden?</div>
-      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:28px;">Hattest du heute Beschwerden?</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <button id="co-sym-no" onclick="coToggle('sym','no')"
-          style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-          🙏 Nein, beschwerdefrei
-        </button>
-        <button id="co-sym-yes" onclick="coToggle('sym','yes')"
-          style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-          🩹 Ja, Beschwerden eintragen →
-        </button>
-        <button id="co-sym-sick" onclick="coToggle('sym','sick')"
-          style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-          🛏 Krank / bettlägerig
-        </button>
-      </div>
+      <div style="font-size:3rem;margin-bottom:12px;">🔄</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;" id="co-habit-title">Hast du heute getauscht?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:20px;" id="co-habit-subtitle"></div>
+      <div id="co-habit-content"></div>
     </div>
 
     <!-- Step 4: Dankbarkeit -->
@@ -1183,58 +1159,46 @@
   <button onclick="closeCheckout()" style="margin-top:10px;background:none;border:none;color:rgba(255,255,255,0.3);font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;width:100%;text-align:center;">Abbrechen</button>
 </div>
 <div id="section-feeling" class="section">
-
-  <!-- MATRIX TRACKER -->
   <div class="card">
     <h2>Wie fühlst du dich?</h2>
-    <p class="small-note" style="margin-bottom:12px;line-height:1.5;">Tippe auf bis zu 5 Gefühle – auch aus verschiedenen Bereichen. Gemischte Gefühle sind normal.</p>
 
-    <div style="display:flex;gap:6px;margin-bottom:12px;">
-      <button class="chip active" id="fm-tab-kern" onclick="setFeelingMatrixMode('kern')">Kernwörter</button>
-      <button class="chip" id="fm-tab-erweitert" onclick="setFeelingMatrixMode('erweitert')">Erweitert (GFK)</button>
+    <!-- VOR -->
+    <h3 style="margin-bottom:8px;">VOR der Aktivität</h3>
+    <div class="vitalis-slider-wrap">
+      <div class="vitalis-slider-value" id="feeling-before-val">5</div>
+      <div class="vitalis-slider-desc" id="feeling-before-desc">okay</div>
+      <input type="range" id="feeling-before-slider" min="1" max="10" value="5"
+        oninput="updateSlider('feeling-before', this.value)">
+      <div class="slider-labels"><span>😩 Miserabel</span><span>😄 Super</span></div>
     </div>
+    <button class="log-btn secondary" onclick="logFeelingBefore()" style="margin-bottom:0;">
+      💾 Vor-Gefühl speichern
+    </button>
 
-    <div id="feeling-matrix" style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:0;border-radius:16px;overflow:hidden;border:1px solid var(--border);position:relative;">
-      <div style="background:#f9e4dd;padding:10px 8px;min-height:120px;">
-        <div style="font-size:0.7rem;font-weight:600;color:#993C1D;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">UNANGENEHM + AKTIVIERT</div>
-        <div id="fm-q-ua" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
-      </div>
-      <div style="background:#dbeaf7;padding:10px 8px;min-height:120px;">
-        <div style="font-size:0.7rem;font-weight:600;color:#185FA5;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">ANGENEHM + AKTIVIERT</div>
-        <div id="fm-q-aa" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
-      </div>
-      <div style="background:#e8e6f8;padding:10px 8px;min-height:120px;">
-        <div style="font-size:0.7rem;font-weight:600;color:#534AB7;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">UNANGENEHM + RUHIG</div>
-        <div id="fm-q-ur" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
-      </div>
-      <div style="background:#d6f0e5;padding:10px 8px;min-height:120px;">
-        <div style="font-size:0.7rem;font-weight:600;color:#0F6E56;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">ANGENEHM + RUHIG</div>
-        <div id="fm-q-ar" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
-      </div>
-      <!-- Achsenlinien -->
-      <div style="position:absolute;top:50%;left:0;right:0;height:0;border-top:1.5px solid rgba(0,0,0,0.15);pointer-events:none;"></div>
-      <div style="position:absolute;left:50%;top:0;bottom:0;width:0;border-left:1.5px solid rgba(0,0,0,0.15);pointer-events:none;"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:0.82rem;font-weight:500;color:var(--ink);margin-top:6px;padding:0 4px;">
-      <span>← unangenehm</span><span>angenehm →</span>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-top:2px;padding:0 4px;">
-      <span>↑ aktiviert (oben)</span><span>↓ ruhig (unten)</span>
-    </div>
+    <hr class="divider">
 
-    <div id="fm-selection" style="display:none;margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:12px;border:2px solid var(--accent);">
-      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:6px;">Ausgewählt (<span id="fm-count">0</span>/5):</div>
-      <div id="fm-selected-tags" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;"></div>
-      <textarea id="fm-context" placeholder="Was hat das Gefühl ausgelöst? (optional)" rows="2"
-        style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;background:var(--card);color:var(--ink);"></textarea>
-      <button class="log-btn" onclick="saveFeelingMatrix()" style="margin-top:8px;">💾 Gefühl speichern</button>
+    <!-- NACH -->
+    <h3 style="margin-bottom:8px;">NACH der Aktivität</h3>
+    <div id="feeling-after-pending" style="display:none;padding:8px 12px;background:var(--bg);border-radius:10px;border-left:3px solid var(--accent);margin-bottom:10px;font-size:0.82rem;color:var(--muted);">
+      ⏳ Vor-Gefühl gespeichert – trage nach der Aktivität den Nachher-Wert ein.
     </div>
-    <div id="fm-hint" style="display:none;margin-top:8px;padding:8px 12px;background:#fff3cd;border-radius:10px;font-size:0.78rem;color:#856404;">
-      Maximal 5 Gefühle – tippe auf ein markiertes Wort, um es abzuwählen.
+    <div class="vitalis-slider-wrap">
+      <div class="vitalis-slider-value" id="feeling-after-val">5</div>
+      <div class="vitalis-slider-desc" id="feeling-after-desc">okay</div>
+      <input type="range" id="feeling-after-slider" min="1" max="10" value="5"
+        oninput="updateSlider('feeling-after', this.value)">
+      <div class="slider-labels"><span>😩 Miserabel</span><span>😄 Super</span></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="log-btn secondary" onclick="logFeelingAfter()" style="flex:1;">
+        💾 Nach-Gefühl ergänzen
+      </button>
+      <button class="log-btn" onclick="logFeelingBoth()" style="flex:1;">
+        ✅ Beide speichern
+      </button>
     </div>
   </div>
 
-  <!-- VERLAUF -->
   <div class="card">
     <h2>Verlauf</h2>
     <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
@@ -1243,71 +1207,8 @@
       <button class="chip" id="ff-monat" onclick="setFeelingFilter('monat')">Monat</button>
       <button class="chip" id="ff-alles" onclick="setFeelingFilter('alles')">Alles</button>
     </div>
-    <div id="fm-quadrant-summary" style="display:none;margin-bottom:12px;"></div>
     <div class="feeling-history" id="feeling-history"></div>
     <p class="small-note" id="feeling-empty" style="display:none;">Noch keine Einträge.</p>
-  </div>
-
-  <!-- WISSEN -->
-  <div class="card">
-    <h2>Gefühle verstehen</h2>
-    <p class="small-note" style="margin-bottom:14px;line-height:1.5;">Wissen über Emotionen hilft, sie besser wahrzunehmen und einzuordnen.</p>
-
-    <div style="margin-bottom:8px;">
-      <div onclick="toggleWissen('w-circumplex')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1.1rem;">🎯</span>
-        <span style="flex:1;font-weight:500;font-size:0.9rem;">Die Gefühls-Matrix erklärt</span>
-        <span id="w-circumplex-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-      </div>
-      <div id="w-circumplex" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
-        Gefühle lassen sich auf zwei Achsen einordnen: <strong>Valenz</strong> (angenehm ↔ unangenehm) und <strong>Aktivierung</strong> (aktiviert ↔ ruhig). Das ergibt vier Bereiche – z.B. ist Wut unangenehm und aktiviert, Traurigkeit unangenehm und ruhig.
-        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Russell, J. A. (1980). A circumplex model of affect. Journal of Personality and Social Psychology, 39(6).</div>
-      </div>
-    </div>
-    <div style="margin-bottom:8px;">
-      <div onclick="toggleWissen('w-pseudo')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1.1rem;">🔍</span>
-        <span style="flex:1;font-weight:500;font-size:0.9rem;">Echte Gefühle vs. Pseudogefühle</span>
-        <span id="w-pseudo-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-      </div>
-      <div id="w-pseudo" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
-        „Ich fühle mich ignoriert" ist kein Gefühl, sondern eine Interpretation. Das echte Gefühl dahinter könnte sein: „Ich bin traurig" oder „Ich bin verunsichert". Echte Gefühle beginnen mit „Ich bin…" gefolgt von einem Empfindungswort.
-        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Rosenberg, M. B. (2003). Gewaltfreie Kommunikation. Junfermann Verlag.</div>
-      </div>
-    </div>
-    <div style="margin-bottom:8px;">
-      <div onclick="toggleWissen('w-mixed')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1.1rem;">🌈</span>
-        <span style="flex:1;font-weight:500;font-size:0.9rem;">Gemischte Gefühle sind normal</span>
-        <span id="w-mixed-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-      </div>
-      <div id="w-mixed" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
-        Menschen erleben oft gleichzeitig Gefühle aus verschiedenen Bereichen – z.B. dankbar <em>und</em> traurig. Diese Fähigkeit ist ein Zeichen emotionaler Reife.
-        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Larsen, J. T. et al. (2001). Journal of Personality and Social Psychology, 81(4).</div>
-      </div>
-    </div>
-    <div style="margin-bottom:8px;">
-      <div onclick="toggleWissen('w-needs')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1.1rem;">💡</span>
-        <span style="flex:1;font-weight:500;font-size:0.9rem;">Gefühle als Wegweiser zu Bedürfnissen</span>
-        <span id="w-needs-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-      </div>
-      <div id="w-needs" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
-        Angenehme Gefühle deuten auf erfüllte Bedürfnisse hin. Unangenehme auf unerfüllte. Das Benennen des Gefühls ist der erste Schritt, das Bedürfnis zu erkennen.
-        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">CNVC Feelings & Needs Inventory. cnvc.org</div>
-      </div>
-    </div>
-    <div style="margin-bottom:8px;">
-      <div onclick="toggleWissen('w-granularity')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1.1rem;">🧠</span>
-        <span style="flex:1;font-weight:500;font-size:0.9rem;">Warum genaues Benennen hilft</span>
-        <span id="w-granularity-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-      </div>
-      <div id="w-granularity" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
-        Je differenzierter wir Emotionen benennen, desto besser können wir sie regulieren. Allein das Finden des richtigen Wortes hat bereits eine beruhigende Wirkung – das nennt man <strong>emotionale Granularität</strong>.
-        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Barrett, L. F. (2004). Journal of Personality and Social Psychology, 87(2).<br>Pennebaker, J. W. (1997). Psychological Science, 8(3).</div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -1830,18 +1731,17 @@
     <button id="body-log-btn" class="log-btn secondary" style="margin-top:12px;opacity:0.4;cursor:not-allowed;" onclick="logBody()" disabled>Beobachtung notieren</button>
   </div>
 
-  <!-- BESCHWERDEN: KÖRPERSTELLE -->
-  <div class="card" id="symptom-card">
-    <h2>🩹 Beschwerden an einer Körperstelle</h2>
-    <p class="small-note" style="margin-bottom:12px;">Tippe auf die betroffene Stelle, wähle die Art und speichere. Du kannst mehrere Stellen nacheinander eintragen.</p>
+  <!-- BESCHWERDEN -->
+  <div class="card">
+    <h2>🩹 Beschwerden</h2>
+    <p class="small-note" style="margin-bottom:12px;">Tippe auf eine Körperstelle um Schmerzen oder Verspannungen einzutragen.</p>
 
     <div style="display:flex;gap:16px;justify-content:center;align-items:flex-start;margin-bottom:8px;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
         <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.5px;">VORNE</div>
         <svg id="sym-front" width="110" height="270" viewBox="0 0 110 270">
           <ellipse class="sym-zone" data-zone="Kopf" cx="55" cy="24" rx="20" ry="22" fill="#9FE1CB" onclick="symOpenZone(this)"/>
-          <ellipse class="sym-zone" data-zone="Kiefer/Mund" cx="55" cy="42" rx="12" ry="6" fill="#9FE1CB" onclick="symOpenZone(this)"/>
-          <rect class="sym-zone" data-zone="Hals" x="47" y="48" width="16" height="10" rx="3" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Hals" x="47" y="46" width="16" height="12" rx="3" fill="#9FE1CB" onclick="symOpenZone(this)"/>
           <ellipse class="sym-zone" data-zone="Linke Schulter" cx="22" cy="70" rx="15" ry="10" fill="#9FE1CB" onclick="symOpenZone(this)"/>
           <ellipse class="sym-zone" data-zone="Rechte Schulter" cx="88" cy="70" rx="15" ry="10" fill="#9FE1CB" onclick="symOpenZone(this)"/>
           <rect class="sym-zone" data-zone="Brust" x="36" y="58" width="38" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
@@ -1893,23 +1793,20 @@
 
     <p class="small-note" id="sym-hint" style="text-align:center;margin-top:4px;">Tippe auf eine Körperstelle</p>
 
-    <!-- Inline Panel für Körperstelle -->
+    <!-- Inline Panel -->
     <div id="sym-panel" style="display:none;margin-top:12px;background:var(--bg);border-radius:14px;padding:14px 16px;border:2px solid var(--border);">
       <div style="font-weight:700;font-size:0.95rem;color:var(--ink);margin-bottom:12px;" id="sym-zone-title"></div>
 
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;" id="sym-types">
-        <div style="display:flex;flex-wrap:wrap;gap:4px;">
-          <button class="chip active" onclick="symSetType(this,'Schmerz')">Schmerz</button>
-          <button class="chip" onclick="symSetType(this,'Verspannung')">Verspannung</button>
-          <button class="chip" onclick="symSetType(this,'Schwellung')">Schwellung</button>
-          <button class="chip" onclick="symSetType(this,'Muskelkater')">Muskelkater</button>
-          <button class="chip" onclick="symSetType(this,'Zerrung')">Zerrung</button>
-          <button class="chip" onclick="symSetType(this,'Kribbeln')">Kribbeln</button>
-          <button class="chip" onclick="symSetType(this,'Juckreiz')">Juckreiz</button>
-          <button class="chip" onclick="symSetType(this,'Anderes')">Anderes</button>
-        </div>
+      <!-- Typ -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;" id="sym-types">
+        <button class="chip active" onclick="symSetType(this,'Schmerz')">Schmerz</button>
+        <button class="chip" onclick="symSetType(this,'Verspannung')">Verspannung</button>
+        <button class="chip" onclick="symSetType(this,'Müdigkeit')">Müdigkeit</button>
+        <button class="chip" onclick="symSetType(this,'Kribbeln')">Kribbeln</button>
+        <button class="chip" onclick="symSetType(this,'Anderes')">Anderes</button>
       </div>
 
+      <!-- Intensität -->
       <div style="margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
           <span style="font-size:0.78rem;color:var(--muted);">Intensität</span>
@@ -1935,36 +1832,6 @@
     <!-- Heutige Einträge -->
     <div id="sym-log-list" style="margin-top:12px;"></div>
     <p class="small-note" id="sym-log-empty" style="margin-top:8px;text-align:center;">Noch keine Beschwerden eingetragen.</p>
-  </div>
-
-  <!-- ALLGEMEINE BESCHWERDEN (ohne Körperstelle) -->
-  <div class="card">
-    <h2>🌡 Allgemeine Beschwerden</h2>
-    <p class="small-note" style="margin-bottom:12px;">Erkältung, Infekte und andere Beschwerden die den ganzen Körper betreffen.</p>
-
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;" id="gen-sym-chips"></div>
-
-    <div id="gen-sym-panel" style="display:none;background:var(--bg);border-radius:14px;padding:14px 16px;border:2px solid var(--border);">
-      <div style="font-weight:700;font-size:0.95rem;color:var(--ink);margin-bottom:12px;" id="gen-sym-title"></div>
-      <div style="margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:0.78rem;color:var(--muted);">Intensität</span>
-          <span style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--ink);" id="gen-sym-int-val">5</span>
-        </div>
-        <input type="range" id="gen-sym-int-slider" min="1" max="10" value="5" step="1"
-          style="width:100%;accent-color:var(--accent);height:6px;cursor:pointer;"
-          oninput="genSymUpdateInt(this.value)">
-        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:4px;">
-          <span>😌 Kaum</span><span id="gen-sym-int-desc">deutlich</span><span>😣 Stark</span>
-        </div>
-      </div>
-      <textarea id="gen-sym-note" placeholder="Notiz (optional)…" rows="2"
-        style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;margin-bottom:10px;background:var(--card);color:var(--ink);box-sizing:border-box;"></textarea>
-      <div style="display:flex;gap:8px;">
-        <button class="log-btn" onclick="genSymSave()" style="flex:1;">💾 Speichern</button>
-        <button class="log-btn secondary" onclick="genSymCancel()">Abbrechen</button>
-      </div>
-    </div>
   </div>
 
   <div class="card">
@@ -2035,7 +1902,7 @@
 
   <!-- Körper -->
   <div class="card">
-    <h2>🧘 Körpergefühl</h2>
+    <h2>🧘 Körper</h2>
     <div id="vl-body-list" style="display:flex;flex-direction:column;gap:6px;"></div>
     <p class="small-note" id="vl-body-empty">Keine Einträge im Zeitraum.</p>
   </div>
@@ -2170,9 +2037,27 @@
     <h2 style="color:#3a5bc7;">🌱 90-Tage-Gewohnheit</h2>
     <p style="font-size:0.82rem;color:var(--muted);line-height:1.5;margin-bottom:14px;">Eine bewusste Entscheidung. Kein Druck – aber Beständigkeit. Nach ~66 Tagen ist die Gewohnheit neuronal verankert.</p>
 
+    <!-- ===== AKTIVER TRACKER ===== -->
     <div id="habit-active-card" style="display:none;">
       <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:#3a5bc7;margin-bottom:4px;" id="habit-name-display"></div>
       <div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;" id="habit-date-display"></div>
+
+      <!-- Habit Loop Visualisierung (nur swap-Modus) -->
+      <div id="habit-loop-visual" style="display:none;margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,0.7);border-radius:10px;">
+        <div style="font-size:0.7rem;color:var(--muted);font-weight:600;margin-bottom:6px;">DEIN HABIT LOOP</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:0.78rem;">
+          <span id="habit-loop-cue" style="padding:4px 10px;background:#faeeda;color:#633806;border-radius:8px;font-weight:600;"></span>
+          <span style="color:var(--muted);">→</span>
+          <span id="habit-loop-old" style="padding:4px 10px;background:#fcebeb;color:#791f1f;border-radius:8px;text-decoration:line-through;opacity:0.6;"></span>
+          <span id="habit-loop-new" style="padding:4px 10px;background:#eaf3de;color:#27500a;border-radius:8px;font-weight:600;"></span>
+          <span style="color:var(--muted);">→</span>
+          <span id="habit-loop-reward" style="padding:4px 10px;background:#e6f1fb;color:#0c447c;border-radius:8px;"></span>
+        </div>
+      </div>
+
+      <!-- Wenn-Dann-Plan (nur swap-Modus) -->
+      <div id="habit-woop-display" style="display:none;margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,0.7);border-radius:10px;font-size:0.82rem;line-height:1.5;">
+      </div>
 
       <!-- Fortschritt -->
       <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--muted);margin-bottom:4px;">
@@ -2201,23 +2086,122 @@
       <!-- Letzte 7 Tage -->
       <div style="display:flex;gap:5px;margin-bottom:12px;" id="habit-dots"></div>
 
+      <!-- Tauschquote (nur swap-Modus) -->
+      <div id="habit-swap-stats" style="display:none;margin-bottom:14px;">
+        <div style="display:flex;gap:8px;text-align:center;">
+          <div style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border-radius:10px;">
+            <div style="font-size:1.2rem;font-weight:700;color:#3a5bc7;" id="habit-swap-done">0</div>
+            <div style="font-size:0.68rem;color:var(--muted);">Getauscht</div>
+          </div>
+          <div style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border-radius:10px;">
+            <div style="font-size:1.2rem;font-weight:700;color:var(--muted);" id="habit-swap-missed">0</div>
+            <div style="font-size:0.68rem;color:var(--muted);">Nicht getauscht</div>
+          </div>
+          <div style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border-radius:10px;">
+            <div style="font-size:1.2rem;font-weight:700;color:#1d9e75;" id="habit-swap-pct">0%</div>
+            <div style="font-size:0.68rem;color:var(--muted);">Tauschquote</div>
+          </div>
+        </div>
+      </div>
+
       <button onclick="stopHabit()" class="alc-reset">Gewohnheit beenden</button>
     </div>
 
+    <!-- ===== SETUP ===== -->
     <div id="habit-setup-card">
-      <div style="margin-bottom:10px;">
-        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Meine Gewohnheit</label>
-        <input type="text" id="habit-name-input" placeholder="z.B. Täglich 30 Min bewegen"
-          style="width:100%;padding:10px 14px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;">
+      <!-- Modus-Wahl -->
+      <div style="display:flex;gap:0;margin-bottom:14px;">
+        <button id="habit-mode-build" onclick="setHabitMode('build')"
+          style="flex:1;padding:10px;border-radius:12px 0 0 12px;border:2px solid rgba(58,91,199,0.3);background:#3a5bc7;color:white;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.15s;">
+          🌱 Aufbauen
+        </button>
+        <button id="habit-mode-swap" onclick="setHabitMode('swap')"
+          style="flex:1;padding:10px;border-radius:0 12px 12px 0;border:2px solid rgba(58,91,199,0.3);border-left:none;background:white;color:#3a5bc7;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.15s;">
+          🔄 Tauschen
+        </button>
       </div>
+
+      <!-- Build-Modus: klassisch -->
+      <div id="habit-build-fields">
+        <div style="margin-bottom:10px;">
+          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Meine Gewohnheit</label>
+          <input type="text" id="habit-name-input" placeholder="z.B. Täglich 30 Min bewegen"
+            style="width:100%;padding:10px 14px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;">
+        </div>
+      </div>
+
+      <!-- Swap-Modus: Tausch-Felder -->
+      <div id="habit-swap-fields" style="display:none;">
+        <!-- Alte Gewohnheit -->
+        <div style="background:#fcebeb;border-radius:12px;padding:12px;margin-bottom:4px;">
+          <label style="font-size:0.75rem;color:#791f1f;display:block;margin-bottom:4px;font-weight:600;">Alte Gewohnheit (loslassen)</label>
+          <input type="text" id="habit-old-input" placeholder="z.B. Feierabendbier"
+            style="width:100%;padding:10px 14px;border:2px solid #f09595;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;background:white;">
+        </div>
+        <!-- Swap icon -->
+        <div style="text-align:center;margin:-2px 0;position:relative;z-index:1;">
+          <span style="display:inline-block;width:32px;height:32px;line-height:32px;border-radius:50%;background:white;border:2px solid rgba(58,91,199,0.2);font-size:0.9rem;">⇅</span>
+        </div>
+        <!-- Neue Gewohnheit -->
+        <div style="background:#eaf3de;border-radius:12px;padding:12px;margin-bottom:12px;">
+          <label style="font-size:0.75rem;color:#27500a;display:block;margin-bottom:4px;font-weight:600;">Neue Gewohnheit (aufbauen)</label>
+          <input type="text" id="habit-new-input" placeholder="z.B. Rooibos-Tee aufbrühen"
+            style="width:100%;padding:10px 14px;border:2px solid #97c459;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;background:white;">
+        </div>
+
+        <!-- Auslöser -->
+        <div style="margin-bottom:12px;">
+          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:6px;font-weight:600;">Mein Auslöser (wann passiert es?)</label>
+          <div id="habit-cue-chips" style="margin-bottom:6px;"></div>
+          <input type="text" id="habit-cue-custom" placeholder="Oder eigener Auslöser..."
+            style="width:100%;padding:8px 12px;border:2px solid rgba(58,91,199,0.15);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
+        </div>
+
+        <!-- Belohnung -->
+        <div style="margin-bottom:12px;">
+          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Welche Belohnung suche ich eigentlich?</label>
+          <div style="font-size:0.78rem;color:var(--muted);line-height:1.4;margin-bottom:6px;padding:8px 10px;background:rgba(58,91,199,0.05);border-radius:8px;">
+            Frag dich: Was genau gibt mir die alte Gewohnheit? Entspannung? Ein Ritual? Ein Signal, dass der Tag vorbei ist?
+          </div>
+          <textarea id="habit-reward-input" rows="2" placeholder="z.B. Runterkommen, Übergang Arbeit → Freizeit"
+            style="width:100%;padding:10px 12px;border:2px solid rgba(58,91,199,0.15);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;"></textarea>
+        </div>
+
+        <!-- Wenn-Dann-Plan -->
+        <div style="margin-bottom:12px;">
+          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Wenn-Dann-Plan (Gollwitzer 1999)</label>
+          <div style="display:flex;gap:4px;align-items:start;">
+            <span style="font-size:0.82rem;color:var(--muted);padding-top:10px;white-space:nowrap;">Wenn</span>
+            <input type="text" id="habit-woop-obstacle" placeholder="ich zum Kühlschrank gehen will"
+              style="flex:1;padding:8px 10px;border:2px solid rgba(58,91,199,0.15);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
+          </div>
+          <div style="display:flex;gap:4px;align-items:start;margin-top:4px;">
+            <span style="font-size:0.82rem;color:var(--muted);padding-top:10px;white-space:nowrap;">dann</span>
+            <input type="text" id="habit-woop-plan" placeholder="stelle ich den Wasserkocher an"
+              style="flex:1;padding:8px 10px;border:2px solid rgba(58,91,199,0.15);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Aktive Tage (nur swap) -->
+      <div id="habit-days-fields" style="display:none;margin-bottom:12px;">
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:6px;font-weight:600;">An welchen Tagen tauschen?</label>
+        <div id="habit-day-chips" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">An Ruhetagen wirst du nicht gefragt, kannst aber freiwillig tauschen.</div>
+      </div>
+
+      <!-- Startdatum (beide Modi) -->
       <div style="margin-bottom:14px;">
         <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Startdatum</label>
         <input type="date" id="habit-start-input"
           style="width:100%;padding:10px 12px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;">
       </div>
-      <button onclick="startHabit()" class="log-btn" style="width:100%;background:#3a5bc7;border-color:#3a5bc7;">
+      <button onclick="startHabit()" class="log-btn" style="width:100%;background:#3a5bc7;border-color:#3a5bc7;" id="habit-start-btn">
         🌱 90-Tage-Commitment starten
       </button>
+      <div style="font-size:0.7rem;color:var(--muted);text-align:center;margin-top:8px;line-height:1.4;font-style:italic;" id="habit-science-note">
+        Lally et al. (2010): Ø 66 Tage bis Automatizität.
+      </div>
     </div>
   </div>
 </div>
@@ -2572,9 +2556,9 @@
         <div style="font-size:0.7rem;color:var(--accent);margin-top:4px;font-style:italic;">Tribole & Resch (1995) · Schaefer & Magnuson (2014)</div>
       </div>
       <div style="border-left:3px solid #457b9d;padding-left:12px;">
-        <div style="font-weight:600;font-size:0.85rem;margin-bottom:3px;">Gewohnheitsbildung</div>
-        <p style="font-size:0.8rem;line-height:1.6;color:var(--muted);">Im Schnitt 66 Tage. Ein ausgelassener Tag hat keinen messbaren Einfluss.</p>
-        <div style="font-size:0.7rem;color:#457b9d;margin-top:4px;font-style:italic;">Lally et al. (2010) · UCL</div>
+        <div style="font-weight:600;font-size:0.85rem;margin-bottom:3px;">Gewohnheitsbildung & -substitution</div>
+        <p style="font-size:0.8rem;line-height:1.6;color:var(--muted);">Im Schnitt 66 Tage bis Automatizität. Gewohnheiten werden nicht gelöscht, sondern durch neue Routinen im gleichen Kontext ersetzt (Golden Rule). Substitution erfordert gleichzeitigen Aufbau der neuen und Abbau der alten Gewohnheit.</p>
+        <div style="font-size:0.7rem;color:#457b9d;margin-top:4px;font-style:italic;">Lally et al. (2010) · Duhigg (2012) · Gardner et al. (2021) · Di Maio et al. (2025)</div>
       </div>
       <div style="border-left:3px solid var(--accent2);padding-left:12px;">
         <div style="font-weight:600;font-size:0.85rem;margin-bottom:3px;">Bewegung & Stimmung</div>
@@ -2785,14 +2769,6 @@
     <hr class="divider">
     <button onclick="resetAllData()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--accent2);background:transparent;color:var(--accent2);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">🗑 Alle Daten zurücksetzen (Test)</button>
     <button onclick="restartOnboarding()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;margin-top:8px;">🌿 Startschuss-Intro nochmal anzeigen</button>
-    <hr class="divider">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div>
-        <div style="font-size:0.85rem;font-weight:600;">✨ Kachel-Animation</div>
-        <div style="font-size:0.72rem;color:var(--muted);">Sanftes Leuchten bei beschwerdefreien Tagen</div>
-      </div>
-      <button id="pulse-toggle-btn" onclick="toggleTilePulse()" style="width:52px;height:28px;border-radius:14px;border:none;cursor:pointer;position:relative;transition:background 0.2s;"></button>
-    </div>
     <hr class="divider">
     <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">🛠 Test-Modus</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -3040,7 +3016,7 @@ function loadState() {
     activeDaysLog: [], // [{date}] all days with any activity
     activitiesLogged: 0,
     pointsLog: [],
-    habit90: null, // { name, startDate, log: [{date, done}], completed }
+    habit90: null, // { name, mode:'build'|'swap', startDate, log:[{date,done}], completed, oldHabit?, newHabit?, cues?[], reward?, woop?{obstacle,plan} }
     feelingLog: [],
     activityLog: [],
     activities: DEFAULT_ACTIVITIES,
@@ -3079,7 +3055,6 @@ function loadState() {
     mindfulnessLog: [],
     selectedMindfulness: null,
     selectedActivity: null,
-    tileOrder: null, // null = default order
   };
   if (!raw) return defaults;
   try {
@@ -3088,7 +3063,7 @@ function loadState() {
     const arrays = ['activityLog','feelingLog','weightLog','bodyLog','sleepLog',
       'gratitudeLog','socialContacts','mindfulnessLog','breathingLog','bugReports',
       'alcDaysLog','sweetsDaysLog','sweetsLog','pointsLog',
-      'waterLog','activeDaysLog','symptomLog','masterContacts','mealFeelingLog','alcAftermathLog','symptomFreeLog','sickDayLog'];
+      'waterLog','activeDaysLog','symptomLog','masterContacts','mealFeelingLog','alcAftermathLog'];
     arrays.forEach(k => { if (!Array.isArray(saved[k])) saved[k] = []; });
     return saved;
   }
@@ -3169,7 +3144,7 @@ function showSection(id) {
   if (id === 'verlauf') renderVerlauf();
   if (id === 'social') renderSocial();
   if (id === 'mindfulness') renderMindfulness();
-  if (id === 'body') { renderBody(); renderSymptoms(); renderGenSymChips(); }
+  if (id === 'body') { renderBody(); renderSymptoms(); }
   if (id === 'gratitude') renderGratitudeSection();
   if (id === 'rewards') renderRewards();
   if (id === 'settings') renderSettings();
@@ -3334,27 +3309,10 @@ function renderHome() {
     },
     {
       icon: '🧘', label: 'Körper', section: 'body',
-      color: (() => {
-        const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        if (sick) return '#993C1D';
-        return (!s.length && free) ? '#c9a84c' : '#6b8f71';
-      })(),
-      bg: (() => {
-        const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        if (sick) return 'linear-gradient(135deg,#fef3ee,#f9e4dd)';
-        return (!s.length && free) ? 'linear-gradient(135deg,#fdf6e3,#f5eacc)' : 'linear-gradient(135deg,#f0f5f0,#dceadc)';
-      })(),
+      color: '#6b8f71', bg: 'linear-gradient(135deg,#f0f5f0,#dceadc)',
       value: (() => {
         const b = state.bodyLog.length > 0 && new Date(state.bodyLog[0].ts).toDateString() === todayStr ? state.bodyLog[0] : null;
         const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        if (sick) return '🛏 Gute Besserung';
-        if (!s.length && free) return 'Danke 🙏';
         if (!b && !s.length) return '—';
         const parts = [];
         if (b?.feeling) parts.push(b.feeling + '/10');
@@ -3363,33 +3321,7 @@ function renderHome() {
       })(),
       sub: (() => {
         const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        if (sick) return 'Krankheitstag – Streak pausiert';
-        if (!s.length && free) return 'ohne Beschwerden';
         return s.length ? s.map(e=>e.zone).join(', ').slice(0,28) : 'Wohlbefinden & Beschwerden';
-      })(),
-      bar: null,
-      _symptomFree: (() => {
-        const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        return !sick && !s.length && !!free;
-      })()
-    },
-    {
-      icon: '😊', label: 'Gefühl', section: 'feeling',
-      color: '#d85a30', bg: 'linear-gradient(135deg,#fef3ee,#f9e4dd)',
-      value: (() => {
-        const tf = state.feelingLog.filter(e => new Date(e.ts).toDateString() === todayStr);
-        if (!tf.length) return '—';
-        const last = tf[0];
-        if (last.feelings && Array.isArray(last.feelings)) return last.feelings.map(f=>f.label).slice(0,2).join(', ')+(last.feelings.length>2?'…':'');
-        return last.before !== null ? last.before + '/10' : '—';
-      })(),
-      sub: (() => {
-        const tf = state.feelingLog.filter(e => new Date(e.ts).toDateString() === todayStr);
-        return tf.length ? tf.length + '× heute' : 'Wie geht es dir?';
       })(),
       bar: null
     },
@@ -3437,45 +3369,47 @@ function renderHome() {
     },
   ];
 
-  // Sort tiles by saved order
-  if (state.tileOrder && Array.isArray(state.tileOrder)) {
-    TILES.sort((a, b) => {
-      const ia = state.tileOrder.indexOf(a.section);
-      const ib = state.tileOrder.indexOf(b.section);
-      return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+  // Add habit swap tile if active
+  if (state.habit90 && state.habit90.mode === 'swap') {
+    const h = state.habit90;
+    const daysPassed = Math.max(0, Math.floor((now - new Date(h.startDate)) / 86400000) + 1);
+    const todayEntry = h.log.find(e => new Date(e.date).toDateString() === todayStr);
+    const isSwapDay = habitIsSwapDay(now);
+    const doneCount = h.log.filter(e => e.done).length;
+    const totalLogged = h.log.filter(e => e.done !== undefined).length;
+    const swapPct = totalLogged > 0 ? Math.round(doneCount / totalLogged * 100) : 0;
+
+    let tileValue, tileSub;
+    if (todayEntry?.done === true) {
+      tileValue = '🔄 Getauscht';
+      tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' · ' + swapPct + '%';
+    } else if (todayEntry?.done === false) {
+      tileValue = '○ Nicht heute';
+      tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' · ' + swapPct + '%';
+    } else if (!isSwapDay) {
+      tileValue = '☀️ Ruhetag';
+      tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' · kein Tauschtag';
+    } else {
+      tileValue = 'Offen';
+      tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' von 90';
+    }
+
+    TILES.push({
+      icon: '🔄', label: 'Tausch', section: 'rewards',
+      color: '#534AB7', bg: 'linear-gradient(135deg,#f0f4ff,#e0e8ff)',
+      value: tileValue,
+      sub: tileSub,
+      bar: Math.min(100, Math.round(daysPassed / 90 * 100)), barColor: '#534AB7'
     });
   }
 
-  // Reorder button
-  const reorderBtn = document.createElement('div');
-  reorderBtn.id = 'tile-reorder-btn';
-  reorderBtn.style.cssText = 'text-align:right;margin-bottom:8px;';
-  reorderBtn.innerHTML = tiles.classList.contains('tile-reorder-mode')
-    ? '<button onclick="finishTileReorder()" style="background:var(--accent);color:white;border:none;border-radius:12px;padding:7px 16px;font-size:0.78rem;font-family:DM Sans,sans-serif;font-weight:600;cursor:pointer;">✓ Fertig</button>'
-    : '<button onclick="startTileReorder()" style="background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:12px;padding:7px 16px;font-size:0.78rem;font-family:DM Sans,sans-serif;font-weight:500;cursor:pointer;">↕ Anordnen</button>';
-  tiles.appendChild(reorderBtn);
-  reorderBtn.style.gridColumn = 'span 2';
-
-  const isReordering = tiles.classList.contains('tile-reorder-mode');
-
-  TILES.forEach((t, idx) => {
+  TILES.forEach(t => {
     const tile = document.createElement('div');
     tile.className = 'home-tile';
-    if (t._symptomFree && state.tilePulseEnabled !== false) tile.classList.add('tile-pulse');
     tile.style.background = t.bg;
     tile.style.borderColor = 'transparent';
-    tile.dataset.section = t.section;
-    tile.dataset.idx = idx;
-    if (!isReordering) {
-      tile.onclick = () => showSection(t.section);
-    }
-    const reorderBtns = isReordering ? `<div style="position:absolute;top:6px;right:6px;display:flex;flex-direction:column;gap:2px;z-index:10;">
-      <button onclick="event.stopPropagation();moveTile(${idx},-1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--ink);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;${idx<2?'opacity:0.3;pointer-events:none;':''}">▲</button>
-      <button onclick="event.stopPropagation();moveTile(${idx},1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--ink);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;${idx>=TILES.length-2?'opacity:0.3;pointer-events:none;':''}">▼</button>
-    </div>` : '';
-    tile.style.position = 'relative';
+    tile.onclick = () => showSection(t.section);
     tile.innerHTML =
-      reorderBtns +
       '<div>' +
         '<div class="tile-icon">' + t.icon + '</div>' +
         '<div class="tile-label">' + t.label + '</div>' +
@@ -3494,48 +3428,6 @@ function renderHome() {
     tiles.appendChild(gt);
   }
 }
-
-
-// =====================
-// TILE REORDER (Arrow Buttons)
-// =====================
-function startTileReorder() {
-  const tiles = document.getElementById('home-tiles');
-  tiles.classList.add('tile-reorder-mode');
-  renderHome();
-  showToast('Kacheln verschieben – Pfeile nutzen');
-}
-
-function finishTileReorder() {
-  const tiles = document.getElementById('home-tiles');
-  tiles.classList.remove('tile-reorder-mode');
-  const order = [];
-  tiles.querySelectorAll('.home-tile[data-section]').forEach(t => order.push(t.dataset.section));
-  if (order.length) { state.tileOrder = order; saveState(); }
-  renderHome();
-}
-
-function moveTile(fromIdx, direction) {
-  const step = 2; // 2-column grid: one row = 2 positions
-  const toIdx = fromIdx + (direction * step);
-  if (!state.tileOrder) {
-    const defaultSections = ['water','activity','nutrition','sleep','weight','body','feeling','social','mindfulness','gratitude'];
-    state.tileOrder = defaultSections;
-  }
-  if (toIdx < 0 || toIdx >= state.tileOrder.length) return;
-  const temp = state.tileOrder[fromIdx];
-  state.tileOrder[fromIdx] = state.tileOrder[toIdx];
-  state.tileOrder[toIdx] = temp;
-  saveState();
-  renderHome();
-}
-
-function toggleTilePulse() {
-  state.tilePulseEnabled = state.tilePulseEnabled === false ? true : false;
-  saveState();
-  renderSettings();
-}
-
 
 
 // =====================
@@ -3566,189 +3458,164 @@ function initSlider(id, val) {
 }
 
 // =====================
-// FEELING – MATRIX-BASED (Circumplex + GFK)
+// FEELING
 // =====================
-const FEELING_MATRIX = {
-  kern: {
-    ua: [{label:'wütend',desc:'Ärger, der sich aufbaut'},{label:'ängstlich',desc:'Sorge, innere Anspannung'},{label:'gestresst',desc:'Überlastet, unter Druck'},{label:'frustriert',desc:'Klappt nicht wie gewollt'},{label:'genervt',desc:'Gereizt durch Kleinigkeiten'},{label:'panisch',desc:'Starke Angst, Kontrollverlust'}],
-    aa: [{label:'begeistert',desc:'Voller Vorfreude und Energie'},{label:'fröhlich',desc:'Gute Laune, beschwingt'},{label:'energiegeladen',desc:'Tatendrang, wach und bereit'},{label:'inspiriert',desc:'Kreative Ideen, Motivation'},{label:'aufgeregt',desc:'Positive Spannung, Erwartung'},{label:'stolz',desc:'Zufrieden mit einer Leistung'}],
-    ur: [{label:'traurig',desc:'Niedergeschlagen, bedrückt'},{label:'erschöpft',desc:'Ausgelaugt, keine Energie'},{label:'einsam',desc:'Mangel an Verbundenheit'},{label:'lustlos',desc:'Kein Antrieb, gleichgültig'},{label:'hoffnungslos',desc:'Sehe keinen Ausweg'},{label:'gelangweilt',desc:'Nichts reizt mich gerade'}],
-    ar: [{label:'zufrieden',desc:'Im Reinen mit mir und der Welt'},{label:'gelassen',desc:'Nichts bringt mich aus der Fassung'},{label:'dankbar',desc:'Wertschätzung für das, was ist'},{label:'entspannt',desc:'Körper und Geist lassen los'},{label:'geborgen',desc:'Sicher und aufgehoben'},{label:'friedlich',desc:'Innerer Frieden, Harmonie'}]
-  },
-  erweitert: {
-    ua: [{label:'wütend',desc:'Ärger, der sich aufbaut'},{label:'ängstlich',desc:'Sorge, innere Anspannung'},{label:'gestresst',desc:'Überlastet, unter Druck'},{label:'frustriert',desc:'Klappt nicht wie gewollt'},{label:'genervt',desc:'Gereizt durch Kleinigkeiten'},{label:'panisch',desc:'Starke Angst, Kontrollverlust'},
-      {label:'zornig',desc:'Intensiver, gerichteter Ärger',gfk:true},{label:'erbost',desc:'Aufgebracht über Ungerechtigkeit',gfk:true},{label:'aufgewühlt',desc:'Innerlich durcheinander',gfk:true},{label:'fassungslos',desc:'Kann nicht glauben, was passiert',gfk:true},{label:'angespannt',desc:'Unter Spannung',gfk:true},{label:'unruhig',desc:'Innerlich getrieben',gfk:true},{label:'verunsichert',desc:'Boden verloren',gfk:true},{label:'besorgt',desc:'Gedanken kreisen',gfk:true},{label:'erschrocken',desc:'Plötzlicher Schock',gfk:true},{label:'widerwillig',desc:'Innerer Widerstand',gfk:true},{label:'enttäuscht',desc:'Erwartung nicht erfüllt',gfk:true},{label:'verzweifelt',desc:'Tiefe Not',gfk:true}],
-    aa: [{label:'begeistert',desc:'Voller Vorfreude und Energie'},{label:'fröhlich',desc:'Gute Laune, beschwingt'},{label:'energiegeladen',desc:'Tatendrang, wach und bereit'},{label:'inspiriert',desc:'Kreative Ideen, Motivation'},{label:'aufgeregt',desc:'Positive Spannung, Erwartung'},{label:'stolz',desc:'Zufrieden mit einer Leistung'},
-      {label:'leidenschaftlich',desc:'Brennt für etwas, voll dabei',gfk:true},{label:'überschwänglich',desc:'Freude schwappt über',gfk:true},{label:'entzückt',desc:'Positiv überrascht, bezaubert',gfk:true},{label:'mutig',desc:'Bereit, etwas zu wagen',gfk:true},{label:'neugierig',desc:'Will entdecken oder verstehen',gfk:true},{label:'erwartungsvoll',desc:'Gespannt auf das, was kommt',gfk:true},{label:'erstaunt',desc:'Positiv überrascht',gfk:true},{label:'bewegt',desc:'Innerlich berührt',gfk:true},{label:'lebendig',desc:'Spüre das Leben intensiv',gfk:true},{label:'heiter',desc:'Unbeschwert und leicht',gfk:true}],
-    ur: [{label:'traurig',desc:'Niedergeschlagen, bedrückt'},{label:'erschöpft',desc:'Ausgelaugt, keine Energie'},{label:'einsam',desc:'Mangel an Verbundenheit'},{label:'lustlos',desc:'Kein Antrieb, gleichgültig'},{label:'hoffnungslos',desc:'Sehe keinen Ausweg'},{label:'gelangweilt',desc:'Nichts reizt mich gerade'},
-      {label:'melancholisch',desc:'Stille Schwere, wehmütig',gfk:true},{label:'niedergeschlagen',desc:'Gedrückte Stimmung',gfk:true},{label:'entmutigt',desc:'Glaube nicht an Erfolg',gfk:true},{label:'hilflos',desc:'Weiss nicht weiter',gfk:true},{label:'müde',desc:'Körperlich erschlafft',gfk:true},{label:'apathisch',desc:'Fühle gar nichts',gfk:true},{label:'beschämt',desc:'Möchte mich verstecken',gfk:true},{label:'verletzt',desc:'Seelischer Schmerz',gfk:true},{label:'isoliert',desc:'Abgeschnitten von anderen',gfk:true},{label:'schwermütig',desc:'Anhaltende innere Schwere',gfk:true}],
-    ar: [{label:'zufrieden',desc:'Im Reinen mit mir und der Welt'},{label:'gelassen',desc:'Nichts bringt mich aus der Fassung'},{label:'dankbar',desc:'Wertschätzung für das, was ist'},{label:'entspannt',desc:'Körper und Geist lassen los'},{label:'geborgen',desc:'Sicher und aufgehoben'},{label:'friedlich',desc:'Innerer Frieden, Harmonie'},
-      {label:'erleichtert',desc:'Last fällt ab',gfk:true},{label:'ausgeglichen',desc:'In der Mitte, harmonisch',gfk:true},{label:'beruhigt',desc:'Aufregung hat sich gelegt',gfk:true},{label:'sicher',desc:'Vertrauen in mich',gfk:true},{label:'liebevoll',desc:'Voller Zuneigung und Wärme',gfk:true},{label:'mitfühlend',desc:'Anteilnahme am Erleben anderer',gfk:true},{label:'offen',desc:'Bereit für Neues',gfk:true},{label:'erfüllt',desc:'Tiefe innere Sättigung',gfk:true},{label:'vertrauensvoll',desc:'Zuversicht, es wird gut',gfk:true},{label:'sanft',desc:'Weich, achtsam mit mir',gfk:true}]
-  },
-  neutral: [{label:'okay',desc:'Weder gut noch schlecht'},{label:'gemischt',desc:'Verschiedene Gefühle gleichzeitig'},{label:'neutral',desc:'Keine starke Empfindung'}]
-};
-const FM_COLORS = {
-  ua:{bg:'#f0997b',selBg:'#d85a30',selText:'#fff',gfkBg:'#f5c4b3',text:'#4a1b0c'},
-  aa:{bg:'#85b7eb',selBg:'#378add',selText:'#fff',gfkBg:'#b5d4f4',text:'#042c53'},
-  ur:{bg:'#afa9ec',selBg:'#7f77dd',selText:'#fff',gfkBg:'#cecbf6',text:'#26215c'},
-  ar:{bg:'#5dcaa5',selBg:'#1d9e75',selText:'#fff',gfkBg:'#9fe1cb',text:'#04342c'},
-  neutral:{bg:'var(--border)',selBg:'var(--ink)',selText:'var(--card)',gfkBg:'var(--border)',text:'var(--ink)'}
-};
-const QUADRANT_NAMES = {ua:'unangenehm + aktiviert',aa:'angenehm + aktiviert',ur:'unangenehm + ruhig',ar:'angenehm + ruhig'};
-let fmMode = 'kern';
-let fmSelected = [];
-
-function setFeelingMatrixMode(mode) {
-  fmMode = mode;
-  document.getElementById('fm-tab-kern').classList.toggle('active', mode==='kern');
-  document.getElementById('fm-tab-erweitert').classList.toggle('active', mode==='erweitert');
-  renderFeelingMatrix();
+function renderFeeling() {
+  initSlider('feeling-before', 5);
+  initSlider('feeling-after', 5);
+  // Show pending hint if there's an open before-entry today
+  const todayStr = new Date().toDateString();
+  const pending = state.feelingLog.find(e =>
+    new Date(e.ts).toDateString() === todayStr && e.before !== null && e.after === null
+  );
+  const hint = document.getElementById('feeling-after-pending');
+  if (hint) hint.style.display = pending ? '' : 'none';
+  renderFeelingHistory();
 }
 
-function renderFeelingMatrix() {
-  const data = FEELING_MATRIX[fmMode] || FEELING_MATRIX.kern;
-  ['ua','aa','ur','ar'].forEach(q => {
-    const el = document.getElementById('fm-q-'+q);
-    if(!el) return; el.innerHTML = '';
-    data[q].forEach(f => el.appendChild(makeFeelingChip(f, q)));
-  });
-  updateFeelingSelection();
-}
-
-function makeFeelingChip(f, quadrant) {
-  const col = FM_COLORS[quadrant];
-  const isSelected = fmSelected.some(s => s.label === f.label);
-  const btn = document.createElement('button');
-  btn.textContent = f.label;
-  btn.style.cssText = `padding:5px 9px;border-radius:16px;font-size:${f.gfk?'0.72rem':'0.78rem'};font-weight:${isSelected?'600':'400'};font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;line-height:1.2;border:1.5px solid ${isSelected?col.selBg:'transparent'};`;
-  if(isSelected) { btn.style.background=col.selBg; btn.style.color=col.selText; btn.style.transform='scale(1.05)'; }
-  else { btn.style.background=f.gfk?col.gfkBg:col.bg; btn.style.color=col.text; }
-  btn.onclick = () => toggleFeelingWord(f, quadrant);
-  return btn;
-}
-
-function toggleFeelingWord(f, quadrant) {
-  const idx = fmSelected.findIndex(s => s.label === f.label);
-  if(idx >= 0) { fmSelected.splice(idx, 1); }
-  else {
-    if(fmSelected.length >= 5) { document.getElementById('fm-hint').style.display=''; setTimeout(()=>{document.getElementById('fm-hint').style.display='none';},3000); return; }
-    fmSelected.push({label:f.label, quadrant, desc:f.desc, gfk:!!f.gfk});
-  }
-  renderFeelingMatrix();
-}
-
-function updateFeelingSelection() {
-  const selDiv = document.getElementById('fm-selection');
-  const tagsDiv = document.getElementById('fm-selected-tags');
-  const countEl = document.getElementById('fm-count');
-  if(!fmSelected.length) { selDiv.style.display='none'; return; }
-  selDiv.style.display=''; countEl.textContent=fmSelected.length;
-  tagsDiv.innerHTML='';
-  fmSelected.forEach((s,i) => {
-    const col = FM_COLORS[s.quadrant];
-    const tag = document.createElement('div');
-    tag.style.cssText = `display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:14px;font-size:0.8rem;font-weight:500;background:${col.selBg};color:${col.selText};`;
-    tag.innerHTML = `<span>${s.label}</span><span onclick="removeFeelingWord(${i})" style="cursor:pointer;opacity:0.7;font-size:0.9rem;margin-left:2px;">✕</span>`;
-    tag.title = s.desc;
-    tagsDiv.appendChild(tag);
-  });
-}
-
-function removeFeelingWord(idx) { fmSelected.splice(idx,1); renderFeelingMatrix(); }
-
-function saveFeelingMatrix() {
-  if(!fmSelected.length) { showToast('Bitte mindestens ein Gefühl wählen.'); return; }
-  const context = document.getElementById('fm-context').value.trim();
-  const entry = { ts:new Date().toISOString(), feelings:fmSelected.map(s=>({label:s.label,quadrant:s.quadrant})), context:context||null, before:null, after:null };
+function logFeelingBefore() {
+  const before = parseInt(document.getElementById('feeling-before-slider')?.value || 5);
+  const entry = { ts: new Date().toISOString(), before, after: null };
   state.feelingLog.unshift(entry);
-  if(state.feelingLog.length > 200) state.feelingLog.pop();
-  saveState(); fmSelected=[]; document.getElementById('fm-context').value='';
-  renderFeelingMatrix(); renderFeelingHistory();
-  showToast('😊 '+entry.feelings.length+(entry.feelings.length===1?' Gefühl':' Gefühle')+' gespeichert!');
+  if (state.feelingLog.length > 200) state.feelingLog.pop();
+  saveState();
+  initSlider('feeling-before', 5);
+  renderFeelingHistory();
+  const hint = document.getElementById('feeling-after-pending');
+  if (hint) hint.style.display = '';
+  showToast('😊 Vor-Gefühl gespeichert!');
 }
 
-function renderFeeling() { renderFeelingMatrix(); renderFeelingHistory(); }
-
-function toggleWissen(id) {
-  const el=document.getElementById(id); const icon=document.getElementById(id+'-icon');
-  if(!el) return; const open=el.style.display!=='none';
-  el.style.display=open?'none':''; if(icon) icon.textContent=open?'▼':'▲';
+function logFeelingAfter() {
+  const after = parseInt(document.getElementById('feeling-after-slider')?.value || 5);
+  // Find most recent entry without after value today
+  const todayStr = new Date().toDateString();
+  const pending = state.feelingLog.find(e =>
+    new Date(e.ts).toDateString() === todayStr && e.before !== null && e.after === null
+  );
+  if (pending) {
+    pending.after = after;
+    saveState();
+    renderFeelingHistory();
+    initSlider('feeling-after', 5);
+    const hint = document.getElementById('feeling-after-pending');
+    if (hint) hint.style.display = 'none';
+    showToast('😊 Nach-Gefühl ergänzt!');
+  } else {
+    // No pending entry – save as standalone after-only entry
+    state.feelingLog.unshift({ ts: new Date().toISOString(), before: null, after });
+    if (state.feelingLog.length > 200) state.feelingLog.pop();
+    saveState();
+    initSlider('feeling-after', 5);
+    renderFeelingHistory();
+    showToast('😊 Nach-Gefühl gespeichert!');
+  }
 }
 
-function logFeelingBefore() {}
-function logFeelingAfter() {}
-function logFeelingBoth() {}
-function logFeeling() {}
+function logFeelingBoth() {
+  const before = parseInt(document.getElementById('feeling-before-slider')?.value || 5);
+  const after  = parseInt(document.getElementById('feeling-after-slider')?.value  || 5);
+  state.feelingLog.unshift({ ts: new Date().toISOString(), before, after });
+  if (state.feelingLog.length > 200) state.feelingLog.pop();
+  saveState();
+  initSlider('feeling-before', 5);
+  initSlider('feeling-after', 5);
+  renderFeelingHistory();
+  const hint = document.getElementById('feeling-after-pending');
+  if (hint) hint.style.display = 'none';
+  showToast('✅ Beide Gefühle gespeichert!');
+}
+
+// Keep old logFeeling as alias for both
+function logFeeling() { logFeelingBoth(); }
 
 function renderFeelingHistory() {
-  const list=document.getElementById('feeling-history');
-  const empty=document.getElementById('feeling-empty');
-  const summaryDiv=document.getElementById('fm-quadrant-summary');
-  list.innerHTML='';
+  const list = document.getElementById('feeling-history');
+  const empty = document.getElementById('feeling-empty');
+  list.innerHTML = '';
   const filtered = filterByDate(state.feelingLog, feelingFilter);
-  if(!filtered.length) { empty.style.display=''; if(summaryDiv) summaryDiv.style.display='none'; return; }
-  empty.style.display='none';
+  if (!filtered.length) { empty.style.display=''; return; }
+  empty.style.display = 'none';
+  filtered.slice(0,20).forEach((e) => {
+    const i = state.feelingLog.indexOf(e);
+    const d = new Date(e.ts);
+    const time = feelingFilter === 'heute'
+      ? d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})
+      : d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const before = e.before !== null ? e.before : '—';
+    const after  = e.after  !== null ? e.after  : '—';
+    const color  = (v) => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
+    const isOpen = e.after === null && e.before !== null;
+    const uid = 'fe-' + i;
 
-  if(summaryDiv && filtered.length >= 3) {
-    const qCount={ua:0,aa:0,ur:0,ar:0,neutral:0};
-    filtered.forEach(e => { if(e.feelings) e.feelings.forEach(f => { if(qCount[f.quadrant]!==undefined) qCount[f.quadrant]++; }); });
-    const total=Object.values(qCount).reduce((a,b)=>a+b,0);
-    if(total > 0) {
-      summaryDiv.style.display='';
-      summaryDiv.innerHTML = `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;">Quadranten-Verteilung:</div>
-        <div style="display:flex;gap:4px;height:8px;border-radius:4px;overflow:hidden;">
-          ${qCount.ua?`<div style="flex:${qCount.ua};background:#d85a30;"></div>`:''}
-          ${qCount.aa?`<div style="flex:${qCount.aa};background:#378add;"></div>`:''}
-          ${qCount.ur?`<div style="flex:${qCount.ur};background:#7f77dd;"></div>`:''}
-          ${qCount.ar?`<div style="flex:${qCount.ar};background:#1d9e75;"></div>`:''}
-          ${qCount.neutral?`<div style="flex:${qCount.neutral};background:var(--muted);"></div>`:''}
+    const outer = document.createElement('div');
+    outer.style.cssText = `border:2px solid ${isOpen ? 'var(--accent)' : 'var(--border)'};border-radius:12px;overflow:hidden;margin-bottom:2px;`;
+
+    const summary = document.createElement('div');
+    summary.className = 'feeling-entry';
+    summary.style.cssText = 'cursor:pointer;padding:10px 12px;margin:0;border-radius:0;';
+    summary.innerHTML = `
+      <span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(before)};">${before}</span>
+      <span class="arrow">→</span>
+      <span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(after)};">${after}</span>
+      ${isOpen ? '<span style="font-size:0.7rem;color:var(--accent);margin-left:4px;">⏳</span>' : ''}
+      <span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${time}</span>
+      <span id="${uid}-icon" style="color:var(--muted);font-size:0.8rem;margin-left:6px;">▼</span>
+    `;
+
+    const detail = document.createElement('div');
+    detail.id = uid;
+    detail.style.cssText = 'display:none;padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);';
+    detail.innerHTML = `
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;">VOR Aktivität</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="range" min="1" max="10" value="${e.before||5}"
+            style="-webkit-appearance:none;flex:1;height:5px;border-radius:10px;background:var(--border);outline:none;"
+            oninput="editFeelingEntry(${i},'before',this.value);this.previousElementSibling && (this.previousElementSibling.textContent=this.value)"
+            onchange="editFeelingEntry(${i},'before',this.value)">
+          <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${color(before)};min-width:20px;">${before}</span>
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;font-size:0.7rem;color:var(--muted);">
-          ${qCount.ua?`<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#d85a30;"></span> ${qCount.ua}× unang.+akt.</span>`:''}
-          ${qCount.aa?`<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#378add;"></span> ${qCount.aa}× ang.+akt.</span>`:''}
-          ${qCount.ur?`<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#7f77dd;"></span> ${qCount.ur}× unang.+ruhig</span>`:''}
-          ${qCount.ar?`<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1d9e75;"></span> ${qCount.ar}× ang.+ruhig</span>`:''}
-        </div>`;
-    } else { summaryDiv.style.display='none'; }
-  }
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;">NACH Aktivität</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="range" min="1" max="10" value="${e.after||5}"
+            style="-webkit-appearance:none;flex:1;height:5px;border-radius:10px;background:var(--border);outline:none;"
+            oninput="editFeelingEntry(${i},'after',this.value)"
+            onchange="editFeelingEntry(${i},'after',this.value)">
+          <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${color(after)};min-width:20px;">${after}</span>
+        </div>
+      </div>
+      <button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;">🗑 Löschen</button>
+    `;
 
-  filtered.slice(0,20).forEach(e => {
-    const i=state.feelingLog.indexOf(e);
-    const d=new Date(e.ts);
-    const time=d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
-    const outer=document.createElement('div');
-    outer.style.cssText='border:2px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2px;';
-    const summary=document.createElement('div');
-    summary.className='feeling-entry';
-    summary.style.cssText='cursor:pointer;padding:10px 12px;margin:0;border-radius:0;flex-wrap:wrap;';
+    summary.onclick = () => {
+      const open = detail.style.display !== 'none';
+      detail.style.display = open ? 'none' : '';
+      document.getElementById(uid+'-icon').textContent = open ? '▼' : '▲';
+    };
 
-    if(e.feelings && Array.isArray(e.feelings)) {
-      const chips=e.feelings.map(f => { const col=FM_COLORS[f.quadrant]||FM_COLORS.neutral; return `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:500;background:${col.selBg};color:${col.selText};line-height:1.4;">${f.label}</span>`; }).join(' ');
-      summary.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:3px;flex:1;">${chips}</div><span style="font-size:0.72rem;color:var(--muted);white-space:nowrap;margin-left:8px;">${time}</span><span id="fe-${i}-icon" style="color:var(--muted);font-size:0.8rem;margin-left:6px;">▼</span>`;
-    } else {
-      const before=e.before!==null?e.before:'—'; const after=e.after!==null?e.after:'—';
-      const color=v=>typeof v==='number'?(v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)'):'var(--muted)';
-      summary.innerHTML = `<span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(before)};">${before}</span><span class="arrow">→</span><span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(after)};">${after}</span><span style="flex:1;text-align:right;font-size:0.72rem;color:var(--muted);">${time}</span><span id="fe-${i}-icon" style="color:var(--muted);font-size:0.8rem;margin-left:6px;">▼</span>`;
-    }
-
-    const detail=document.createElement('div'); detail.id='fe-'+i;
-    detail.style.cssText='display:none;padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);';
-    if(e.feelings && Array.isArray(e.feelings)) {
-      const descList=e.feelings.map(f => { const col=FM_COLORS[f.quadrant]||FM_COLORS.neutral; return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:500;background:${col.selBg};color:${col.selText};">${f.label}</span><span style="font-size:0.72rem;color:var(--muted);">${QUADRANT_NAMES[f.quadrant]||''}</span></div>`; }).join('');
-      const ctxHtml=e.context?`<div style="margin-top:8px;padding:8px 10px;background:var(--card);border-radius:8px;font-size:0.8rem;color:var(--ink);border-left:3px solid var(--accent);">${e.context}</div>`:'';
-      detail.innerHTML=`${descList}${ctxHtml}<button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;margin-top:10px;">🗑 Löschen</button>`;
-    } else {
-      detail.innerHTML=`<div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;">Alter Eintrag (Schieber)</div><div>Vorher: <strong>${e.before!==null?e.before:'–'}</strong> · Nachher: <strong>${e.after!==null?e.after:'–'}</strong></div><button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;margin-top:10px;">🗑 Löschen</button>`;
-    }
-    summary.onclick=()=>{ const open=detail.style.display!=='none'; detail.style.display=open?'none':''; const ic=document.getElementById('fe-'+i+'-icon'); if(ic) ic.textContent=open?'▼':'▲'; };
-    outer.appendChild(summary); outer.appendChild(detail); list.appendChild(outer);
+    outer.appendChild(summary);
+    outer.appendChild(detail);
+    list.appendChild(outer);
   });
 }
 
-function editFeelingEntry(i, field, val) { if(state.feelingLog[i]) { state.feelingLog[i][field]=parseInt(val); saveState(); } }
+function editFeelingEntry(i, field, val) {
+  if (state.feelingLog[i]) {
+    state.feelingLog[i][field] = parseInt(val);
+    saveState();
+  }
+}
 
 function deleteFeelingEntry(i) {
-  showConfirm('Eintrag löschen?','Diesen Gefühls-Eintrag wirklich entfernen?',()=>{ state.feelingLog.splice(i,1); saveState(); renderFeelingHistory(); showToast('Eintrag gelöscht.'); });
+  showConfirm('Eintrag löschen?', 'Diesen Gefühls-Eintrag wirklich entfernen?', () => {
+    state.feelingLog.splice(i, 1);
+    saveState();
+    renderFeelingHistory();
+    showToast('Eintrag gelöscht.');
+  });
 }
 
 // =====================
@@ -6338,26 +6205,20 @@ function renderVerlauf() {
 
   renderVerlaufList('vl-feeling-list', 'vl-feeling-empty', allFeels, e => {
     const d = new Date(e.ts);
-    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
-    if (e.feelings && Array.isArray(e.feelings)) {
-      const chips = e.feelings.map(f => { const col=(typeof FM_COLORS!=='undefined'&&FM_COLORS[f.quadrant])?FM_COLORS[f.quadrant]:{selBg:'var(--accent)',selText:'white'}; return `<span style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:0.7rem;font-weight:500;background:${col.selBg};color:${col.selText};">${f.label}</span>`; }).join(' ');
-      const fidx = e.source ? -1 : state.feelingLog.indexOf(e);
-      const fdel = fidx >= 0 ? `<button onclick="deleteFeelingEntry(${fidx});renderVerlauf()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>` : '';
-      return `<div style="display:flex;flex-wrap:wrap;gap:2px;flex:1;">${chips}</div><span style="font-size:0.72rem;color:var(--muted);white-space:nowrap;margin-left:6px;">${ds}</span>${fdel}`;
-    }
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const sc = v => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
     const before = e.before !== null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${sc(e.before)};">${e.before}</span>` : '<span style="color:var(--muted);">–</span>';
     const after  = e.after  !== null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${sc(e.after)};">${e.after}</span>` : '<span style="color:var(--muted);">⏳</span>';
     const src = e.source ? `<span style="font-size:0.72rem;color:var(--muted);margin-left:4px;">${e.source}</span>` : '';
     const fidx = e.source ? -1 : state.feelingLog.indexOf(e);
     const fdel = fidx >= 0 ? `<button onclick="deleteFeelingEntry(${fidx});renderVerlauf()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>` : '';
-    return `${before}<span class="arrow" style="color:var(--accent);font-weight:600;">→</span>${after}${src}<span style="flex:1;text-align:right;font-size:0.72rem;color:var(--muted);">${ds}</span>${fdel}`;
+    return `${before}<span class="arrow" style="color:var(--accent);font-weight:600;">→</span>${after}${src}<span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>${fdel}`;
   });
 
   // Süssigkeiten
   renderVerlaufList('vl-sweets-list', 'vl-sweets-empty', sweets, e => {
     const d = new Date(e.ts);
-    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const sidx = state.sweetsLog.indexOf(e);
     return `<span style="flex:1;">${e.icon||'🍬'} ${e.name}</span><span style="color:var(--muted);font-size:0.78rem;">${e.kcal?e.kcal+' kcal':''}</span><span style="color:var(--muted);font-size:0.78rem;">${ds}</span><button onclick="state.sweetsLog.splice(${sidx},1);saveState();renderVerlauf()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
@@ -6369,7 +6230,7 @@ function renderVerlauf() {
     : null;
   renderVerlaufList('vl-sleep-list', 'vl-sleep-empty', sleeps, e => {
     const d = new Date(e.ts);
-    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const q = e.score !== null ? SLEEP_QUALITY.find(q=>q.score<=e.score)?.emoji||'😐' : '';
     const sli = state.sleepLog.indexOf(e);
     return `<span style="flex:1;">${q} ${e.score!==null?e.score+'/10':''} ${e.hours?e.hours+'h':''}</span><span style="font-size:0.78rem;color:var(--muted);">${ds}</span><button onclick="deleteSleepEntry(${sli})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
@@ -6387,7 +6248,7 @@ function renderVerlauf() {
   const gratitudes = filterByDate(state.gratitudeLog, verlaufFilter);
   renderVerlaufList('vl-gratitude-list', 'vl-gratitude-empty', gratitudes, e => {
     const d = new Date(e.ts);
-    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const gi = state.gratitudeLog.indexOf(e);
     return `<span style="font-style:italic;flex:1;">"${e.text}"</span><span style="font-size:0.75rem;color:var(--muted);white-space:nowrap;margin-left:8px;">${ds}</span><button onclick="deleteGratitudeEntry(${gi})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
@@ -6395,7 +6256,7 @@ function renderVerlauf() {
   // Körper
   renderVerlaufList('vl-body-list', 'vl-body-empty', bodies, e => {
     const d = new Date(e.ts);
-    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const sc = v => v != null ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
     const h = e.hunger  != null ? `<span style="color:${sc(e.hunger)};font-size:0.82rem;">Hunger ${e.hunger}</span>` : '';
     const f = e.feeling != null ? `<span style="color:${sc(e.feeling)};font-size:0.82rem;">Wohl ${e.feeling}</span>` : '';
@@ -6414,7 +6275,7 @@ function renderVerlauf() {
     const feelBefore = e.feeling?.before != null ? `<span style="font-size:0.75rem;color:${sc(e.feeling.before)};margin-left:4px;">😊${e.feeling.before}</span>` : '';
     const feelAfter  = e.feeling?.after  != null ? `<span style="font-size:0.75rem;color:${sc(e.feeling.after)};margin-left:2px;">→${e.feeling.after}</span>` : '';
     const mi = state.mindfulnessLog.indexOf(e);
-    return `<span style="flex:1;">${e.icon||'🪷'} ${e.name} · ${e.min} Min${feelBefore}${feelAfter}</span><span style="color:var(--muted);font-size:0.78rem;">${ds} ${ts}</span><span class="pts">+${e.pts}</span><button onclick="deleteMindfulnessLog(${mi})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
+    return `<span style="flex:1;">${e.icon||'🪷'} ${e.name} · ${e.min} Min${feelBefore}${feelAfter}</span><span style="color:var(--muted);font-size:0.78rem;">${ds}</span><span class="pts">+${e.pts}</span><button onclick="deleteMindfulnessLog(${mi})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
 
   // Kontakte – zeige erledigte Kontakte der Woche
@@ -6720,23 +6581,169 @@ const HABIT_MILESTONES = [
   { day: 90, text: '🏆 90 Tage! Du hast es geschafft. Das ist außergewöhnlich.' },
 ];
 
+const HABIT_SWAP_MILESTONES = [
+  { day: 7,  text: '🌱 1 Woche! Dein Gehirn lernt die neue Route.' },
+  { day: 21, text: '⭐ 21 Tage! Die alte Gewohnheit verliert an Kraft.' },
+  { day: 42, text: '🔥 42 Tage! Die neue Routine fühlt sich vertrauter an.' },
+  { day: 66, text: '🧠 66 Tage! Der Tausch ist neuronal verankert (Lally et al. 2010).' },
+  { day: 90, text: '🏆 90 Tage! Der Gewohnheitentausch ist abgeschlossen.' },
+];
+
+const HABIT_CUE_OPTIONS = [
+  'Feierabend / Heimkommen', 'Stress / Anspannung', 'Langeweile',
+  'Geselligkeit', 'Belohnung nach Arbeit', 'Bestimmte Uhrzeit', 'Wochenende'
+];
+
+let habitSetupMode = 'build'; // 'build' or 'swap'
+
+function setHabitMode(mode) {
+  habitSetupMode = mode;
+  const buildBtn = document.getElementById('habit-mode-build');
+  const swapBtn  = document.getElementById('habit-mode-swap');
+  const buildFields = document.getElementById('habit-build-fields');
+  const swapFields  = document.getElementById('habit-swap-fields');
+  const startBtn = document.getElementById('habit-start-btn');
+  const sciNote  = document.getElementById('habit-science-note');
+
+  buildBtn.style.background = mode === 'build' ? '#3a5bc7' : 'white';
+  buildBtn.style.color      = mode === 'build' ? 'white' : '#3a5bc7';
+  swapBtn.style.background  = mode === 'swap'  ? '#3a5bc7' : 'white';
+  swapBtn.style.color       = mode === 'swap'  ? 'white' : '#3a5bc7';
+
+  buildFields.style.display = mode === 'build' ? '' : 'none';
+  swapFields.style.display  = mode === 'swap'  ? '' : 'none';
+
+  const daysFields = document.getElementById('habit-days-fields');
+  if (daysFields) daysFields.style.display = mode === 'swap' ? '' : 'none';
+
+  startBtn.textContent = mode === 'swap' ? '🔄 90-Tage-Tausch starten' : '🌱 90-Tage-Commitment starten';
+  sciNote.textContent = mode === 'swap'
+    ? 'Duhigg (2012): Cue behalten, Routine ersetzen. Lally et al. (2010): Ø 66 Tage. Gardner et al. (2021): Substitution = Aufbau + Abbau.'
+    : 'Lally et al. (2010): Ø 66 Tage bis Automatizität.';
+
+  // Render cue chips if swap mode
+  if (mode === 'swap') {
+    renderHabitCueChips();
+    renderHabitDayChips();
+  }
+}
+
+function renderHabitCueChips() {
+  const container = document.getElementById('habit-cue-chips');
+  if (!container) return;
+  container.innerHTML = HABIT_CUE_OPTIONS.map(cue =>
+    `<span onclick="toggleHabitCue(this)" style="display:inline-block;padding:6px 12px;border-radius:20px;font-size:0.78rem;cursor:pointer;border:1.5px solid rgba(58,91,199,0.2);background:white;color:var(--muted);margin:0 5px 5px 0;transition:all 0.15s;font-family:'DM Sans',sans-serif;">${cue}</span>`
+  ).join('');
+}
+
+function renderHabitDayChips() {
+  const container = document.getElementById('habit-day-chips');
+  if (!container) return;
+  const dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const defaultActive = [1,2,3,4,5]; // Mo-Fr
+  container.innerHTML = dayNames.map((name, i) => {
+    const active = defaultActive.includes(i);
+    return `<span onclick="toggleHabitDay(this,${i})" data-day="${i}" data-active="${active ? '1' : '0'}"
+      style="display:inline-block;width:36px;height:36px;line-height:36px;text-align:center;border-radius:50%;font-size:0.78rem;cursor:pointer;
+      border:1.5px solid ${active ? 'rgba(58,91,199,0.5)' : 'rgba(58,91,199,0.15)'};
+      background:${active ? 'rgba(58,91,199,0.1)' : 'white'};
+      color:${active ? '#3a5bc7' : 'var(--muted)'};
+      font-weight:${active ? '600' : '400'};
+      font-family:'DM Sans',sans-serif;transition:all 0.15s;">${name}</span>`;
+  }).join('');
+}
+
+function toggleHabitDay(el, dayIdx) {
+  const isActive = el.dataset.active === '1';
+  el.dataset.active = isActive ? '0' : '1';
+  el.style.background = isActive ? 'white' : 'rgba(58,91,199,0.1)';
+  el.style.color = isActive ? 'var(--muted)' : '#3a5bc7';
+  el.style.borderColor = isActive ? 'rgba(58,91,199,0.15)' : 'rgba(58,91,199,0.5)';
+  el.style.fontWeight = isActive ? '400' : '600';
+}
+
+function getSelectedHabitDays() {
+  const chips = document.querySelectorAll('#habit-day-chips span');
+  const days = [];
+  chips.forEach(c => { if (c.dataset.active === '1') days.push(parseInt(c.dataset.day)); });
+  return days.length > 0 ? days : [1,2,3,4,5]; // fallback Mo-Fr
+}
+
+function toggleHabitCue(el) {
+  const isActive = el.style.background === 'rgba(58, 91, 199, 0.1)' || el.dataset.active === '1';
+  el.style.background = isActive ? 'white' : 'rgba(58,91,199,0.1)';
+  el.style.color      = isActive ? 'var(--muted)' : '#3a5bc7';
+  el.style.borderColor= isActive ? 'rgba(58,91,199,0.2)' : 'rgba(58,91,199,0.5)';
+  el.dataset.active   = isActive ? '0' : '1';
+}
+
+function getSelectedCues() {
+  const chips = document.querySelectorAll('#habit-cue-chips span');
+  const selected = [];
+  chips.forEach(c => { if (c.dataset.active === '1') selected.push(c.textContent); });
+  const custom = (document.getElementById('habit-cue-custom')?.value || '').trim();
+  if (custom) selected.push(custom);
+  return selected;
+}
+
 function startHabit() {
-  const name = document.getElementById('habit-name-input').value.trim();
   const dateVal = document.getElementById('habit-start-input').value;
-  if (!name) { showToast('Bitte Gewohnheit benennen.'); return; }
   if (!dateVal) { showToast('Bitte Startdatum wählen.'); return; }
-  const [y, m, d] = dateVal.split('-').map(Number);
-  const startDate = new Date(y, m-1, d, 12, 0, 0);
-  showConfirm(
-    '🌱 Commitment starten?',
-    '90 Tage „' + name + '". Kein Druck – aber Bewusstsein. Bereit?',
-    () => {
-      state.habit90 = { name, startDate: startDate.toISOString(), log: [], completed: false };
-      saveState();
-      renderHabit90();
-      showToast('🌱 Los geht\'s! 90 Tage starten jetzt.');
-    }
-  );
+
+  if (habitSetupMode === 'swap') {
+    const oldH = (document.getElementById('habit-old-input')?.value || '').trim();
+    const newH = (document.getElementById('habit-new-input')?.value || '').trim();
+    if (!oldH) { showToast('Bitte alte Gewohnheit benennen.'); return; }
+    if (!newH) { showToast('Bitte neue Gewohnheit benennen.'); return; }
+
+    const cues = getSelectedCues();
+    const reward = (document.getElementById('habit-reward-input')?.value || '').trim();
+    const woopObstacle = (document.getElementById('habit-woop-obstacle')?.value || '').trim();
+    const woopPlan     = (document.getElementById('habit-woop-plan')?.value || '').trim();
+
+    const name = oldH + ' → ' + newH;
+    const [y, m, d] = dateVal.split('-').map(Number);
+    const startDate = new Date(y, m-1, d, 12, 0, 0);
+
+    showConfirm(
+      '🔄 Tausch starten?',
+      '90 Tage: „' + oldH + '" durch „' + newH + '" ersetzen. Bereit?',
+      () => {
+        state.habit90 = {
+          name,
+          mode: 'swap',
+          oldHabit: oldH,
+          newHabit: newH,
+          cues: cues,
+          reward: reward,
+          activeDays: getSelectedHabitDays(),
+          woop: (woopObstacle || woopPlan) ? { obstacle: woopObstacle, plan: woopPlan } : null,
+          startDate: startDate.toISOString(),
+          log: [],
+          completed: false
+        };
+        saveState();
+        renderHabit90();
+        showToast('🔄 Los geht\'s! 90-Tage-Tausch startet.');
+      }
+    );
+  } else {
+    // Classic build mode
+    const name = document.getElementById('habit-name-input').value.trim();
+    if (!name) { showToast('Bitte Gewohnheit benennen.'); return; }
+    const [y, m, d] = dateVal.split('-').map(Number);
+    const startDate = new Date(y, m-1, d, 12, 0, 0);
+    showConfirm(
+      '🌱 Commitment starten?',
+      '90 Tage „' + name + '". Kein Druck – aber Bewusstsein. Bereit?',
+      () => {
+        state.habit90 = { name, mode: 'build', startDate: startDate.toISOString(), log: [], completed: false };
+        saveState();
+        renderHabit90();
+        showToast('🌱 Los geht\'s! 90 Tage starten jetzt.');
+      }
+    );
+  }
 }
 
 function logHabitDay(done) {
@@ -6749,16 +6756,25 @@ function logHabitDay(done) {
   const daysPassed = Math.floor((new Date() - new Date(state.habit90.startDate)) / 86400000) + 1;
   if (daysPassed >= 90) {
     state.habit90.completed = true;
-    addPoints(500, '🌱 90-Tage-Gewohnheit abgeschlossen: ' + state.habit90.name);
+    const label = state.habit90.mode === 'swap'
+      ? '🔄 90-Tage-Tausch abgeschlossen: ' + state.habit90.name
+      : '🌱 90-Tage-Gewohnheit abgeschlossen: ' + state.habit90.name;
+    addPoints(500, label);
     showToast('🏆 90 Tage geschafft! +500 Punkte!');
   }
   saveState();
   renderHabit90();
-  if (!state.habit90.completed) showToast(done ? '✅ Heute abgehakt!' : '○ Notiert – morgen wieder.');
+  if (!state.habit90.completed) {
+    const isSwap = state.habit90.mode === 'swap';
+    showToast(done
+      ? (isSwap ? '🔄 Getauscht!' : '✅ Heute abgehakt!')
+      : '○ Notiert – morgen wieder.');
+  }
 }
 
 function stopHabit() {
-  showConfirm('Gewohnheit beenden?', 'Den 90-Tage-Tracker stoppen?', () => {
+  const label = state.habit90?.mode === 'swap' ? 'Gewohnheitentausch beenden?' : 'Gewohnheit beenden?';
+  showConfirm(label, 'Den 90-Tage-Tracker stoppen?', () => {
     state.habit90 = null;
     saveState();
     renderHabit90();
@@ -6773,9 +6789,10 @@ function renderHabit90() {
   if (!state.habit90) {
     active.style.display = 'none';
     setup.style.display  = '';
-    // Set default start date to today
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('habit-start-input').value = today;
+    // Reset to build mode
+    setHabitMode('build');
     return;
   }
 
@@ -6783,20 +6800,57 @@ function renderHabit90() {
   setup.style.display  = 'none';
 
   const h = state.habit90;
+  const isSwap = h.mode === 'swap';
   const start = new Date(h.startDate);
   const today = new Date();
   const daysPassed = Math.max(0, Math.floor((today - start) / 86400000) + 1);
   const daysTotal  = 90;
   const pct = Math.min(100, Math.round(daysPassed / daysTotal * 100));
 
-  document.getElementById('habit-name-display').textContent = '🌱 ' + h.name;
+  // Name display
+  if (isSwap) {
+    document.getElementById('habit-name-display').textContent = '🔄 ' + h.name;
+  } else {
+    document.getElementById('habit-name-display').textContent = '🌱 ' + h.name;
+  }
   document.getElementById('habit-date-display').textContent = 'Gestartet am ' + start.toLocaleDateString('de-DE', {day:'2-digit', month:'long', year:'numeric'});
   document.getElementById('habit-days-label').textContent = 'Tag ' + Math.min(daysPassed, 90) + ' von 90';
   document.getElementById('habit-pct-label').textContent = pct + '%';
   document.getElementById('habit-progress-bar').style.width = pct + '%';
 
+  // Button labels for swap mode
+  const yesBtn = document.getElementById('habit-yes-btn');
+  const noBtn  = document.getElementById('habit-no-btn');
+  yesBtn.textContent = isSwap ? '🔄 Getauscht' : '✅ Heute geschafft';
+  noBtn.textContent  = '○ Nicht heute';
+
+  // Habit Loop visual (swap only)
+  const loopVis = document.getElementById('habit-loop-visual');
+  if (isSwap && loopVis) {
+    loopVis.style.display = '';
+    document.getElementById('habit-loop-cue').textContent = (h.cues && h.cues.length) ? h.cues[0] : 'Auslöser';
+    document.getElementById('habit-loop-old').textContent = h.oldHabit || '';
+    document.getElementById('habit-loop-new').textContent = h.newHabit || '';
+    document.getElementById('habit-loop-reward').textContent = h.reward || 'Belohnung';
+  } else if (loopVis) {
+    loopVis.style.display = 'none';
+  }
+
+  // WOOP display (swap only)
+  const woopDisp = document.getElementById('habit-woop-display');
+  if (isSwap && h.woop && (h.woop.obstacle || h.woop.plan) && woopDisp) {
+    woopDisp.style.display = '';
+    woopDisp.innerHTML =
+      '<div style="font-size:0.7rem;color:var(--muted);font-weight:600;margin-bottom:4px;">WENN-DANN-PLAN</div>' +
+      '<span style="color:var(--muted);">Wenn</span> ' + (h.woop.obstacle || '...') +
+      ' <span style="color:var(--muted);">→ dann</span> ' + (h.woop.plan || '...');
+  } else if (woopDisp) {
+    woopDisp.style.display = 'none';
+  }
+
   // Milestone
-  const milestone = HABIT_MILESTONES.slice().reverse().find(m => daysPassed >= m.day);
+  const milestones = isSwap ? HABIT_SWAP_MILESTONES : HABIT_MILESTONES;
+  const milestone = milestones.slice().reverse().find(m => daysPassed >= m.day);
   const milestoneEl = document.getElementById('habit-milestone');
   if (milestone) { milestoneEl.style.display = ''; milestoneEl.textContent = milestone.text; }
   else { milestoneEl.style.display = 'none'; }
@@ -6804,8 +6858,6 @@ function renderHabit90() {
   // Today buttons
   const todayStr = today.toDateString();
   const todayEntry = h.log.find(e => new Date(e.date).toDateString() === todayStr);
-  const yesBtn = document.getElementById('habit-yes-btn');
-  const noBtn  = document.getElementById('habit-no-btn');
   yesBtn.style.background = todayEntry?.done ? '#3a5bc7' : 'white';
   yesBtn.style.color      = todayEntry?.done ? 'white' : '';
   yesBtn.style.borderColor= todayEntry?.done ? '#3a5bc7' : 'rgba(58,91,199,0.3)';
@@ -6823,6 +6875,21 @@ function renderHabit90() {
     dot.style.cssText = `width:30px;height:30px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:white;font-weight:600;`;
     dot.textContent = ['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()];
     dots.appendChild(dot);
+  }
+
+  // Swap stats (swap only)
+  const swapStats = document.getElementById('habit-swap-stats');
+  if (isSwap && swapStats) {
+    swapStats.style.display = '';
+    const doneCount   = h.log.filter(e => e.done).length;
+    const missedCount = h.log.filter(e => !e.done).length;
+    const total = doneCount + missedCount;
+    const swapPct = total > 0 ? Math.round(doneCount / total * 100) : 0;
+    document.getElementById('habit-swap-done').textContent = doneCount;
+    document.getElementById('habit-swap-missed').textContent = missedCount;
+    document.getElementById('habit-swap-pct').textContent = swapPct + '%';
+  } else if (swapStats) {
+    swapStats.style.display = 'none';
   }
 }
 
@@ -7154,7 +7221,7 @@ function closeNap() {
   document.getElementById('nap-overlay-btn').onclick = abortNap;
 }
 
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.0.0';
 
 // =====================
 // BUG REPORT
@@ -7250,8 +7317,10 @@ function updateQuickBtn() {
 let coStep = 0;
 let coAlc = null;
 let coSw = null;
-let coSym = null;
 let coSelectedActivity = null;
+let coHabitSwap = null; // 'yes', 'no', 'rest', 'bonus'
+let coTotalSteps = 4; // default without habit swap
+let coHabitStepIdx = -1; // which step is the habit step
 
 let coCompletedContacts = [];
 
@@ -7265,8 +7334,97 @@ function coToggleContact(idx, btn) {
   }
 }
 
+function habitIsSwapDay(date) {
+  if (!state.habit90 || state.habit90.mode !== 'swap') return false;
+  const days = state.habit90.activeDays || [1,2,3,4,5]; // default Mo-Fr
+  return days.includes(date.getDay());
+}
+
+function habitGetWeekSkips() {
+  if (!state.habit90) return 0;
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)); // Monday
+  weekStart.setHours(0,0,0,0);
+  return (state.habit90.log || []).filter(e => {
+    const d = new Date(e.date);
+    return d >= weekStart && !e.done && !e.skip && !e.bonus;
+  }).length;
+}
+
+function habitGet14DaySkips() {
+  if (!state.habit90) return 0;
+  const now = new Date();
+  const twoWeeksAgo = new Date(now);
+  twoWeeksAgo.setDate(now.getDate() - 14);
+  return (state.habit90.log || []).filter(e => {
+    const d = new Date(e.date);
+    return d >= twoWeeksAgo && !e.done && !e.skip && !e.bonus;
+  }).length;
+}
+
 function startCheckout() {
-  coStep = 0; coAlc = null; coSw = null; coSym = null; coSelectedActivity = null; coCompletedContacts = [];
+  coStep = 0; coAlc = null; coSw = null; coSelectedActivity = null; coCompletedContacts = [];
+  coHabitSwap = null;
+
+  // Determine steps: habit swap adds a step between 2 and 4
+  // Steps are always: 0=Activity, 1=Water, 2=Nutrition, 3=HabitSwap(optional), 4=Gratitude
+  const hasHabitSwap = state.habit90 && state.habit90.mode === 'swap' && !state.habit90.completed;
+  coHabitStepIdx = hasHabitSwap ? 3 : -1;
+  // Last step is always 4 (gratitude)
+  coTotalSteps = 5; // always 5 step IDs, but step 3 may be skipped
+
+  // Show/hide dots: 5 if habit swap, 4 if not
+  for (let i = 0; i < 5; i++) {
+    const dot = document.getElementById('co-dot-' + i);
+    if (dot) dot.style.display = (i === 3 && !hasHabitSwap) ? 'none' : '';
+  }
+  const habitStep = document.getElementById('co-step-3');
+  if (habitStep) habitStep.style.display = 'none';
+
+  // Init habit step content if active
+  if (hasHabitSwap) {
+    const h = state.habit90;
+    const todayStr = new Date().toDateString();
+    const isSwapDay = habitIsSwapDay(new Date());
+    const todayEntry = h.log.find(e => new Date(e.date).toDateString() === todayStr);
+    const content = document.getElementById('co-habit-content');
+    const subtitle = document.getElementById('co-habit-subtitle');
+    const title = document.getElementById('co-habit-title');
+
+    if (todayEntry) {
+      // Already logged today
+      title.textContent = todayEntry.done ? '🔄 Bereits getauscht' : '○ Bereits eingetragen';
+      subtitle.textContent = '';
+      content.innerHTML = '<div style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-top:12px;">Du kannst das im Rewards-Tab ändern.</div>';
+    } else if (!isSwapDay) {
+      // Rest day
+      title.textContent = 'Heute ist Ruhetag';
+      subtitle.textContent = (h.oldHabit || '') + ' → ' + (h.newHabit || '');
+      content.innerHTML = `
+        <div style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:20px;">Kein Tauschtag – geniess den Abend.</div>
+        <button onclick="coHabitSet('bonus')" id="co-habit-bonus"
+          style="padding:14px 24px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">
+          🔄 Trotzdem getauscht (Bonus!)
+        </button>`;
+    } else {
+      // Active swap day
+      title.textContent = h.oldHabit + ' → ' + h.newHabit + '?';
+      subtitle.textContent = '';
+      content.innerHTML = `
+        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:16px;">
+          <button onclick="coHabitSet('yes')" id="co-habit-yes"
+            style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+            🔄 Getauscht
+          </button>
+          <button onclick="coHabitSet('no')" id="co-habit-no"
+            style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+            ○ Nicht heute
+          </button>
+        </div>
+        <div id="co-habit-reflect" style="display:none;"></div>`;
+    }
+  }
 
   // Init water
   const slider = document.getElementById('co-water-slider');
@@ -7275,7 +7433,7 @@ function startCheckout() {
   document.getElementById('co-water-goal').textContent = state.waterGoal || 2000;
 
   // Init nutrition buttons
-  ['co-alc-yes','co-alc-no','co-sw-yes','co-sw-no','co-sym-yes','co-sym-no','co-sym-sick'].forEach(id => {
+  ['co-alc-yes','co-alc-no','co-sw-yes','co-sw-no'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(255,255,255,0.2)'; }
   });
@@ -7304,60 +7462,34 @@ function startCheckout() {
 
     acts.forEach((a, j) => {
       const idx = indices[j];
-      // Check if already logged today
-      const alreadyLogged = state.activityLog.find(e =>
-        new Date(e.ts).toDateString() === todayStr && e.name === a.name
-      );
-      if (alreadyLogged) {
-        html += `
-          <div style="margin-bottom:16px;opacity:0.7;">
-            <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:4px;">${a.icon||'🏃'} ${a.name}</div>
-            <div style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ Bereits geloggt – ${alreadyLogged.min} Min · +${alreadyLogged.pts} Punkte</div>
-            <input type="hidden" id="co-dur-slider-${idx}" value="0">
-          </div>`;
-      } else {
-        html += `
-          <div style="margin-bottom:16px;">
-            <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🏃'} ${a.name} – ${a.min} Min geplant</div>
-            <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
-            <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-dur-val-${idx}">0 Min</div>
-            <input type="range" id="co-dur-slider-${idx}" min="0" max="${Math.max(a.min,120)}" step="5" value="0"
-              style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
-              oninput="document.getElementById('co-dur-val-${idx}').textContent=this.value+' Min'">
-            <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
-              <span>Nicht gemacht</span><span>${a.min} Min</span>
-            </div>
-          </div>`;
-      }
+      html += `
+        <div style="margin-bottom:16px;">
+          <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🏃'} ${a.name} – ${a.min} Min geplant</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-dur-val-${idx}">0 Min</div>
+          <input type="range" id="co-dur-slider-${idx}" min="0" max="${Math.max(a.min,120)}" step="5" value="0"
+            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
+            oninput="document.getElementById('co-dur-val-${idx}').textContent=this.value+' Min'">
+          <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
+            <span>Nicht gemacht</span><span>${a.min} Min</span>
+          </div>
+        </div>`;
     });
 
     minds.forEach((a, j) => {
       const idx = (planned.mindIndices||[])[j];
-      // Check if already logged today
-      const alreadyLogged = (state.mindfulnessLog||[]).find(e =>
-        new Date(e.ts).toDateString() === todayStr && e.name === a.name
-      );
-      if (alreadyLogged) {
-        html += `
-          <div style="margin-bottom:16px;opacity:0.7;">
-            <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:4px;">${a.icon||'🪷'} ${a.name}</div>
-            <div style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ Bereits geloggt – ${alreadyLogged.min} Min · +${alreadyLogged.pts} Punkte</div>
-            <input type="hidden" id="co-mind-slider-${idx}" value="0">
-          </div>`;
-      } else {
-        html += `
-          <div style="margin-bottom:16px;">
-            <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🪷'} ${a.name} – ${a.min} Min geplant</div>
-            <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
-            <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-mind-val-${idx}">0 Min</div>
-            <input type="range" id="co-mind-slider-${idx}" min="0" max="${Math.max(a.min,60)}" step="5" value="0"
-              style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
-              oninput="document.getElementById('co-mind-val-${idx}').textContent=this.value+' Min'">
-            <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
-              <span>Nicht gemacht</span><span>${a.min} Min</span>
-            </div>
-          </div>`;
-      }
+      html += `
+        <div style="margin-bottom:16px;">
+          <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🪷'} ${a.name} – ${a.min} Min geplant</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-mind-val-${idx}">0 Min</div>
+          <input type="range" id="co-mind-slider-${idx}" min="0" max="${Math.max(a.min,60)}" step="5" value="0"
+            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
+            oninput="document.getElementById('co-mind-val-${idx}').textContent=this.value+' Min'">
+          <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
+            <span>Nicht gemacht</span><span>${a.min} Min</span>
+          </div>
+        </div>`;
     });
 
     contacts.forEach((c, j) => {
@@ -7396,66 +7528,84 @@ function startCheckout() {
   }
 
   document.getElementById('co-note').value = '';
-
-  // Init Beschwerden step - check if already logged today
-  const todaySymptoms = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-  const todayFree = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-  const todaySick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-  const symStepContent = document.getElementById('co-step-3');
-  if (symStepContent) {
-    if (todaySick) {
-      symStepContent.innerHTML = `
-        <div style="font-size:3rem;margin-bottom:12px;">🛏</div>
-        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Krankheitstag</div>
-        <div style="font-size:0.85rem;color:rgba(168,216,234,0.9);margin-bottom:12px;">✅ Bereits als Krankheitstag eingetragen</div>
-        ${todaySymptoms.length ? '<div style="font-size:0.82rem;color:rgba(255,255,255,0.6);margin-bottom:8px;">' + todaySymptoms.map(s => s.type + (s.zone !== 'Allgemein' ? ' (' + s.zone + ')' : '') + ' · ' + s.intensity + '/10').join('<br>') + '</div>' : ''}
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-top:12px;">Gute Besserung! 💛</div>`;
-      coSym = 'sick';
-    } else if (todaySymptoms.length > 0) {
-      symStepContent.innerHTML = `
-        <div style="font-size:3rem;margin-bottom:12px;">🩹</div>
-        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Beschwerden heute</div>
-        <div style="font-size:0.82rem;color:rgba(168,216,234,0.9);margin-bottom:16px;">✅ Bereits eingetragen:</div>
-        <div style="text-align:left;margin-bottom:16px;">
-          ${todaySymptoms.map(s => `<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:0.85rem;color:rgba(255,255,255,0.8);">
-            ${s.zone !== 'Allgemein' ? s.zone + ' – ' : ''}${s.type} · ${s.intensity}/10${s.note ? ' · ' + s.note : ''}
-          </div>`).join('')}
-        </div>
-        <button onclick="closeCheckout();showSection('body');setTimeout(()=>{const el=document.getElementById('symptom-card');if(el)el.scrollIntoView({behavior:'smooth'})},300)"
-          style="width:100%;padding:14px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">
-          🩹 Weitere Beschwerde eintragen →
-        </button>`;
-      coSym = 'yes';
-    } else if (todayFree) {
-      symStepContent.innerHTML = `
-        <div style="font-size:3rem;margin-bottom:12px;">🙏</div>
-        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Beschwerdefrei</div>
-        <div style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ Bereits als beschwerdefrei eingetragen</div>`;
-      coSym = 'no';
-    } else {
-      symStepContent.innerHTML = `
-        <div style="font-size:3rem;margin-bottom:12px;">🩹</div>
-        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Körperliche Beschwerden?</div>
-        <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:28px;">Hattest du heute Beschwerden?</div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <button id="co-sym-no" onclick="coToggle('sym','no')"
-            style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-            🙏 Nein, beschwerdefrei
-          </button>
-          <button id="co-sym-yes" onclick="coToggle('sym','yes')"
-            style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-            🩹 Ja, Beschwerden eintragen →
-          </button>
-          <button id="co-sym-sick" onclick="coToggle('sym','sick')"
-            style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-            🛏 Krank / bettlägerig
-          </button>
-        </div>`;
-    }
-  }
-
   coGoStep(0);
   document.getElementById('checkout-overlay').style.display = 'flex';
+}
+
+function coHabitSet(val) {
+  coHabitSwap = val;
+  const weekSkips = habitGetWeekSkips();
+  const isNo = val === 'no';
+
+  // Style buttons
+  ['co-habit-yes','co-habit-no','co-habit-bonus'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isSelected = (id === 'co-habit-yes' && val === 'yes') ||
+                       (id === 'co-habit-no' && val === 'no') ||
+                       (id === 'co-habit-bonus' && val === 'bonus');
+    el.style.background = isSelected ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
+    el.style.borderColor = isSelected ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
+  });
+
+  // Show reflection for "not swapped" on active days
+  const reflectDiv = document.getElementById('co-habit-reflect');
+  if (!reflectDiv) return;
+
+  if (isNo && weekSkips >= 2) {
+    // 3+ skips this week OR 5+ in 14 days → deep reflection
+    const day14Skips = habitGet14DaySkips();
+    if (weekSkips >= 2 || day14Skips >= 4) {
+      reflectDiv.style.display = '';
+      reflectDiv.innerHTML = `
+        <div style="margin-top:16px;padding:14px;background:rgba(255,255,255,0.08);border-radius:12px;text-align:left;">
+          <div style="font-size:0.82rem;color:rgba(255,255,255,0.8);margin-bottom:10px;font-weight:600;">
+            Kurz innehalten – das ist die ${weekSkips + 1}. Ausnahme diese Woche
+          </div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:8px;">Was war der Auslöser?</div>
+          <textarea id="co-habit-note" rows="2" placeholder="z.B. Kollege hat eingeladen..."
+            style="width:100%;padding:10px;border:none;border-radius:10px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;outline:none;box-sizing:border-box;"></textarea>
+          ${(weekSkips >= 2 || day14Skips >= 4) ? `
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:10px;margin-bottom:6px;">Willst du deinen Wenn-Dann-Plan anpassen?</div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="coHabitEditWoop()" style="padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">
+              ✏️ Plan anpassen
+            </button>
+            <button onclick="document.getElementById('co-habit-woop-edit').style.display='none'" style="padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">
+              Passt so
+            </button>
+          </div>
+          <div id="co-habit-woop-edit" style="display:none;margin-top:10px;">
+            <div style="display:flex;gap:4px;align-items:center;margin-bottom:4px;">
+              <span style="font-size:0.78rem;color:rgba(255,255,255,0.5);white-space:nowrap;">Wenn</span>
+              <input type="text" id="co-habit-woop-obs" value="${state.habit90?.woop?.obstacle || ''}"
+                style="flex:1;padding:8px;border:none;border-radius:8px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;">
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <span style="font-size:0.78rem;color:rgba(255,255,255,0.5);white-space:nowrap;">dann</span>
+              <input type="text" id="co-habit-woop-pln" value="${state.habit90?.woop?.plan || ''}"
+                style="flex:1;padding:8px;border:none;border-radius:8px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;">
+            </div>
+          </div>` : ''}
+        </div>`;
+    } else {
+      // First skip this week – simple note
+      reflectDiv.style.display = '';
+      reflectDiv.innerHTML = `
+        <div style="margin-top:12px;">
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:6px;">Was war der Auslöser? (optional)</div>
+          <textarea id="co-habit-note" rows="1" placeholder="z.B. Stress, Geselligkeit..."
+            style="width:100%;padding:8px 10px;border:none;border-radius:10px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.82rem;resize:none;outline:none;box-sizing:border-box;"></textarea>
+        </div>`;
+    }
+  } else if (reflectDiv) {
+    reflectDiv.style.display = 'none';
+  }
+}
+
+function coHabitEditWoop() {
+  const el = document.getElementById('co-habit-woop-edit');
+  if (el) el.style.display = '';
 }
 
 function coDurUpdate(v) {
@@ -7474,21 +7624,6 @@ function coToggle(type, val) {
     document.getElementById('co-alc-yes').style.borderColor = val==='yes' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
     document.getElementById('co-alc-no').style.background  = val==='no'  ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
     document.getElementById('co-alc-no').style.borderColor  = val==='no'  ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
-  } else if (type === 'sym') {
-    coSym = val;
-    ['co-sym-no','co-sym-yes','co-sym-sick'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(255,255,255,0.2)'; }
-    });
-    const activeId = val==='no' ? 'co-sym-no' : val==='yes' ? 'co-sym-yes' : 'co-sym-sick';
-    const activeEl = document.getElementById(activeId);
-    if (activeEl) { activeEl.style.background = 'rgba(255,255,255,0.3)'; activeEl.style.borderColor = 'rgba(255,255,255,0.7)'; }
-    const nextBtn = document.getElementById('co-next-btn');
-    if (nextBtn && coStep === 3) {
-      if (val === 'yes') nextBtn.textContent = '🩹 Eintragen →';
-      else if (val === 'sick') nextBtn.textContent = '🛏 Weiter →';
-      else nextBtn.textContent = 'Weiter →';
-    }
   } else {
     coSw = val;
     document.getElementById('co-sw-yes').style.background = val==='yes' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
@@ -7538,37 +7673,25 @@ function coGoStep(step) {
   if (step === 2 && nextBtn) {
     if (coAlc === null && coSw === null) nextBtn.textContent = 'Überspringen →';
   }
-  // Step 3: show skip if nothing selected yet
-  if (step === 3 && nextBtn) {
-    if (coSym === null) nextBtn.textContent = 'Überspringen →';
+  // Step 3 (habit): show skip
+  if (step === 3 && coHabitStepIdx >= 0 && nextBtn) {
+    if (coHabitSwap === null) nextBtn.textContent = 'Überspringen →';
   }
 }
 
 function coNext() {
-  // If Beschwerden=yes or sick, close checkout and go to body section
-  if (coStep === 3 && (coSym === 'yes' || coSym === 'sick')) {
-    // Save sick day status before redirecting
-    if (coSym === 'sick') {
-      const todayStr = new Date().toDateString();
-      if (!state.sickDayLog) state.sickDayLog = [];
-      const alreadyLogged = state.sickDayLog.find(e => new Date(e.date).toDateString() === todayStr);
-      if (!alreadyLogged) state.sickDayLog.push({ date: new Date().toISOString(), sick: true });
-      // Auto streak joker
-      if (typeof applyStreakJoker === 'function') applyStreakJoker();
-      saveState();
-    }
-    closeCheckout();
-    showSection('body');
-    setTimeout(() => { const el = document.getElementById('symptom-card'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 300);
-    if (coSym === 'sick') showToast('🛏 Krankheitstag eingetragen – gute Besserung!');
-    return;
-  }
   if (coStep === 4) { coSave(); return; }
-  coGoStep(coStep + 1);
+  let next = coStep + 1;
+  // Skip habit step if not active
+  if (next === 3 && coHabitStepIdx < 0) next = 4;
+  coGoStep(next);
 }
 
 function coBack() {
-  if (coStep > 0) coGoStep(coStep - 1);
+  let prev = coStep - 1;
+  // Skip habit step if not active
+  if (prev === 3 && coHabitStepIdx < 0) prev = 2;
+  if (prev >= 0) coGoStep(prev);
 }
 
 function coSave() {
@@ -7651,11 +7774,37 @@ function coSave() {
     else { if (!state.sweetsDaysLog) state.sweetsDaysLog=[]; state.sweetsDaysLog.push({ date: new Date().toISOString(), had: coSw === 'yes' }); }
   }
 
-  // 5. Beschwerdefrei
-  if (coSym === 'no') {
-    if (!state.symptomFreeLog) state.symptomFreeLog = [];
-    const alreadyLogged = state.symptomFreeLog.find(e => new Date(e.date).toDateString() === todayStr);
-    if (!alreadyLogged) state.symptomFreeLog.push({ date: new Date().toISOString(), free: true });
+  // 5. Gewohnheitentausch
+  if (coHabitSwap && state.habit90 && state.habit90.mode === 'swap') {
+    const existing = state.habit90.log.find(e => new Date(e.date).toDateString() === todayStr);
+    const logEntry = {
+      date: new Date().toISOString(),
+      done: coHabitSwap === 'yes' || coHabitSwap === 'bonus',
+      skip: false,
+      bonus: coHabitSwap === 'bonus',
+      note: document.getElementById('co-habit-note')?.value?.trim() || null,
+      feeling: null
+    };
+    if (existing) {
+      Object.assign(existing, logEntry);
+    } else {
+      state.habit90.log.push(logEntry);
+    }
+    // Update WOOP if edited
+    const woopObs = document.getElementById('co-habit-woop-obs')?.value?.trim();
+    const woopPln = document.getElementById('co-habit-woop-pln')?.value?.trim();
+    if (woopObs !== undefined && woopPln !== undefined && (woopObs || woopPln)) {
+      if (!state.habit90.woop) state.habit90.woop = {};
+      state.habit90.woop.obstacle = woopObs;
+      state.habit90.woop.plan = woopPln;
+    }
+    // Check completion
+    const daysPassed = Math.floor((new Date() - new Date(state.habit90.startDate)) / 86400000) + 1;
+    if (daysPassed >= 90 && !state.habit90.completed) {
+      state.habit90.completed = true;
+      addPoints(500, '🔄 90-Tage-Tausch abgeschlossen: ' + state.habit90.name);
+      showToast('🏆 90 Tage geschafft! +500 Punkte!');
+    }
   }
 
   // 6. Dankbarkeit
@@ -8549,14 +8698,6 @@ function renderSettings() {
   if (woopToggle) woopToggle.style.background = state.woopEnabled ? '#8b6ba8' : 'var(--border)';
   if (woopKnob)   woopKnob.style.left = state.woopEnabled ? '25px' : '3px';
 
-  // Pulse toggle state
-  const pulseBtn = document.getElementById('pulse-toggle-btn');
-  if (pulseBtn) {
-    const on = state.tilePulseEnabled !== false;
-    pulseBtn.style.background = on ? 'var(--gold)' : 'var(--border)';
-    pulseBtn.innerHTML = `<div style="width:22px;height:22px;border-radius:50%;background:white;position:absolute;top:3px;left:${on?'27px':'3px'};transition:left 0.2s;"></div>`;
-  }
-
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
   const overrideEl = document.getElementById('time-override-status');
@@ -8652,7 +8793,7 @@ function symSaveZone(){
   const intensity=parseInt(document.getElementById('sym-int-slider').value);
   const note=document.getElementById('sym-note').value.trim();
   const color=symIntColor(intensity);
-  if(symActiveEl) symActiveEl.setAttribute('fill',color);
+  symActiveEl.setAttribute('fill',color);
   if(!state.symptomLog)state.symptomLog=[];
   state.symptomLog.unshift({zone:symActiveZone,type:symActiveType,intensity,note,color,ts:new Date().toISOString()});
   if(state.symptomLog.length>200)state.symptomLog.pop();
@@ -8660,7 +8801,7 @@ function symSaveZone(){
   document.getElementById('sym-panel').style.display='none';
   document.getElementById('sym-hint').style.display='';
   saveState(); renderSymptoms(); renderHome();
-  showToast('🩹 Gespeichert – weitere Stelle?');
+  showToast('🩹 Symptom gespeichert.');
 }
 
 function symCancelZone(){
@@ -8668,76 +8809,6 @@ function symCancelZone(){
   symActiveEl=null; symActiveZone=null;
   document.getElementById('sym-panel').style.display='none';
   document.getElementById('sym-hint').style.display='';
-}
-
-// =====================
-// GENERAL SYMPTOMS (without body zone)
-// =====================
-const GEN_SYM_TYPES = [
-  {type:'Fieber', icon:'🌡'},
-  {type:'Schnupfen', icon:'🤧'},
-  {type:'Husten', icon:'😷'},
-  {type:'Halsschmerzen', icon:'🗣'},
-  {type:'Übelkeit', icon:'🤢'},
-  {type:'Schwindel', icon:'💫'},
-  {type:'Müdigkeit', icon:'😴'},
-  {type:'Anderes', icon:'❓'}
-];
-let genSymActiveType = null;
-
-function renderGenSymChips() {
-  const container = document.getElementById('gen-sym-chips');
-  if (!container) return;
-  container.innerHTML = '';
-  GEN_SYM_TYPES.forEach(g => {
-    const btn = document.createElement('button');
-    btn.className = 'chip';
-    btn.textContent = g.icon + ' ' + g.type;
-    btn.style.cssText = 'font-size:0.85rem;padding:8px 14px;';
-    btn.onclick = () => genSymOpen(g.type);
-    container.appendChild(btn);
-  });
-}
-
-function genSymOpen(type) {
-  genSymActiveType = type;
-  document.getElementById('gen-sym-title').textContent = type;
-  document.getElementById('gen-sym-int-slider').value = 5;
-  genSymUpdateInt(5);
-  document.getElementById('gen-sym-note').value = '';
-  document.getElementById('gen-sym-panel').style.display = '';
-  // Highlight active chip
-  document.querySelectorAll('#gen-sym-chips .chip').forEach(b => {
-    b.classList.toggle('active', b.textContent.includes(type));
-  });
-}
-
-function genSymUpdateInt(v) {
-  const iv = parseInt(v);
-  document.getElementById('gen-sym-int-val').textContent = iv;
-  document.getElementById('gen-sym-int-desc').textContent = SYM_INT_DESCS[iv] || '';
-  document.getElementById('gen-sym-int-val').style.color = symIntColor(iv);
-}
-
-function genSymSave() {
-  if (!genSymActiveType) return;
-  const intensity = parseInt(document.getElementById('gen-sym-int-slider').value);
-  const note = document.getElementById('gen-sym-note').value.trim();
-  const color = symIntColor(intensity);
-  if (!state.symptomLog) state.symptomLog = [];
-  state.symptomLog.unshift({zone:'Allgemein', type:genSymActiveType, intensity, note, color, ts:new Date().toISOString()});
-  if (state.symptomLog.length > 200) state.symptomLog.pop();
-  genSymActiveType = null;
-  document.getElementById('gen-sym-panel').style.display = 'none';
-  document.querySelectorAll('#gen-sym-chips .chip').forEach(b => b.classList.remove('active'));
-  saveState(); renderSymptoms(); renderHome();
-  showToast('🌡 Gespeichert – weitere Beschwerde?');
-}
-
-function genSymCancel() {
-  genSymActiveType = null;
-  document.getElementById('gen-sym-panel').style.display = 'none';
-  document.querySelectorAll('#gen-sym-chips .chip').forEach(b => b.classList.remove('active'));
 }
 
 function renderSymptoms(){
