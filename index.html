@@ -155,6 +155,11 @@
     user-select: none;
     -webkit-user-select: none;
   }
+  @keyframes tile-pulse-gold {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+    50% { box-shadow: 0 0 16px 4px rgba(201,168,76,0.35); }
+  }
+  .tile-pulse { animation: tile-pulse-gold 1.5s ease-in-out 2; }
 
   /* MAIN */
   main { padding: 16px; max-width: 480px; margin: 0 auto; }
@@ -1056,6 +1061,7 @@
     <div class="tm-dot" id="co-dot-1"></div>
     <div class="tm-dot" id="co-dot-2"></div>
     <div class="tm-dot" id="co-dot-3"></div>
+    <div class="tm-dot" id="co-dot-4"></div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
 
@@ -1139,8 +1145,25 @@
       </div>
     </div>
 
-    <!-- Step 3: Dankbarkeit -->
+    <!-- Step 3: Beschwerden -->
     <div id="co-step-3" style="display:none;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:12px;">🩹</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Körperliche Beschwerden?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:28px;">Hattest du heute Beschwerden?</div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button id="co-sym-no" onclick="coToggle('sym','no')"
+          style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+          🙏 Nein, beschwerdefrei
+        </button>
+        <button id="co-sym-yes" onclick="coToggle('sym','yes')"
+          style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+          🩹 Ja, eintragen →
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 4: Dankbarkeit -->
+    <div id="co-step-4" style="display:none;text-align:center;">
       <div style="font-size:3rem;margin-bottom:12px;">🌟</div>
       <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Wofür bist du dankbar?</div>
       <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:20px;">Optional – oder einfach fertig</div>
@@ -1167,7 +1190,7 @@
       <button class="chip" id="fm-tab-erweitert" onclick="setFeelingMatrixMode('erweitert')">Erweitert (GFK)</button>
     </div>
 
-    <div id="feeling-matrix" style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr auto 1fr;gap:0;border-radius:16px;overflow:hidden;border:1px solid var(--border);">
+    <div id="feeling-matrix" style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:0;border-radius:16px;overflow:hidden;border:1px solid var(--border);position:relative;">
       <div style="background:#f9e4dd;padding:10px 8px;min-height:120px;">
         <div style="font-size:0.7rem;font-weight:600;color:#993C1D;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">UNANGENEHM + AKTIVIERT</div>
         <div id="fm-q-ua" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
@@ -1175,11 +1198,6 @@
       <div style="background:#dbeaf7;padding:10px 8px;min-height:120px;">
         <div style="font-size:0.7rem;font-weight:600;color:#185FA5;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">ANGENEHM + AKTIVIERT</div>
         <div id="fm-q-aa" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
-      </div>
-      <div style="grid-column:1/3;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--border);position:relative;">
-        <span style="position:absolute;left:8px;font-size:0.65rem;color:var(--muted);">unangenehm</span>
-        <div id="fm-q-neutral" style="display:flex;gap:4px;"></div>
-        <span style="position:absolute;right:8px;font-size:0.65rem;color:var(--muted);">angenehm</span>
       </div>
       <div style="background:#e8e6f8;padding:10px 8px;min-height:120px;">
         <div style="font-size:0.7rem;font-weight:600;color:#534AB7;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">UNANGENEHM + RUHIG</div>
@@ -1189,9 +1207,15 @@
         <div style="font-size:0.7rem;font-weight:600;color:#0F6E56;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">ANGENEHM + RUHIG</div>
         <div id="fm-q-ar" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
       </div>
+      <!-- Achsenlinien -->
+      <div style="position:absolute;top:50%;left:0;right:0;height:0;border-top:1.5px solid rgba(0,0,0,0.15);pointer-events:none;"></div>
+      <div style="position:absolute;left:50%;top:0;bottom:0;width:0;border-left:1.5px solid rgba(0,0,0,0.15);pointer-events:none;"></div>
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--muted);margin-top:4px;padding:0 4px;">
-      <span>↑ aktiviert</span><span>↓ ruhig</span>
+    <div style="display:flex;justify-content:space-between;font-size:0.82rem;font-weight:500;color:var(--ink);margin-top:6px;padding:0 4px;">
+      <span>← unangenehm</span><span>angenehm →</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-top:2px;padding:0 4px;">
+      <span>↑ aktiviert (oben)</span><span>↓ ruhig (unten)</span>
     </div>
 
     <div id="fm-selection" style="display:none;margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:12px;border:2px solid var(--accent);">
@@ -2724,6 +2748,14 @@
     <button onclick="resetAllData()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--accent2);background:transparent;color:var(--accent2);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">🗑 Alle Daten zurücksetzen (Test)</button>
     <button onclick="restartOnboarding()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;margin-top:8px;">🌿 Startschuss-Intro nochmal anzeigen</button>
     <hr class="divider">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div>
+        <div style="font-size:0.85rem;font-weight:600;">✨ Kachel-Animation</div>
+        <div style="font-size:0.72rem;color:var(--muted);">Sanftes Leuchten bei beschwerdefreien Tagen</div>
+      </div>
+      <button id="pulse-toggle-btn" onclick="toggleTilePulse()" style="width:52px;height:28px;border-radius:14px;border:none;cursor:pointer;position:relative;transition:background 0.2s;"></button>
+    </div>
+    <hr class="divider">
     <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">🛠 Test-Modus</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button onclick="setTimeOverride('morning')" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">☀️ Morgens</button>
@@ -3018,7 +3050,7 @@ function loadState() {
     const arrays = ['activityLog','feelingLog','weightLog','bodyLog','sleepLog',
       'gratitudeLog','socialContacts','mindfulnessLog','breathingLog','bugReports',
       'alcDaysLog','sweetsDaysLog','sweetsLog','pointsLog',
-      'waterLog','activeDaysLog','symptomLog','masterContacts','mealFeelingLog','alcAftermathLog'];
+      'waterLog','activeDaysLog','symptomLog','masterContacts','mealFeelingLog','alcAftermathLog','symptomFreeLog'];
     arrays.forEach(k => { if (!Array.isArray(saved[k])) saved[k] = []; });
     return saved;
   }
@@ -3264,10 +3296,21 @@ function renderHome() {
     },
     {
       icon: '🧘', label: 'Körper', section: 'body',
-      color: '#6b8f71', bg: 'linear-gradient(135deg,#f0f5f0,#dceadc)',
+      color: (() => {
+        const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        return (!s.length && free) ? '#c9a84c' : '#6b8f71';
+      })(),
+      bg: (() => {
+        const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        return (!s.length && free) ? 'linear-gradient(135deg,#fdf6e3,#f5eacc)' : 'linear-gradient(135deg,#f0f5f0,#dceadc)';
+      })(),
       value: (() => {
         const b = state.bodyLog.length > 0 && new Date(state.bodyLog[0].ts).toDateString() === todayStr ? state.bodyLog[0] : null;
         const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        if (!s.length && free) return 'Danke 🙏';
         if (!b && !s.length) return '—';
         const parts = [];
         if (b?.feeling) parts.push(b.feeling + '/10');
@@ -3276,9 +3319,16 @@ function renderHome() {
       })(),
       sub: (() => {
         const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        if (!s.length && free) return 'ohne Beschwerden';
         return s.length ? s.map(e=>e.zone).join(', ').slice(0,28) : 'Wohlbefinden & Beschwerden';
       })(),
-      bar: null
+      bar: null,
+      _symptomFree: (() => {
+        const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        return !s.length && !!free;
+      })()
     },
     {
       icon: '😊', label: 'Gefühl', section: 'feeling',
@@ -3364,6 +3414,7 @@ function renderHome() {
   TILES.forEach((t, idx) => {
     const tile = document.createElement('div');
     tile.className = 'home-tile';
+    if (t._symptomFree && state.tilePulseEnabled !== false) tile.classList.add('tile-pulse');
     tile.style.background = t.bg;
     tile.style.borderColor = 'transparent';
     tile.dataset.section = t.section;
@@ -3432,6 +3483,12 @@ function moveTile(fromIdx, direction) {
   renderHome();
 }
 
+function toggleTilePulse() {
+  state.tilePulseEnabled = state.tilePulseEnabled === false ? true : false;
+  saveState();
+  renderSettings();
+}
+
 
 
 // =====================
@@ -3490,7 +3547,7 @@ const FM_COLORS = {
   ar:{bg:'#5dcaa5',selBg:'#1d9e75',selText:'#fff',gfkBg:'#9fe1cb',text:'#04342c'},
   neutral:{bg:'var(--border)',selBg:'var(--ink)',selText:'var(--card)',gfkBg:'var(--border)',text:'var(--ink)'}
 };
-const QUADRANT_NAMES = {ua:'unangenehm + aktiviert',aa:'angenehm + aktiviert',ur:'unangenehm + ruhig',ar:'angenehm + ruhig',neutral:'neutral'};
+const QUADRANT_NAMES = {ua:'unangenehm + aktiviert',aa:'angenehm + aktiviert',ur:'unangenehm + ruhig',ar:'angenehm + ruhig'};
 let fmMode = 'kern';
 let fmSelected = [];
 
@@ -3508,8 +3565,6 @@ function renderFeelingMatrix() {
     if(!el) return; el.innerHTML = '';
     data[q].forEach(f => el.appendChild(makeFeelingChip(f, q)));
   });
-  const nEl = document.getElementById('fm-q-neutral');
-  if(nEl) { nEl.innerHTML = ''; FEELING_MATRIX.neutral.forEach(f => nEl.appendChild(makeFeelingChip(f,'neutral'))); }
   updateFeelingSelection();
 }
 
@@ -7148,6 +7203,7 @@ function updateQuickBtn() {
 let coStep = 0;
 let coAlc = null;
 let coSw = null;
+let coSym = null;
 let coSelectedActivity = null;
 
 let coCompletedContacts = [];
@@ -7163,7 +7219,7 @@ function coToggleContact(idx, btn) {
 }
 
 function startCheckout() {
-  coStep = 0; coAlc = null; coSw = null; coSelectedActivity = null; coCompletedContacts = [];
+  coStep = 0; coAlc = null; coSw = null; coSym = null; coSelectedActivity = null; coCompletedContacts = [];
 
   // Init water
   const slider = document.getElementById('co-water-slider');
@@ -7172,7 +7228,7 @@ function startCheckout() {
   document.getElementById('co-water-goal').textContent = state.waterGoal || 2000;
 
   // Init nutrition buttons
-  ['co-alc-yes','co-alc-no','co-sw-yes','co-sw-no'].forEach(id => {
+  ['co-alc-yes','co-alc-no','co-sw-yes','co-sw-no','co-sym-yes','co-sym-no'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(255,255,255,0.2)'; }
   });
@@ -7287,6 +7343,14 @@ function coToggle(type, val) {
     document.getElementById('co-alc-yes').style.borderColor = val==='yes' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
     document.getElementById('co-alc-no').style.background  = val==='no'  ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
     document.getElementById('co-alc-no').style.borderColor  = val==='no'  ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
+  } else if (type === 'sym') {
+    coSym = val;
+    document.getElementById('co-sym-yes').style.background = val==='yes' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
+    document.getElementById('co-sym-yes').style.borderColor = val==='yes' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
+    document.getElementById('co-sym-no').style.background  = val==='no'  ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
+    document.getElementById('co-sym-no').style.borderColor  = val==='no'  ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
+    const nextBtn = document.getElementById('co-next-btn');
+    if (nextBtn && coStep === 3) nextBtn.textContent = val==='yes' ? '🩹 Eintragen →' : 'Weiter →';
   } else {
     coSw = val;
     document.getElementById('co-sw-yes').style.background = val==='yes' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
@@ -7313,7 +7377,7 @@ function coSelectActivity(i, el) {
 }
 
 function coGoStep(step) {
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 5; i++) {
     const s = document.getElementById('co-step-' + i);
     const d = document.getElementById('co-dot-' + i);
     if (s) s.style.display = i === step ? '' : 'none';
@@ -7323,7 +7387,7 @@ function coGoStep(step) {
   const backBtn = document.getElementById('co-back-btn');
   const nextBtn = document.getElementById('co-next-btn');
   if (backBtn) backBtn.style.display = step === 0 ? 'none' : '';
-  if (nextBtn) nextBtn.textContent = step === 3 ? '✅ Gute Nacht!' : 'Weiter →';
+  if (nextBtn) nextBtn.textContent = step === 4 ? '✅ Gute Nacht!' : 'Weiter →';
   // Step 0: show skip if nothing planned
   if (step === 0) {
     const planned = state.profile?.morningPlanned;
@@ -7336,10 +7400,21 @@ function coGoStep(step) {
   if (step === 2 && nextBtn) {
     if (coAlc === null && coSw === null) nextBtn.textContent = 'Überspringen →';
   }
+  // Step 3: show skip if nothing selected yet
+  if (step === 3 && nextBtn) {
+    if (coSym === null) nextBtn.textContent = 'Überspringen →';
+  }
 }
 
 function coNext() {
-  if (coStep === 3) { coSave(); return; }
+  // If Beschwerden=yes, close checkout and go to body section
+  if (coStep === 3 && coSym === 'yes') {
+    closeCheckout();
+    showSection('body');
+    setTimeout(() => { const el = document.getElementById('symptom-card'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 300);
+    return;
+  }
+  if (coStep === 4) { coSave(); return; }
   coGoStep(coStep + 1);
 }
 
@@ -7427,7 +7502,14 @@ function coSave() {
     else { if (!state.sweetsDaysLog) state.sweetsDaysLog=[]; state.sweetsDaysLog.push({ date: new Date().toISOString(), had: coSw === 'yes' }); }
   }
 
-  // 5. Dankbarkeit
+  // 5. Beschwerdefrei
+  if (coSym === 'no') {
+    if (!state.symptomFreeLog) state.symptomFreeLog = [];
+    const alreadyLogged = state.symptomFreeLog.find(e => new Date(e.date).toDateString() === todayStr);
+    if (!alreadyLogged) state.symptomFreeLog.push({ date: new Date().toISOString(), free: true });
+  }
+
+  // 6. Dankbarkeit
   const note = document.getElementById('co-note').value.trim();
   if (note) {
     state.gratitudeLog.unshift({ ts: new Date().toISOString(), text: note });
@@ -8317,6 +8399,14 @@ function renderSettings() {
   const woopKnob   = document.getElementById('woop-knob');
   if (woopToggle) woopToggle.style.background = state.woopEnabled ? '#8b6ba8' : 'var(--border)';
   if (woopKnob)   woopKnob.style.left = state.woopEnabled ? '25px' : '3px';
+
+  // Pulse toggle state
+  const pulseBtn = document.getElementById('pulse-toggle-btn');
+  if (pulseBtn) {
+    const on = state.tilePulseEnabled !== false;
+    pulseBtn.style.background = on ? 'var(--gold)' : 'var(--border)';
+    pulseBtn.innerHTML = `<div style="width:22px;height:22px;border-radius:50%;background:white;position:absolute;top:3px;left:${on?'27px':'3px'};transition:left 0.2s;"></div>`;
+  }
 
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
