@@ -3369,39 +3369,73 @@ function renderHome() {
     },
   ];
 
-  // Add habit swap tile if active
-  if (state.habit90 && state.habit90.mode === 'swap') {
+  // Habit tile – always visible
+  (() => {
     const h = state.habit90;
-    const daysPassed = Math.max(0, Math.floor((now - new Date(h.startDate)) / 86400000) + 1);
-    const todayEntry = h.log.find(e => new Date(e.date).toDateString() === todayStr);
-    const isSwapDay = habitIsSwapDay(now);
-    const doneCount = h.log.filter(e => e.done).length;
-    const totalLogged = h.log.filter(e => e.done !== undefined).length;
-    const swapPct = totalLogged > 0 ? Math.round(doneCount / totalLogged * 100) : 0;
+    const hasActive = h && !h.completed;
+    let tileIcon, tileColor, tileValue, tileSub, tileBar;
 
-    let tileValue, tileSub;
-    if (todayEntry?.done === true) {
-      tileValue = '🔄 Getauscht';
-      tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' · ' + swapPct + '%';
-    } else if (todayEntry?.done === false) {
-      tileValue = '○ Nicht heute';
-      tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' · ' + swapPct + '%';
-    } else if (!isSwapDay) {
-      tileValue = '☀️ Ruhetag';
-      tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' · kein Tauschtag';
+    if (hasActive) {
+      const isSwap = h.mode === 'swap';
+      const daysPassed = Math.max(0, Math.floor((now - new Date(h.startDate)) / 86400000) + 1);
+      const todayEntry = h.log.find(e => new Date(e.date).toDateString() === todayStr);
+      tileBar = Math.min(100, Math.round(daysPassed / 90 * 100));
+
+      if (isSwap) {
+        tileIcon = '🔄';
+        tileColor = '#534AB7';
+        const isSwapDay = habitIsSwapDay(now);
+        const doneCount = h.log.filter(e => e.done).length;
+        const totalLogged = h.log.filter(e => e.done !== undefined).length;
+        const swapPct = totalLogged > 0 ? Math.round(doneCount / totalLogged * 100) : 0;
+
+        if (todayEntry?.done === true) {
+          tileValue = '🔄 Getauscht';
+          tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' · ' + swapPct + '%';
+        } else if (todayEntry?.done === false) {
+          tileValue = '○ Nicht heute';
+          tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' · ' + swapPct + '%';
+        } else if (!isSwapDay) {
+          tileValue = '☀️ Ruhetag';
+          tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' · kein Tauschtag';
+        } else {
+          tileValue = 'Offen';
+          tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' von 90';
+        }
+      } else {
+        tileIcon = '🌱';
+        tileColor = '#3a5bc7';
+        if (todayEntry?.done === true) {
+          tileValue = '✅ Geschafft';
+        } else if (todayEntry?.done === false) {
+          tileValue = '○ Nicht heute';
+        } else {
+          tileValue = 'Offen';
+        }
+        tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' von 90';
+      }
+    } else if (h && h.completed) {
+      tileIcon = '🏆';
+      tileColor = '#c9a84c';
+      tileValue = 'Geschafft!';
+      tileSub = 'Neues Commitment starten?';
+      tileBar = 100;
     } else {
-      tileValue = 'Offen';
-      tileSub = 'Tag ' + Math.min(daysPassed, 90) + ' von 90';
+      tileIcon = '🌱';
+      tileColor = '#3a5bc7';
+      tileValue = '—';
+      tileSub = '90-Tage-Commitment starten';
+      tileBar = null;
     }
 
     TILES.push({
-      icon: '🔄', label: 'Tausch', section: 'rewards',
-      color: '#534AB7', bg: 'linear-gradient(135deg,#f0f4ff,#e0e8ff)',
+      icon: tileIcon, label: hasActive && h.mode === 'swap' ? 'Tausch' : 'Gewohnheit', section: 'rewards',
+      color: tileColor, bg: 'linear-gradient(135deg,#f0f4ff,#e0e8ff)',
       value: tileValue,
       sub: tileSub,
-      bar: Math.min(100, Math.round(daysPassed / 90 * 100)), barColor: '#534AB7'
+      bar: tileBar, barColor: tileColor
     });
-  }
+  })();
 
   TILES.forEach(t => {
     const tile = document.createElement('div');
