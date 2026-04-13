@@ -1830,10 +1830,10 @@
     <button id="body-log-btn" class="log-btn secondary" style="margin-top:12px;opacity:0.4;cursor:not-allowed;" onclick="logBody()" disabled>Beobachtung notieren</button>
   </div>
 
-  <!-- BESCHWERDEN -->
-  <div class="card">
-    <h2>🩹 Beschwerden</h2>
-    <p class="small-note" style="margin-bottom:12px;">Tippe auf eine Körperstelle um Beschwerden einzutragen.</p>
+  <!-- BESCHWERDEN: KÖRPERSTELLE -->
+  <div class="card" id="symptom-card">
+    <h2>🩹 Beschwerden an einer Körperstelle</h2>
+    <p class="small-note" style="margin-bottom:12px;">Tippe auf die betroffene Stelle, wähle die Art und speichere. Du kannst mehrere Stellen nacheinander eintragen.</p>
 
     <div style="display:flex;gap:16px;justify-content:center;align-items:flex-start;margin-bottom:8px;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
@@ -1892,47 +1892,24 @@
     </div>
 
     <p class="small-note" id="sym-hint" style="text-align:center;margin-top:4px;">Tippe auf eine Körperstelle</p>
-    <div style="text-align:center;margin-top:10px;">
-      <button onclick="symOpenGeneral()" class="log-btn secondary" style="width:auto;padding:8px 18px;font-size:0.82rem;">
-        🌡 Allgemeine Beschwerde (ohne Körperstelle)
-      </button>
-    </div>
 
-    <!-- Inline Panel -->
+    <!-- Inline Panel für Körperstelle -->
     <div id="sym-panel" style="display:none;margin-top:12px;background:var(--bg);border-radius:14px;padding:14px 16px;border:2px solid var(--border);">
       <div style="font-weight:700;font-size:0.95rem;color:var(--ink);margin-bottom:12px;" id="sym-zone-title"></div>
 
-      <!-- Typ -->
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;" id="sym-types">
-        <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Bewegungsapparat</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;">
           <button class="chip active" onclick="symSetType(this,'Schmerz')">Schmerz</button>
           <button class="chip" onclick="symSetType(this,'Verspannung')">Verspannung</button>
           <button class="chip" onclick="symSetType(this,'Schwellung')">Schwellung</button>
           <button class="chip" onclick="symSetType(this,'Muskelkater')">Muskelkater</button>
           <button class="chip" onclick="symSetType(this,'Zerrung')">Zerrung</button>
-        </div>
-        <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Erkältung / Infektion</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px;">
-          <button class="chip" onclick="symSetType(this,'Fieber')">Fieber</button>
-          <button class="chip" onclick="symSetType(this,'Schnupfen')">Schnupfen</button>
-          <button class="chip" onclick="symSetType(this,'Husten')">Husten</button>
-          <button class="chip" onclick="symSetType(this,'Halsschmerzen')">Halsschmerzen</button>
-        </div>
-        <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Allgemein</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px;">
-          <button class="chip" onclick="symSetType(this,'Übelkeit')">Übelkeit</button>
-          <button class="chip" onclick="symSetType(this,'Schwindel')">Schwindel</button>
-          <button class="chip" onclick="symSetType(this,'Müdigkeit')">Müdigkeit</button>
           <button class="chip" onclick="symSetType(this,'Kribbeln')">Kribbeln</button>
           <button class="chip" onclick="symSetType(this,'Juckreiz')">Juckreiz</button>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px;">
           <button class="chip" onclick="symSetType(this,'Anderes')">Anderes</button>
         </div>
       </div>
 
-      <!-- Intensität -->
       <div style="margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
           <span style="font-size:0.78rem;color:var(--muted);">Intensität</span>
@@ -1958,6 +1935,36 @@
     <!-- Heutige Einträge -->
     <div id="sym-log-list" style="margin-top:12px;"></div>
     <p class="small-note" id="sym-log-empty" style="margin-top:8px;text-align:center;">Noch keine Beschwerden eingetragen.</p>
+  </div>
+
+  <!-- ALLGEMEINE BESCHWERDEN (ohne Körperstelle) -->
+  <div class="card">
+    <h2>🌡 Allgemeine Beschwerden</h2>
+    <p class="small-note" style="margin-bottom:12px;">Erkältung, Infekte und andere Beschwerden die den ganzen Körper betreffen.</p>
+
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;" id="gen-sym-chips"></div>
+
+    <div id="gen-sym-panel" style="display:none;background:var(--bg);border-radius:14px;padding:14px 16px;border:2px solid var(--border);">
+      <div style="font-weight:700;font-size:0.95rem;color:var(--ink);margin-bottom:12px;" id="gen-sym-title"></div>
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+          <span style="font-size:0.78rem;color:var(--muted);">Intensität</span>
+          <span style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--ink);" id="gen-sym-int-val">5</span>
+        </div>
+        <input type="range" id="gen-sym-int-slider" min="1" max="10" value="5" step="1"
+          style="width:100%;accent-color:var(--accent);height:6px;cursor:pointer;"
+          oninput="genSymUpdateInt(this.value)">
+        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:4px;">
+          <span>😌 Kaum</span><span id="gen-sym-int-desc">deutlich</span><span>😣 Stark</span>
+        </div>
+      </div>
+      <textarea id="gen-sym-note" placeholder="Notiz (optional)…" rows="2"
+        style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;margin-bottom:10px;background:var(--card);color:var(--ink);box-sizing:border-box;"></textarea>
+      <div style="display:flex;gap:8px;">
+        <button class="log-btn" onclick="genSymSave()" style="flex:1;">💾 Speichern</button>
+        <button class="log-btn secondary" onclick="genSymCancel()">Abbrechen</button>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -3162,7 +3169,7 @@ function showSection(id) {
   if (id === 'verlauf') renderVerlauf();
   if (id === 'social') renderSocial();
   if (id === 'mindfulness') renderMindfulness();
-  if (id === 'body') { renderBody(); renderSymptoms(); }
+  if (id === 'body') { renderBody(); renderSymptoms(); renderGenSymChips(); }
   if (id === 'gratitude') renderGratitudeSection();
   if (id === 'rewards') renderRewards();
   if (id === 'settings') renderSettings();
@@ -8544,22 +8551,6 @@ function symOpenZone(el){
   document.getElementById('sym-hint').style.display='none';
 }
 
-function symOpenGeneral(){
-  if(symActiveEl)symActiveEl.setAttribute('fill',SYM_BASE);
-  symActiveEl=null; symActiveZone='Allgemein';
-  symActiveType='Fieber';
-  document.querySelectorAll('#sym-types .chip').forEach(b=>b.classList.remove('active'));
-  // Pre-select Fieber (first in Erkältung category)
-  const chips = document.querySelectorAll('#sym-types .chip');
-  chips.forEach(b => { if(b.textContent==='Fieber') b.classList.add('active'); });
-  document.getElementById('sym-int-slider').value=5;
-  symUpdateIntensity(5);
-  document.getElementById('sym-note').value='';
-  document.getElementById('sym-zone-title').textContent='Allgemeine Beschwerde';
-  document.getElementById('sym-panel').style.display='';
-  document.getElementById('sym-hint').style.display='none';
-}
-
 function symSetType(el,type){
   document.querySelectorAll('#sym-types .chip').forEach(b=>b.classList.remove('active'));
   el.classList.add('active'); symActiveType=type;
@@ -8577,7 +8568,7 @@ function symSaveZone(){
   const intensity=parseInt(document.getElementById('sym-int-slider').value);
   const note=document.getElementById('sym-note').value.trim();
   const color=symIntColor(intensity);
-  symActiveEl.setAttribute('fill',color);
+  if(symActiveEl) symActiveEl.setAttribute('fill',color);
   if(!state.symptomLog)state.symptomLog=[];
   state.symptomLog.unshift({zone:symActiveZone,type:symActiveType,intensity,note,color,ts:new Date().toISOString()});
   if(state.symptomLog.length>200)state.symptomLog.pop();
@@ -8585,7 +8576,7 @@ function symSaveZone(){
   document.getElementById('sym-panel').style.display='none';
   document.getElementById('sym-hint').style.display='';
   saveState(); renderSymptoms(); renderHome();
-  showToast('🩹 Symptom gespeichert.');
+  showToast('🩹 Gespeichert – weitere Stelle?');
 }
 
 function symCancelZone(){
@@ -8593,6 +8584,76 @@ function symCancelZone(){
   symActiveEl=null; symActiveZone=null;
   document.getElementById('sym-panel').style.display='none';
   document.getElementById('sym-hint').style.display='';
+}
+
+// =====================
+// GENERAL SYMPTOMS (without body zone)
+// =====================
+const GEN_SYM_TYPES = [
+  {type:'Fieber', icon:'🌡'},
+  {type:'Schnupfen', icon:'🤧'},
+  {type:'Husten', icon:'😷'},
+  {type:'Halsschmerzen', icon:'🗣'},
+  {type:'Übelkeit', icon:'🤢'},
+  {type:'Schwindel', icon:'💫'},
+  {type:'Müdigkeit', icon:'😴'},
+  {type:'Anderes', icon:'❓'}
+];
+let genSymActiveType = null;
+
+function renderGenSymChips() {
+  const container = document.getElementById('gen-sym-chips');
+  if (!container) return;
+  container.innerHTML = '';
+  GEN_SYM_TYPES.forEach(g => {
+    const btn = document.createElement('button');
+    btn.className = 'chip';
+    btn.textContent = g.icon + ' ' + g.type;
+    btn.style.cssText = 'font-size:0.85rem;padding:8px 14px;';
+    btn.onclick = () => genSymOpen(g.type);
+    container.appendChild(btn);
+  });
+}
+
+function genSymOpen(type) {
+  genSymActiveType = type;
+  document.getElementById('gen-sym-title').textContent = type;
+  document.getElementById('gen-sym-int-slider').value = 5;
+  genSymUpdateInt(5);
+  document.getElementById('gen-sym-note').value = '';
+  document.getElementById('gen-sym-panel').style.display = '';
+  // Highlight active chip
+  document.querySelectorAll('#gen-sym-chips .chip').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes(type));
+  });
+}
+
+function genSymUpdateInt(v) {
+  const iv = parseInt(v);
+  document.getElementById('gen-sym-int-val').textContent = iv;
+  document.getElementById('gen-sym-int-desc').textContent = SYM_INT_DESCS[iv] || '';
+  document.getElementById('gen-sym-int-val').style.color = symIntColor(iv);
+}
+
+function genSymSave() {
+  if (!genSymActiveType) return;
+  const intensity = parseInt(document.getElementById('gen-sym-int-slider').value);
+  const note = document.getElementById('gen-sym-note').value.trim();
+  const color = symIntColor(intensity);
+  if (!state.symptomLog) state.symptomLog = [];
+  state.symptomLog.unshift({zone:'Allgemein', type:genSymActiveType, intensity, note, color, ts:new Date().toISOString()});
+  if (state.symptomLog.length > 200) state.symptomLog.pop();
+  genSymActiveType = null;
+  document.getElementById('gen-sym-panel').style.display = 'none';
+  document.querySelectorAll('#gen-sym-chips .chip').forEach(b => b.classList.remove('active'));
+  saveState(); renderSymptoms(); renderHome();
+  showToast('🌡 Gespeichert – weitere Beschwerde?');
+}
+
+function genSymCancel() {
+  genSymActiveType = null;
+  document.getElementById('gen-sym-panel').style.display = 'none';
+  document.querySelectorAll('#gen-sym-chips .chip').forEach(b => b.classList.remove('active'));
 }
 
 function renderSymptoms(){
