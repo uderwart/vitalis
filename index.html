@@ -1150,14 +1150,18 @@
       <div style="font-size:3rem;margin-bottom:12px;">🩹</div>
       <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Körperliche Beschwerden?</div>
       <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:28px;">Hattest du heute Beschwerden?</div>
-      <div style="display:flex;gap:10px;justify-content:center;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
         <button id="co-sym-no" onclick="coToggle('sym','no')"
-          style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+          style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
           🙏 Nein, beschwerdefrei
         </button>
         <button id="co-sym-yes" onclick="coToggle('sym','yes')"
-          style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-          🩹 Ja, eintragen →
+          style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+          🩹 Ja, Beschwerden eintragen →
+        </button>
+        <button id="co-sym-sick" onclick="coToggle('sym','sick')"
+          style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+          🛏 Krank / bettlägerig
         </button>
       </div>
     </div>
@@ -1829,14 +1833,15 @@
   <!-- BESCHWERDEN -->
   <div class="card">
     <h2>🩹 Beschwerden</h2>
-    <p class="small-note" style="margin-bottom:12px;">Tippe auf eine Körperstelle um Schmerzen oder Verspannungen einzutragen.</p>
+    <p class="small-note" style="margin-bottom:12px;">Tippe auf eine Körperstelle um Beschwerden einzutragen.</p>
 
     <div style="display:flex;gap:16px;justify-content:center;align-items:flex-start;margin-bottom:8px;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
         <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.5px;">VORNE</div>
         <svg id="sym-front" width="110" height="270" viewBox="0 0 110 270">
           <ellipse class="sym-zone" data-zone="Kopf" cx="55" cy="24" rx="20" ry="22" fill="#9FE1CB" onclick="symOpenZone(this)"/>
-          <rect class="sym-zone" data-zone="Hals" x="47" y="46" width="16" height="12" rx="3" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <ellipse class="sym-zone" data-zone="Kiefer/Mund" cx="55" cy="42" rx="12" ry="6" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Hals" x="47" y="48" width="16" height="10" rx="3" fill="#9FE1CB" onclick="symOpenZone(this)"/>
           <ellipse class="sym-zone" data-zone="Linke Schulter" cx="22" cy="70" rx="15" ry="10" fill="#9FE1CB" onclick="symOpenZone(this)"/>
           <ellipse class="sym-zone" data-zone="Rechte Schulter" cx="88" cy="70" rx="15" ry="10" fill="#9FE1CB" onclick="symOpenZone(this)"/>
           <rect class="sym-zone" data-zone="Brust" x="36" y="58" width="38" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
@@ -1893,12 +1898,33 @@
       <div style="font-weight:700;font-size:0.95rem;color:var(--ink);margin-bottom:12px;" id="sym-zone-title"></div>
 
       <!-- Typ -->
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;" id="sym-types">
-        <button class="chip active" onclick="symSetType(this,'Schmerz')">Schmerz</button>
-        <button class="chip" onclick="symSetType(this,'Verspannung')">Verspannung</button>
-        <button class="chip" onclick="symSetType(this,'Müdigkeit')">Müdigkeit</button>
-        <button class="chip" onclick="symSetType(this,'Kribbeln')">Kribbeln</button>
-        <button class="chip" onclick="symSetType(this,'Anderes')">Anderes</button>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;" id="sym-types">
+        <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Bewegungsapparat</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          <button class="chip active" onclick="symSetType(this,'Schmerz')">Schmerz</button>
+          <button class="chip" onclick="symSetType(this,'Verspannung')">Verspannung</button>
+          <button class="chip" onclick="symSetType(this,'Schwellung')">Schwellung</button>
+          <button class="chip" onclick="symSetType(this,'Muskelkater')">Muskelkater</button>
+          <button class="chip" onclick="symSetType(this,'Zerrung')">Zerrung</button>
+        </div>
+        <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Erkältung / Infektion</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          <button class="chip" onclick="symSetType(this,'Fieber')">Fieber</button>
+          <button class="chip" onclick="symSetType(this,'Schnupfen')">Schnupfen</button>
+          <button class="chip" onclick="symSetType(this,'Husten')">Husten</button>
+          <button class="chip" onclick="symSetType(this,'Halsschmerzen')">Halsschmerzen</button>
+        </div>
+        <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Allgemein</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          <button class="chip" onclick="symSetType(this,'Übelkeit')">Übelkeit</button>
+          <button class="chip" onclick="symSetType(this,'Schwindel')">Schwindel</button>
+          <button class="chip" onclick="symSetType(this,'Müdigkeit')">Müdigkeit</button>
+          <button class="chip" onclick="symSetType(this,'Kribbeln')">Kribbeln</button>
+          <button class="chip" onclick="symSetType(this,'Juckreiz')">Juckreiz</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          <button class="chip" onclick="symSetType(this,'Anderes')">Anderes</button>
+        </div>
       </div>
 
       <!-- Intensität -->
@@ -3050,7 +3076,7 @@ function loadState() {
     const arrays = ['activityLog','feelingLog','weightLog','bodyLog','sleepLog',
       'gratitudeLog','socialContacts','mindfulnessLog','breathingLog','bugReports',
       'alcDaysLog','sweetsDaysLog','sweetsLog','pointsLog',
-      'waterLog','activeDaysLog','symptomLog','masterContacts','mealFeelingLog','alcAftermathLog','symptomFreeLog'];
+      'waterLog','activeDaysLog','symptomLog','masterContacts','mealFeelingLog','alcAftermathLog','symptomFreeLog','sickDayLog'];
     arrays.forEach(k => { if (!Array.isArray(saved[k])) saved[k] = []; });
     return saved;
   }
@@ -3299,17 +3325,23 @@ function renderHome() {
       color: (() => {
         const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
         const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        if (sick) return '#993C1D';
         return (!s.length && free) ? '#c9a84c' : '#6b8f71';
       })(),
       bg: (() => {
         const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
         const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        if (sick) return 'linear-gradient(135deg,#fef3ee,#f9e4dd)';
         return (!s.length && free) ? 'linear-gradient(135deg,#fdf6e3,#f5eacc)' : 'linear-gradient(135deg,#f0f5f0,#dceadc)';
       })(),
       value: (() => {
         const b = state.bodyLog.length > 0 && new Date(state.bodyLog[0].ts).toDateString() === todayStr ? state.bodyLog[0] : null;
         const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
         const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        if (sick) return '🛏 Gute Besserung';
         if (!s.length && free) return 'Danke 🙏';
         if (!b && !s.length) return '—';
         const parts = [];
@@ -3320,6 +3352,8 @@ function renderHome() {
       sub: (() => {
         const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
         const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        if (sick) return 'Krankheitstag – Streak pausiert';
         if (!s.length && free) return 'ohne Beschwerden';
         return s.length ? s.map(e=>e.zone).join(', ').slice(0,28) : 'Wohlbefinden & Beschwerden';
       })(),
@@ -3327,7 +3361,8 @@ function renderHome() {
       _symptomFree: (() => {
         const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
         const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        return !s.length && !!free;
+        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+        return !sick && !s.length && !!free;
       })()
     },
     {
@@ -7228,7 +7263,7 @@ function startCheckout() {
   document.getElementById('co-water-goal').textContent = state.waterGoal || 2000;
 
   // Init nutrition buttons
-  ['co-alc-yes','co-alc-no','co-sw-yes','co-sw-no','co-sym-yes','co-sym-no'].forEach(id => {
+  ['co-alc-yes','co-alc-no','co-sw-yes','co-sw-no','co-sym-yes','co-sym-no','co-sym-sick'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(255,255,255,0.2)'; }
   });
@@ -7345,12 +7380,19 @@ function coToggle(type, val) {
     document.getElementById('co-alc-no').style.borderColor  = val==='no'  ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
   } else if (type === 'sym') {
     coSym = val;
-    document.getElementById('co-sym-yes').style.background = val==='yes' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
-    document.getElementById('co-sym-yes').style.borderColor = val==='yes' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
-    document.getElementById('co-sym-no').style.background  = val==='no'  ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
-    document.getElementById('co-sym-no').style.borderColor  = val==='no'  ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
+    ['co-sym-no','co-sym-yes','co-sym-sick'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(255,255,255,0.2)'; }
+    });
+    const activeId = val==='no' ? 'co-sym-no' : val==='yes' ? 'co-sym-yes' : 'co-sym-sick';
+    const activeEl = document.getElementById(activeId);
+    if (activeEl) { activeEl.style.background = 'rgba(255,255,255,0.3)'; activeEl.style.borderColor = 'rgba(255,255,255,0.7)'; }
     const nextBtn = document.getElementById('co-next-btn');
-    if (nextBtn && coStep === 3) nextBtn.textContent = val==='yes' ? '🩹 Eintragen →' : 'Weiter →';
+    if (nextBtn && coStep === 3) {
+      if (val === 'yes') nextBtn.textContent = '🩹 Eintragen →';
+      else if (val === 'sick') nextBtn.textContent = '🛏 Weiter →';
+      else nextBtn.textContent = 'Weiter →';
+    }
   } else {
     coSw = val;
     document.getElementById('co-sw-yes').style.background = val==='yes' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
@@ -7407,11 +7449,22 @@ function coGoStep(step) {
 }
 
 function coNext() {
-  // If Beschwerden=yes, close checkout and go to body section
-  if (coStep === 3 && coSym === 'yes') {
+  // If Beschwerden=yes or sick, close checkout and go to body section
+  if (coStep === 3 && (coSym === 'yes' || coSym === 'sick')) {
+    // Save sick day status before redirecting
+    if (coSym === 'sick') {
+      const todayStr = new Date().toDateString();
+      if (!state.sickDayLog) state.sickDayLog = [];
+      const alreadyLogged = state.sickDayLog.find(e => new Date(e.date).toDateString() === todayStr);
+      if (!alreadyLogged) state.sickDayLog.push({ date: new Date().toISOString(), sick: true });
+      // Auto streak joker
+      if (typeof applyStreakJoker === 'function') applyStreakJoker();
+      saveState();
+    }
     closeCheckout();
     showSection('body');
     setTimeout(() => { const el = document.getElementById('symptom-card'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 300);
+    if (coSym === 'sick') showToast('🛏 Krankheitstag eingetragen – gute Besserung!');
     return;
   }
   if (coStep === 4) { coSave(); return; }
