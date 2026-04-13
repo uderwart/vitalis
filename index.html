@@ -855,6 +855,19 @@
   </div>
 
   <!-- 5. SCHLAF MORGEN-CHECK -->
+  <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌙 Guten Morgen!</div>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht? (1 = schlecht · 10 = super)</div>
+    <div style="text-align:center;font-family:'DM Serif Display',serif;font-size:2.5rem;color:#f4c261;margin-bottom:6px;" id="checkin-sleep-val">5</div>
+    <input type="range" id="checkin-sleep-slider" min="1" max="10" value="5"
+      style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.3);outline:none;cursor:pointer;margin-bottom:16px;"
+      oninput="document.getElementById('checkin-sleep-val').textContent=this.value">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button onclick="skipSleepCheckin()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+      <button onclick="quickLogSleepSlider()" style="padding:8px 20px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Speichern ✓</button>
+    </div>
+  </div>
+
   <!-- 6. AKTIVE AKTIVITÄT BANNER -->
   <div id="active-activity-banner" style="display:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;border-radius:16px;padding:16px 18px;margin-bottom:12px;">
     <div style="display:flex;align-items:center;gap:12px;">
@@ -873,9 +886,14 @@
   <!-- 7. KACHELN -->
   <div id="home-tiles" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;"></div>
 
-  <!-- 8. TIPP DER WOCHE -->
+  <!-- 8a. PERSÖNLICHE BESTÄTIGUNG -->
+  <div id="home-kudos-card" style="display:none;border-radius:16px;padding:14px 16px;margin-bottom:12px;background:linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.06));border:1.5px solid rgba(201,168,76,0.25);">
+    <div id="home-kudos-content" style="font-size:0.85rem;color:var(--ink);line-height:1.55;"></div>
+  </div>
+
+  <!-- 8b. TIPP DES TAGES (rotiert täglich) -->
   <div id="home-tip-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
-    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Wussten Sie?</div>
+    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Tipp des Tages</div>
     <div id="home-tip-text" style="font-size:0.85rem;color:var(--ink);line-height:1.5;"></div>
     <div id="home-tip-source" style="font-size:0.72rem;color:var(--muted);margin-top:6px;font-style:italic;"></div>
     <button id="home-tip-btn" onclick="" style="margin-top:10px;padding:8px 16px;border-radius:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;display:none;">Jetzt eintragen →</button>
@@ -897,6 +915,32 @@
   </div>
 
   <!-- 10. TAGES-CHECK (morgens, einmal täglich) -->
+  <div id="daily-check-card" style="display:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">⚡ Wie startest du?</div>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:16px;">30 Sekunden – optional</div>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.78rem;opacity:0.7;margin-bottom:6px;">Energie gerade</div>
+      <div style="display:flex;gap:8px;">
+        <button class="dc-btn" onclick="dcSelect('energy',1,this)" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;">😴 Müde</button>
+        <button class="dc-btn" onclick="dcSelect('energy',2,this)" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;">😐 Okay</button>
+        <button class="dc-btn" onclick="dcSelect('energy',3,this)" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;">⚡ Fit</button>
+      </div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:0.78rem;opacity:0.7;margin-bottom:6px;">Mein Fokus heute</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="dc-btn" onclick="dcSelect('focus','Bewegung',this)" style="padding:7px 12px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">🏃 Bewegung</button>
+        <button class="dc-btn" onclick="dcSelect('focus','Ernährung',this)" style="padding:7px 12px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">🥗 Ernährung</button>
+        <button class="dc-btn" onclick="dcSelect('focus','Schlaf',this)" style="padding:7px 12px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">🌙 Schlaf</button>
+        <button class="dc-btn" onclick="dcSelect('focus','Ruhe',this)" style="padding:7px 12px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">🪷 Ruhe</button>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button onclick="skipDailyCheck()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+      <button onclick="saveDailyCheck()" style="padding:8px 20px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Los geht's ✓</button>
+    </div>
+  </div>
+
   <!-- 11. WENN-DANN PLAN (ganz unten) -->
   <div id="intention-card" style="display:none;background:var(--card);border:2px solid var(--accent);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
     <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Dein Plan für heute</div>
@@ -936,30 +980,6 @@
         <span>😴 Schlecht</span><span>✨ Super</span>
       </div>
       <button onclick="tmSkipSleep()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">Überspringen</button>
-    </div>
-
-    <!-- Step: Tages-Check (Energie + Fokus) -->
-    <div id="tm-step-dailycheck" style="display:none;text-align:center;">
-      <div style="font-size:3rem;margin-bottom:12px;">⚡</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Wie startest du?</div>
-      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:24px;">Energie &amp; Fokus – optional</div>
-      <div style="margin-bottom:18px;text-align:left;">
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:8px;">Energie gerade</div>
-        <div style="display:flex;gap:8px;">
-          <button class="tm-dc-btn" onclick="tmDcSelect('energy',1,this)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.88rem;cursor:pointer;">😴 Müde</button>
-          <button class="tm-dc-btn" onclick="tmDcSelect('energy',2,this)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.88rem;cursor:pointer;">😐 Okay</button>
-          <button class="tm-dc-btn" onclick="tmDcSelect('energy',3,this)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.88rem;cursor:pointer;">⚡ Fit</button>
-        </div>
-      </div>
-      <div style="text-align:left;">
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:8px;">Mein Fokus heute</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="tm-dc-btn" onclick="tmDcSelect('focus','Bewegung',this)" style="padding:9px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.84rem;cursor:pointer;">🏃 Bewegung</button>
-          <button class="tm-dc-btn" onclick="tmDcSelect('focus','Ernährung',this)" style="padding:9px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.84rem;cursor:pointer;">🥗 Ernährung</button>
-          <button class="tm-dc-btn" onclick="tmDcSelect('focus','Schlaf',this)" style="padding:9px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.84rem;cursor:pointer;">🌙 Schlaf</button>
-          <button class="tm-dc-btn" onclick="tmDcSelect('focus','Ruhe',this)" style="padding:9px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.84rem;cursor:pointer;">🪷 Ruhe</button>
-        </div>
-      </div>
     </div>
 
     <!-- Step 0: Wasser -->
@@ -3026,6 +3046,162 @@ function showToast(msg) {
 // =====================
 // HOME (Kacheln)
 // =====================
+function renderMotivation() {
+  const card = document.getElementById('home-kudos-card');
+  const content = document.getElementById('home-kudos-content');
+  if (!card || !content) return;
+
+  const now = new Date();
+  const todayStr = now.toDateString();
+  const kudos = [];
+
+  // 1. Aktivitäts-Minuten heute
+  const todayActs = (state.activityLog || []).filter(e => new Date(e.ts).toDateString() === todayStr);
+  if (todayActs.length > 0) {
+    const totalMin = todayActs.reduce((s, e) => s + (e.min || 0), 0);
+    const names = [...new Set(todayActs.map(e => e.name))].join(', ');
+    if (totalMin > 0) {
+      kudos.push('🏃 Du hast heute ' + totalMin + ' Minuten ' + names + ' gemacht – weiter so!');
+    }
+  }
+
+  // 2. Aktivitäts-Minuten diese Woche (nur wenn heute noch nichts)
+  if (todayActs.length === 0) {
+    const weekStart = new Date(now);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay() + (weekStart.getDay() === 0 ? -6 : 1));
+    weekStart.setHours(0, 0, 0, 0);
+    const weekActs = (state.activityLog || []).filter(e => new Date(e.ts) >= weekStart);
+    if (weekActs.length > 0) {
+      const weekMin = weekActs.reduce((s, e) => s + (e.min || 0), 0);
+      kudos.push('🏃 Diese Woche schon ' + weekMin + ' Minuten aktiv gewesen – stark!');
+    }
+  }
+
+  // 3. Wasser-Streak (aufeinanderfolgende Tage mit Ziel erreicht)
+  const waterStreak = countWaterStreak();
+  if (waterStreak >= 2) {
+    kudos.push('💧 Wasserziel seit ' + waterStreak + ' Tagen in Folge erreicht – dein Körper dankt es dir.');
+  } else if (state.waterMl >= state.waterGoal) {
+    kudos.push('💧 Wasserziel heute erreicht – gut gemacht!');
+  }
+
+  // 4. Alkoholfreie Tage in Folge
+  const soberStreak = countSoberStreak();
+  if (soberStreak >= 3) {
+    kudos.push('✅ Seit ' + soberStreak + ' Tagen alkoholfrei – das wirkt sich messbar auf deinen Schlaf aus.');
+  }
+
+  // 5. Achtsamkeit heute
+  const todayMind = (state.mindfulnessLog || []).filter(e => new Date(e.ts).toDateString() === todayStr);
+  if (todayMind.length > 0) {
+    const mindMin = todayMind.reduce((s, e) => s + (e.min || 0), 0);
+    kudos.push('🪷 ' + mindMin + ' Minuten Achtsamkeit heute – jede Minute zählt.');
+  }
+
+  // 6. Kontakte diese Woche erledigt
+  const week = typeof getCurrentWeekKey === 'function' ? getCurrentWeekKey() : '';
+  const weekContacts = (state.socialContacts || []).filter(c => c.week === week);
+  const doneContacts = weekContacts.filter(c => c.done);
+  if (doneContacts.length > 0) {
+    const names = doneContacts.map(c => c.name).join(', ');
+    kudos.push('❤️ Schon ' + doneContacts.length + ' Kontakt' + (doneContacts.length > 1 ? 'e' : '') + ' diese Woche gepflegt (' + names + ').');
+  }
+
+  // 7. Streak
+  if (state.streak >= 5) {
+    kudos.push('🔥 ' + state.streak + ' Tage Streak – Kontinuität schlägt Perfektion.');
+  }
+
+  // 8. Dankbarkeit heute
+  const gratToday = (state.gratitudeLog || []).find(e => new Date(e.ts).toDateString() === todayStr);
+  if (gratToday) {
+    kudos.push('🌟 Dankbarkeit notiert – das stärkt nachweislich das Wohlbefinden.');
+  }
+
+  // Show max 2 kudos (rotate based on day to keep it fresh)
+  if (kudos.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+
+  // Pick up to 2, with daily rotation for variety
+  const dayIdx = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
+  let selected;
+  if (kudos.length <= 2) {
+    selected = kudos;
+  } else {
+    const start = dayIdx % kudos.length;
+    selected = [kudos[start], kudos[(start + 1) % kudos.length]];
+  }
+
+  content.innerHTML =
+    '<div style="font-size:0.72rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">✨ Dein Fortschritt</div>' +
+    selected.map(k => '<div style="margin-bottom:6px;">' + k + '</div>').join('');
+  card.style.display = '';
+}
+
+// Helper: consecutive days with water goal met (including today)
+function countWaterStreak() {
+  const logs = state.waterLog || [];
+  if (logs.length === 0) return 0;
+
+  // Build a set of dates where goal was met
+  const goalDates = new Set();
+  logs.forEach(e => {
+    if (e.ml >= state.waterGoal) goalDates.add(e.date);
+  });
+  // Also check today's live value
+  const todayStr = new Date().toDateString();
+  if (state.waterMl >= state.waterGoal) goalDates.add(todayStr);
+
+  let streak = 0;
+  const d = new Date();
+  for (let i = 0; i < 90; i++) {
+    if (goalDates.has(d.toDateString())) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+// Helper: consecutive sober days (from alcDaysLog)
+function countSoberStreak() {
+  const logs = state.alcDaysLog || [];
+  if (logs.length === 0) return 0;
+
+  // Build map of dates
+  const drankMap = {};
+  logs.forEach(e => {
+    drankMap[new Date(e.date).toDateString()] = e.drank;
+  });
+
+  let streak = 0;
+  const d = new Date();
+  for (let i = 0; i < 90; i++) {
+    const key = d.toDateString();
+    if (drankMap[key] === false) {
+      // Explicitly logged as sober
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else if (drankMap[key] === true) {
+      // Drank – streak broken
+      break;
+    } else {
+      // Not logged – only count forward from first logged day
+      if (streak === 0 && i === 0) {
+        // Today not logged yet – skip and check yesterday
+        d.setDate(d.getDate() - 1);
+        continue;
+      }
+      break;
+    }
+  }
+  return streak;
+}
+
 function renderHome() {
   // Weekly export reminder (every Sunday)
   const today = new Date();
@@ -3050,8 +3226,17 @@ function renderHome() {
   const dateEl = document.getElementById('home-date');
   if (dateEl) dateEl.textContent = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
 
+  // Sleep check-in
+  const checkinCard = document.getElementById('sleep-checkin-card');
+  const sleepLoggedToday = state.sleepLog.length > 0 && new Date(state.sleepLog[0].ts).toDateString() === todayStr;
+  const sleepSkipped = state.sleepCheckinSkipped === todayStr;
+  if (hour >= 5 && hour < 12 && !sleepLoggedToday && !sleepSkipped) {
+    checkinCard.style.display = ''; renderSleepCheckinGrid();
+  } else { checkinCard.style.display = 'none'; }
+
   // Goal subtitle
   const goal = state.profile?.mainGoal;
+  renderDailyCheck();
   renderWeeklySummary();
   renderIntention();
   renderPlannedActivity();
@@ -3065,14 +3250,14 @@ function renderHome() {
     } else { subEl.style.display = 'none'; }
   }
 
-  // Tip of the week
+  // Tip of the day (daily rotation)
   const tipCard = document.getElementById('home-tip-card');
   const tipText = document.getElementById('home-tip-text');
   const tipSource = document.getElementById('home-tip-source');
   if (tipCard && tipText && goal && GOAL_TIPS[goal]) {
     const tips = GOAL_TIPS[goal];
-    const weekNum = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
-    const tip = tips[weekNum % tips.length];
+    const dayNum = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
+    const tip = tips[dayNum % tips.length];
     tipText.textContent = tip.text;
     tipSource.textContent = tip.source;
     tipCard.style.display = '';
@@ -3083,6 +3268,9 @@ function renderHome() {
       tipBtn.style.display = '';
     }
   } else if (tipCard) { tipCard.style.display = 'none'; }
+
+  // Personal kudos (data-based positive feedback)
+  renderMotivation();
 
   // Gratitude check-in
   const gratitudeCard = document.getElementById('gratitude-checkin-card');
@@ -6980,36 +7168,32 @@ function startCheckout() {
 
     acts.forEach((a, j) => {
       const idx = indices[j];
-      const actPlan = (planned.actPlans||[]).find(p => p.idx === idx);
-      const plannedMin = actPlan ? actPlan.plannedMin : a.min;
       html += `
         <div style="margin-bottom:16px;">
-          <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🏃'} ${a.name} – ${plannedMin} Min geplant</div>
+          <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🏃'} ${a.name} – ${a.min} Min geplant</div>
           <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
           <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-dur-val-${idx}">0 Min</div>
-          <input type="range" id="co-dur-slider-${idx}" min="0" max="${Math.max(plannedMin * 2, 120)}" step="5" value="0"
+          <input type="range" id="co-dur-slider-${idx}" min="0" max="${Math.max(a.min,120)}" step="5" value="0"
             style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
             oninput="document.getElementById('co-dur-val-${idx}').textContent=this.value+' Min'">
           <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
-            <span>Nicht gemacht</span><span>${plannedMin} Min (geplant)</span>
+            <span>Nicht gemacht</span><span>${a.min} Min</span>
           </div>
         </div>`;
     });
 
     minds.forEach((a, j) => {
       const idx = (planned.mindIndices||[])[j];
-      const mindPlan = (planned.mindPlans||[]).find(p => p.idx === idx);
-      const plannedMin = mindPlan ? mindPlan.plannedMin : a.min;
       html += `
         <div style="margin-bottom:16px;">
-          <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🪷'} ${a.name} – ${plannedMin} Min geplant</div>
+          <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🪷'} ${a.name} – ${a.min} Min geplant</div>
           <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
           <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-mind-val-${idx}">0 Min</div>
-          <input type="range" id="co-mind-slider-${idx}" min="0" max="${Math.max(plannedMin * 2, 60)}" step="5" value="0"
+          <input type="range" id="co-mind-slider-${idx}" min="0" max="${Math.max(a.min,60)}" step="5" value="0"
             style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
             oninput="document.getElementById('co-mind-val-${idx}').textContent=this.value+' Min'">
           <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
-            <span>Nicht gemacht</span><span>${plannedMin} Min (geplant)</span>
+            <span>Nicht gemacht</span><span>${a.min} Min</span>
           </div>
         </div>`;
     });
@@ -7234,10 +7418,6 @@ let tmStep = 0;
 let tmSelectedActivities = []; // array of planned activity indices
 let tmSelectedMindfulnesses = [];
 let tmSelectedContacts = [];
-let tmPlannedDurations = {};    // {activityIndex: plannedMinutes}
-let tmPlannedMindDurations = {}; // {mindfulnessIndex: plannedMinutes}
-let tmDcEnergy = null;
-let tmDcFocus = null;
 let tmSelectedTime = 'ganztags';
 const TM_FEEL_DESCS = ['','miserabel','sehr schlecht','schlecht','eher schlecht','okay','ganz gut','gut','sehr gut','ausgezeichnet','super!'];
 const TM_TIME_HOURS = { ganztags: 12, morgens: 8, mittags: 13, abends: 19 };
@@ -7257,10 +7437,6 @@ function startTwoMin() {
   tmSelectedMindfulnesses = [];
   tmSelectedContacts = [];
   tmSelectedContactPlans = [];
-  tmPlannedDurations = {};
-  tmPlannedMindDurations = {};
-  tmDcEnergy = null;
-  tmDcFocus = null;
   tmSleepSkipped = false;
   // Reset sleep slider
   const sleepSlider = document.getElementById('tm-sleep-slider');
@@ -7283,62 +7459,25 @@ function startTwoMin() {
   document.getElementById('tm-feel-slider').value = 5;
   tmUpdateFeel(5);
   document.getElementById('tm-note').value = '';
-  // Build activity list with inline duration sliders
+  // Build activity list
   const list = document.getElementById('tm-activity-list');
-  list.innerHTML = (state.activities||[]).map((a,i) => {
-    const isSteps = a.steps === true;
-    const defaultMin = a.min || 30;
-    const maxMin = isSteps ? 0 : Math.max(defaultMin * 2, 120);
-    return `
-    <div class="tm-plan-item" id="tm-plan-act-${i}">
-      <button class="tm-activity-btn" onclick="tmSelectActivity(${i},this)">
-        <span style="font-size:1.2rem;">${a.icon||'🏃'}</span>
-        <span style="flex:1;margin-left:8px;">${a.name}</span>
-        <span style="font-size:0.78rem;opacity:0.6;">${isSteps ? (a.stepsDefault||5000)+' Schr.' : defaultMin+' Min'}</span>
-      </button>
-      ${!isSteps ? `<div class="tm-dur-row" id="tm-dur-row-act-${i}" style="display:none;padding:6px 12px 10px;background:rgba(255,255,255,0.06);border-radius:0 0 12px 12px;margin-top:-4px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <span style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Geplante Dauer</span>
-          <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:white;" id="tm-dur-val-act-${i}">${defaultMin} Min</span>
-        </div>
-        <input type="range" min="5" max="${maxMin}" step="5" value="${defaultMin}"
-          style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;"
-          oninput="tmUpdatePlannedDur('act',${i},this.value)">
-        <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:rgba(255,255,255,0.3);margin-top:2px;">
-          <span>5 Min</span><span>${maxMin} Min</span>
-        </div>
-      </div>` : ''}
-    </div>`;
-  }).join('');
+  list.innerHTML = (state.activities||[]).map((a,i) => `
+    <button class="tm-activity-btn" onclick="tmSelectActivity(${i},this)">
+      <span style="font-size:1.2rem;">${a.icon||'🏃'}</span>
+      <span style="flex:1;margin-left:8px;">${a.name}</span>
+      <span style="font-size:0.78rem;opacity:0.6;">${a.steps ? (a.stepsDefault||5000)+' Schr.' : a.min+' Min'}</span>
+    </button>`).join('');
 
-  // Build mindfulness list with inline duration sliders
+  // Build mindfulness list
   const mlist = document.getElementById('tm-mindfulness-list');
   if (mlist) {
     const exs = getMindfulnessExercises ? getMindfulnessExercises() : [];
-    mlist.innerHTML = exs.map((a,i) => {
-      const defaultMin = a.min || 10;
-      const maxMin = Math.max(defaultMin * 2, 60);
-      return `
-      <div class="tm-plan-item" id="tm-plan-mind-${i}">
-        <button class="tm-activity-btn" onclick="tmSelectMindfulness(${i},this)">
-          <span style="font-size:1.2rem;">${a.icon||'🪷'}</span>
-          <span style="flex:1;margin-left:8px;">${a.name}</span>
-          <span style="font-size:0.78rem;opacity:0.6;">${defaultMin} Min</span>
-        </button>
-        <div class="tm-dur-row" id="tm-dur-row-mind-${i}" style="display:none;padding:6px 12px 10px;background:rgba(255,255,255,0.06);border-radius:0 0 12px 12px;margin-top:-4px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Geplante Dauer</span>
-            <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:white;" id="tm-dur-val-mind-${i}">${defaultMin} Min</span>
-          </div>
-          <input type="range" min="5" max="${maxMin}" step="5" value="${defaultMin}"
-            style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;"
-            oninput="tmUpdatePlannedDur('mind',${i},this.value)">
-          <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:rgba(255,255,255,0.3);margin-top:2px;">
-            <span>5 Min</span><span>${maxMin} Min</span>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
+    mlist.innerHTML = exs.map((a,i) => `
+      <button class="tm-activity-btn" onclick="tmSelectMindfulness(${i},this)">
+        <span style="font-size:1.2rem;">${a.icon||'🪷'}</span>
+        <span style="flex:1;margin-left:8px;">${a.name}</span>
+        <span style="font-size:0.78rem;opacity:0.6;">${a.min} Min</span>
+      </button>`).join('');
   }
 
   // Build contacts list from master contacts
@@ -7409,61 +7548,8 @@ function tmSelectContactType(masterId, how, btn) {
   tmUpdateNextBtn();
 }
 
-function tmSelectActivity(i, el) {
-  const durRow = document.getElementById('tm-dur-row-act-' + i);
-  if (tmSelectedActivities.includes(i)) {
-    tmSelectedActivities.splice(tmSelectedActivities.indexOf(i), 1);
-    el.classList.remove('selected');
-    delete tmPlannedDurations[i];
-    if (durRow) durRow.style.display = 'none';
-  } else {
-    tmSelectedActivities.push(i);
-    el.classList.add('selected');
-    const a = state.activities[i];
-    if (a && !a.steps) {
-      tmPlannedDurations[i] = a.min || 30;
-      if (durRow) durRow.style.display = '';
-    }
-  }
-  tmUpdateNextBtn();
-}
-
-function tmSelectMindfulness(i, el) {
-  const durRow = document.getElementById('tm-dur-row-mind-' + i);
-  if (tmSelectedMindfulnesses.includes(i)) {
-    tmSelectedMindfulnesses.splice(tmSelectedMindfulnesses.indexOf(i), 1);
-    el.classList.remove('selected');
-    delete tmPlannedMindDurations[i];
-    if (durRow) durRow.style.display = 'none';
-  } else {
-    tmSelectedMindfulnesses.push(i);
-    el.classList.add('selected');
-    const exs = getMindfulnessExercises ? getMindfulnessExercises() : [];
-    const a = exs[i];
-    tmPlannedMindDurations[i] = a?.min || 10;
-    if (durRow) durRow.style.display = '';
-  }
-  tmUpdateNextBtn();
-}
-
-function tmUpdatePlannedDur(type, idx, val) {
-  const v = parseInt(val);
-  document.getElementById('tm-dur-val-' + type + '-' + idx).textContent = v + ' Min';
-  if (type === 'act') tmPlannedDurations[idx] = v;
-  else tmPlannedMindDurations[idx] = v;
-}
-
-function tmDcSelect(type, val, el) {
-  const group = el.parentElement.querySelectorAll('.tm-dc-btn');
-  group.forEach(b => {
-    b.style.background = 'rgba(255,255,255,0.08)';
-    b.style.borderColor = 'rgba(255,255,255,0.2)';
-  });
-  el.style.background = 'rgba(255,255,255,0.3)';
-  el.style.borderColor = 'rgba(255,255,255,0.7)';
-  if (type === 'energy') tmDcEnergy = val;
-  if (type === 'focus')  tmDcFocus  = val;
-}
+function tmSelectActivity(i, el)    { tmToggleSelection(tmSelectedActivities, i, el); }
+function tmSelectMindfulness(i, el) { tmToggleSelection(tmSelectedMindfulnesses, i, el); }
 function tmSelectContact(i, el)     { tmToggleSelection(tmSelectedContacts, i, el); }
 
 function tmUpdateFeel(v) {
@@ -7482,13 +7568,10 @@ function tmBuildSequence() {
   const sleepSkipped = state.sleepCheckinSkipped === todayStr;
   const tod = getTimeOfDay();
   const needSleep = tod === 'morning' && !sleepLoggedToday && !sleepSkipped && !tmSleepSkipped;
-  const dailyCheckDone = state.profile?.dailyCheckDate === todayStr;
-  const needDailyCheck = tod === 'morning' && !dailyCheckDone;
 
   const hasPlanned = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContactPlans.length > 0;
   const steps = [];
   if (needSleep) steps.push('sleep');
-  if (needDailyCheck) steps.push('dailycheck');
   steps.push(0, 1);
   if (state.woopEnabled && hasPlanned) steps.push('woop');
   steps.push(2, 3);
@@ -7506,7 +7589,7 @@ function tmSkipSleep() {
 
 function tmGoStep(step) {
   // Hide all steps
-  [0,1,2,3,'woop','sleep','dailycheck'].forEach(s => {
+  [0,1,2,3,'woop','sleep'].forEach(s => {
     const el = document.getElementById('tm-step-' + s);
     const dot = document.getElementById('tm-dot-' + s);
     if (el) el.style.display = 'none';
@@ -7637,14 +7720,6 @@ function tmSave() {
     }
   }
 
-  // 0b. Tages-Check (Energie + Fokus)
-  if (tmStepSequence.includes('dailycheck')) {
-    if (!state.profile) state.profile = {};
-    state.profile.dailyCheckDate = new Date().toDateString();
-    if (tmDcEnergy !== null) state.profile.dailyCheckEnergy = tmDcEnergy;
-    if (tmDcFocus !== null)  state.profile.dailyCheckFocus  = tmDcFocus;
-  }
-
   // 1. Wasser
   const waterMl = parseInt(document.getElementById('tm-water-slider').value || 0);
   if (waterMl > 0) {
@@ -7664,12 +7739,7 @@ function tmSave() {
     state.profile.morningPlanned = {
       date: new Date().toDateString(),
       actIndices: tmSelectedActivities.slice(),
-      actPlans: tmSelectedActivities.map(idx => ({ idx, plannedMin: tmPlannedDurations[idx] || state.activities[idx]?.min || 30 })),
       mindIndices: tmSelectedMindfulnesses.slice(),
-      mindPlans: tmSelectedMindfulnesses.map(idx => {
-        const exs = getMindfulnessExercises ? getMindfulnessExercises() : [];
-        return { idx, plannedMin: tmPlannedMindDurations[idx] || exs[idx]?.min || 10 };
-      }),
       contactPlans: tmSelectedContactPlans.slice(),
       woops: tmWoopData.filter(w => w.obstacle || w.plan)
     };
@@ -7787,19 +7857,9 @@ function exportPlanToCalendar() {
   const todayStr = new Date().toDateString();
   if (!planned || planned.date !== todayStr) { showToast('Kein Plan für heute.'); return; }
 
-  const acts  = (planned.actIndices||[]).map((idx,j) => {
-    const a = state.activities[idx];
-    if (!a) return null;
-    const actPlan = (planned.actPlans||[]).find(p => p.idx === idx);
-    return { ...a, plannedMin: actPlan ? actPlan.plannedMin : a.min };
-  }).filter(Boolean);
+  const acts  = (planned.actIndices||[]).map(i => state.activities[i]).filter(Boolean);
   const exs   = getMindfulnessExercises ? getMindfulnessExercises() : [];
-  const minds = (planned.mindIndices||[]).map((idx,j) => {
-    const a = exs[idx];
-    if (!a) return null;
-    const mindPlan = (planned.mindPlans||[]).find(p => p.idx === idx);
-    return { ...a, plannedMin: mindPlan ? mindPlan.plannedMin : a.min };
-  }).filter(Boolean);
+  const minds = (planned.mindIndices||[]).map(i => exs[i]).filter(Boolean);
   const week  = getCurrentWeekKey ? getCurrentWeekKey() : '';
   const weekContacts = (state.socialContacts||[]).filter(c => c.week === week && !c.done);
   const contacts = (planned.contactIndices||[]).map(i => weekContacts[i]).filter(Boolean);
@@ -7826,19 +7886,19 @@ function exportPlanToCalendar() {
   acts.forEach(a => {
     events += makeEvent(
       `${a.icon||'🏃'} ${a.name}`,
-      `Geplant in Vitalis · ${a.plannedMin} Min`,
-      startHours.act, a.plannedMin
+      `Geplant in Vitalis · ${a.min} Min`,
+      startHours.act, a.min
     );
-    startHours.act += Math.ceil(a.plannedMin / 60) + 1;
+    startHours.act += Math.ceil(a.min / 60) + 1;
   });
 
   minds.forEach(a => {
     events += makeEvent(
       `${a.icon||'🪷'} ${a.name}`,
-      `Achtsamkeit · ${a.plannedMin} Min`,
-      startHours.mind, a.plannedMin
+      `Achtsamkeit · ${a.min} Min`,
+      startHours.mind, a.min
     );
-    startHours.mind += Math.ceil(a.plannedMin / 60) + 1;
+    startHours.mind += Math.ceil(a.min / 60) + 1;
   });
 
   contacts.forEach(c => {
@@ -7871,48 +7931,16 @@ function editTodayPlan() {
   const planned = state.profile?.morningPlanned;
   if (!planned || planned.date !== new Date().toDateString()) return;
 
-  // Pre-select activities with planned durations
+  // Pre-select activities
   (planned.actIndices||[]).forEach(idx => {
-    const item = document.getElementById('tm-plan-act-' + idx);
-    const btn = item?.querySelector('.tm-activity-btn');
-    if (btn) {
-      tmSelectedActivities.push(idx);
-      btn.classList.add('selected');
-      const actPlan = (planned.actPlans||[]).find(p => p.idx === idx);
-      const a = state.activities[idx];
-      const dur = actPlan ? actPlan.plannedMin : (a?.min || 30);
-      tmPlannedDurations[idx] = dur;
-      const durRow = document.getElementById('tm-dur-row-act-' + idx);
-      if (durRow && a && !a.steps) {
-        durRow.style.display = '';
-        const slider = durRow.querySelector('input[type=range]');
-        if (slider) slider.value = dur;
-        const valEl = document.getElementById('tm-dur-val-act-' + idx);
-        if (valEl) valEl.textContent = dur + ' Min';
-      }
-    }
+    const btn = document.querySelector(`#tm-activity-list .tm-activity-btn:nth-child(${idx+1})`);
+    if (btn) { tmSelectedActivities.push(idx); btn.classList.add('selected'); }
   });
 
-  // Pre-select mindfulness with planned durations
+  // Pre-select mindfulness
   (planned.mindIndices||[]).forEach(idx => {
-    const item = document.getElementById('tm-plan-mind-' + idx);
-    const btn = item?.querySelector('.tm-activity-btn');
-    if (btn) {
-      tmSelectedMindfulnesses.push(idx);
-      btn.classList.add('selected');
-      const mindPlan = (planned.mindPlans||[]).find(p => p.idx === idx);
-      const exs = getMindfulnessExercises ? getMindfulnessExercises() : [];
-      const dur = mindPlan ? mindPlan.plannedMin : (exs[idx]?.min || 10);
-      tmPlannedMindDurations[idx] = dur;
-      const durRow = document.getElementById('tm-dur-row-mind-' + idx);
-      if (durRow) {
-        durRow.style.display = '';
-        const slider = durRow.querySelector('input[type=range]');
-        if (slider) slider.value = dur;
-        const valEl = document.getElementById('tm-dur-val-mind-' + idx);
-        if (valEl) valEl.textContent = dur + ' Min';
-      }
-    }
+    const btn = document.querySelector(`#tm-mindfulness-list .tm-activity-btn:nth-child(${idx+1})`);
+    if (btn) { tmSelectedMindfulnesses.push(idx); btn.classList.add('selected'); }
   });
 
   // Pre-select contacts
@@ -7937,21 +7965,8 @@ function renderPlannedActivity() {
   const todayStr = new Date().toDateString();
   if (!planned || planned.date !== todayStr) { card.style.display = 'none'; return; }
 
-  const acts = (planned.actIndices||[]).map((idx,j) => {
-    const a = state.activities[idx];
-    if (!a) return null;
-    const actPlan = (planned.actPlans||[]).find(p => p.idx === idx);
-    const min = actPlan ? actPlan.plannedMin : a.min;
-    return { ...a, plannedMin: min };
-  }).filter(Boolean);
-  const minds = (planned.mindIndices||[]).map((idx,j) => {
-    const exs = getMindfulnessExercises?.()||[];
-    const a = exs[idx];
-    if (!a) return null;
-    const mindPlan = (planned.mindPlans||[]).find(p => p.idx === idx);
-    const min = mindPlan ? mindPlan.plannedMin : a.min;
-    return { ...a, plannedMin: min };
-  }).filter(Boolean);
+  const acts = (planned.actIndices||[]).map(i => state.activities[i]).filter(Boolean);
+  const minds = (planned.mindIndices||[]).map(i => (getMindfulnessExercises?.()||[])[i]).filter(Boolean);
   const contacts = (planned.contactPlans||planned.contactIndices||[]).map(p => {
     if (typeof p === 'object' && p.masterId) {
       const m = (state.masterContacts||[]).find(m => m.id === p.masterId);
@@ -7961,8 +7976,8 @@ function renderPlannedActivity() {
   }).filter(Boolean);
 
   const all = [
-    ...acts.map(a => `${a.icon||'🏃'} ${a.name} (${a.plannedMin} Min)`),
-    ...minds.map(a => `${a.icon||'🪷'} ${a.name} (${a.plannedMin} Min)`),
+    ...acts.map(a => `${a.icon||'🏃'} ${a.name}`),
+    ...minds.map(a => `${a.icon||'🪷'} ${a.name}`),
     ...contacts
   ];
 
@@ -8699,8 +8714,6 @@ saveState();
 rebuildPointsLog();
 renderHome();
 document.getElementById('streak-header-num').textContent = state.streak;
-const _initSl = document.getElementById('streak-header-label');
-if (_initSl) _initSl.textContent = state.streak === 1 ? 'Tag' : 'Tage';
 scheduleBreathing();
 // Restore active activity banner if running
 if (state.activeActivity) setTimeout(() => updateActiveBanner(), 300);
