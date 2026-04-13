@@ -151,26 +151,9 @@
   .home-tile.wide .tile-content { flex: 1; }
 
   /* Tile reorder mode */
-  @keyframes tile-wobble {
-    0%,100% { transform: rotate(-1.2deg); }
-    50% { transform: rotate(1.2deg); }
-  }
   .tile-reorder-mode .home-tile {
-    animation: tile-wobble 0.25s ease-in-out infinite;
-    cursor: grab;
     user-select: none;
     -webkit-user-select: none;
-  }
-  .tile-reorder-mode .home-tile:nth-child(even) { animation-delay: 0.12s; }
-  .tile-reorder-mode .home-tile.tile-dragging {
-    opacity: 0.85;
-    transform: scale(1.06);
-    animation: none;
-    z-index: 50;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.18);
-  }
-  .tile-reorder-mode .home-tile.tile-drop-target {
-    border: 2.5px dashed var(--accent) !important;
   }
 
   /* MAIN */
@@ -3389,8 +3372,8 @@ function renderHome() {
       tile.onclick = () => showSection(t.section);
     }
     const reorderBtns = isReordering ? `<div style="position:absolute;top:6px;right:6px;display:flex;flex-direction:column;gap:2px;z-index:10;">
-      <button onclick="event.stopPropagation();moveTile(${idx},-1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--ink);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;${idx===0?'opacity:0.3;pointer-events:none;':''}">▲</button>
-      <button onclick="event.stopPropagation();moveTile(${idx},1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--ink);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;${idx===TILES.length-1?'opacity:0.3;pointer-events:none;':''}">▼</button>
+      <button onclick="event.stopPropagation();moveTile(${idx},-1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--ink);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;${idx<2?'opacity:0.3;pointer-events:none;':''}">▲</button>
+      <button onclick="event.stopPropagation();moveTile(${idx},1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--ink);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;${idx>=TILES.length-2?'opacity:0.3;pointer-events:none;':''}">▼</button>
     </div>` : '';
     tile.style.position = 'relative';
     tile.innerHTML =
@@ -3435,9 +3418,9 @@ function finishTileReorder() {
 }
 
 function moveTile(fromIdx, direction) {
-  const toIdx = fromIdx + direction;
+  const step = 2; // 2-column grid: one row = 2 positions
+  const toIdx = fromIdx + (direction * step);
   if (!state.tileOrder) {
-    // Build default order from current TILES
     const defaultSections = ['water','activity','nutrition','sleep','weight','body','feeling','social','mindfulness','gratitude'];
     state.tileOrder = defaultSections;
   }
