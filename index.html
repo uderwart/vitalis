@@ -1892,6 +1892,11 @@
     </div>
 
     <p class="small-note" id="sym-hint" style="text-align:center;margin-top:4px;">Tippe auf eine Körperstelle</p>
+    <div style="text-align:center;margin-top:10px;">
+      <button onclick="symOpenGeneral()" class="log-btn secondary" style="width:auto;padding:8px 18px;font-size:0.82rem;">
+        🌡 Allgemeine Beschwerde (ohne Körperstelle)
+      </button>
+    </div>
 
     <!-- Inline Panel -->
     <div id="sym-panel" style="display:none;margin-top:12px;background:var(--bg);border-radius:14px;padding:14px 16px;border:2px solid var(--border);">
@@ -8535,6 +8540,22 @@ function symOpenZone(el){
   symUpdateIntensity(3);
   document.getElementById('sym-note').value='';
   document.getElementById('sym-zone-title').textContent=symActiveZone;
+  document.getElementById('sym-panel').style.display='';
+  document.getElementById('sym-hint').style.display='none';
+}
+
+function symOpenGeneral(){
+  if(symActiveEl)symActiveEl.setAttribute('fill',SYM_BASE);
+  symActiveEl=null; symActiveZone='Allgemein';
+  symActiveType='Fieber';
+  document.querySelectorAll('#sym-types .chip').forEach(b=>b.classList.remove('active'));
+  // Pre-select Fieber (first in Erkältung category)
+  const chips = document.querySelectorAll('#sym-types .chip');
+  chips.forEach(b => { if(b.textContent==='Fieber') b.classList.add('active'); });
+  document.getElementById('sym-int-slider').value=5;
+  symUpdateIntensity(5);
+  document.getElementById('sym-note').value='';
+  document.getElementById('sym-zone-title').textContent='Allgemeine Beschwerde';
   document.getElementById('sym-panel').style.display='';
   document.getElementById('sym-hint').style.display='none';
 }
