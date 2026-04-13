@@ -3326,6 +3326,22 @@ function renderHome() {
       bar: null
     },
     {
+      icon: '😊', label: 'Gefühl', section: 'feeling',
+      color: '#e67e22', bg: 'linear-gradient(135deg,#fef5ec,#fce4c8)',
+      value: (() => {
+        const f = state.feelingLog.find(e => new Date(e.ts).toDateString() === todayStr);
+        if (!f) return '—';
+        if (f.before && f.after) return f.before + ' → ' + f.after;
+        if (f.before) return 'Vorher: ' + f.before;
+        return '✓';
+      })(),
+      sub: (() => {
+        const f = state.feelingLog.find(e => new Date(e.ts).toDateString() === todayStr);
+        return f ? 'Heute eingetragen' : 'Wie geht es dir?';
+      })(),
+      bar: null
+    },
+    {
       icon: '❤️', label: 'Kontakte', section: 'social',
       color: '#c0392b', bg: 'linear-gradient(135deg,#fff5f5,#ffe0e0)',
       value: (() => {
@@ -6227,7 +6243,8 @@ function renderVerlauf() {
   }
 
   // Gefühl – aus feelingLog UND aus activityLog/mindfulnessLog
-  const feelsManual = filterByDate(state.feelingLog, verlaufFilter);
+  const feelsManual = filterByDate(state.feelingLog, verlaufFilter)
+    .filter(e => e.before != null || e.after != null);
   const feelsFromActs = filterByDate(state.activityLog, verlaufFilter)
     .filter(e => e.feeling?.before != null || e.feeling?.after != null)
     .map(e => ({ ts: e.ts, source: e.icon + ' ' + e.name, before: e.feeling?.before ?? null, after: e.feeling?.after ?? null }));
