@@ -3388,7 +3388,13 @@ function renderHome() {
     if (!isReordering) {
       tile.onclick = () => showSection(t.section);
     }
+    const reorderBtns = isReordering ? `<div style="position:absolute;top:6px;right:6px;display:flex;flex-direction:column;gap:2px;z-index:10;">
+      <button onclick="event.stopPropagation();moveTile(${idx},-1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--ink);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;${idx===0?'opacity:0.3;pointer-events:none;':''}">▲</button>
+      <button onclick="event.stopPropagation();moveTile(${idx},1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--ink);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;${idx===TILES.length-1?'opacity:0.3;pointer-events:none;':''}">▼</button>
+    </div>` : '';
+    tile.style.position = 'relative';
     tile.innerHTML =
+      reorderBtns +
       '<div>' +
         '<div class="tile-icon">' + t.icon + '</div>' +
         '<div class="tile-label">' + t.label + '</div>' +
@@ -3410,149 +3416,39 @@ function renderHome() {
 
 
 // =====================
-// TILE REORDER (Drag & Drop)
+// TILE REORDER (Arrow Buttons)
 // =====================
-let _tileReorderState = null;
-
 function startTileReorder() {
   const tiles = document.getElementById('home-tiles');
   tiles.classList.add('tile-reorder-mode');
   renderHome();
-  _initTileDragListeners();
-  showToast('Kacheln verschieben – ziehen & loslassen');
+  showToast('Kacheln verschieben – Pfeile nutzen');
 }
 
 function finishTileReorder() {
   const tiles = document.getElementById('home-tiles');
   tiles.classList.remove('tile-reorder-mode');
-  // Save current order
   const order = [];
   tiles.querySelectorAll('.home-tile[data-section]').forEach(t => order.push(t.dataset.section));
-  if (order.length) {
-    state.tileOrder = order;
-    saveState();
-  }
-  _tileReorderState = null;
+  if (order.length) { state.tileOrder = order; saveState(); }
   renderHome();
 }
 
-function _initTileDragListeners() {
-  const tiles = document.getElementById('home-tiles');
-  const allTiles = tiles.querySelectorAll('.home-tile[data-section]');
-
-  allTiles.forEach(tile => {
-    // Touch events
-    tile.addEventListener('touchstart', _tileOnStart, {passive: false});
-    tile.addEventListener('touchmove', _tileOnMove, {passive: false});
-    tile.addEventListener('touchend', _tileOnEnd);
-    // Mouse events
-    tile.addEventListener('mousedown', _tileOnStart);
-  });
-  document.addEventListener('mousemove', _tileOnMove);
-  document.addEventListener('mouseup', _tileOnEnd);
-}
-
-function _getTileAtPoint(x, y, exclude) {
-  const tiles = document.getElementById('home-tiles');
-  const allTiles = tiles.querySelectorAll('.home-tile[data-section]');
-  for (const t of allTiles) {
-    if (t === exclude) continue;
-    const r = t.getBoundingClientRect();
-    if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return t;
+function moveTile(fromIdx, direction) {
+  const toIdx = fromIdx + direction;
+  if (!state.tileOrder) {
+    // Build default order from current TILES
+    const defaultSections = ['water','activity','nutrition','sleep','weight','body','feeling','social','mindfulness','gratitude'];
+    state.tileOrder = defaultSections;
   }
-  return null;
+  if (toIdx < 0 || toIdx >= state.tileOrder.length) return;
+  const temp = state.tileOrder[fromIdx];
+  state.tileOrder[fromIdx] = state.tileOrder[toIdx];
+  state.tileOrder[toIdx] = temp;
+  saveState();
+  renderHome();
 }
 
-function _tileOnStart(e) {
-  const tiles = document.getElementById('home-tiles');
-  if (!tiles.classList.contains('tile-reorder-mode')) return;
-  const tile = e.currentTarget;
-  if (!tile.dataset.section) return;
-
-  const isTouch = e.type === 'touchstart';
-  const clientX = isTouch ? e.touches[0].clientX : e.clientX;
-  const clientY = isTouch ? e.touches[0].clientY : e.clientY;
-  const rect = tile.getBoundingClientRect();
-
-  _tileReorderState = {
-    tile: tile,
-    startX: clientX,
-    startY: clientY,
-    offsetX: clientX - rect.left,
-    offsetY: clientY - rect.top,
-    moved: false,
-    originalRect: rect,
-  };
-
-  if (isTouch) e.preventDefault();
-}
-
-function _tileOnMove(e) {
-  if (!_tileReorderState) return;
-  const isTouch = e.type === 'touchmove';
-  const clientX = isTouch ? e.touches[0].clientX : e.clientX;
-  const clientY = isTouch ? e.touches[0].clientY : e.clientY;
-
-  const dx = clientX - _tileReorderState.startX;
-  const dy = clientY - _tileReorderState.startY;
-  if (!_tileReorderState.moved && Math.abs(dx) + Math.abs(dy) < 8) return;
-  _tileReorderState.moved = true;
-
-  const tile = _tileReorderState.tile;
-  if (!tile.classList.contains('tile-dragging')) {
-    tile.classList.add('tile-dragging');
-    tile.style.position = 'relative';
-    tile.style.zIndex = '50';
-  }
-  tile.style.transform = `translate(${dx}px, ${dy}px) scale(1.06)`;
-
-  // Highlight drop target
-  const tiles = document.getElementById('home-tiles');
-  tiles.querySelectorAll('.tile-drop-target').forEach(t => t.classList.remove('tile-drop-target'));
-  const target = _getTileAtPoint(clientX, clientY, tile);
-  if (target) target.classList.add('tile-drop-target');
-
-  if (isTouch) e.preventDefault();
-}
-
-function _tileOnEnd(e) {
-  if (!_tileReorderState) return;
-  const { tile, moved } = _tileReorderState;
-
-  const isTouch = e.type === 'touchend';
-  const clientX = isTouch ? (e.changedTouches?.[0]?.clientX ?? 0) : e.clientX;
-  const clientY = isTouch ? (e.changedTouches?.[0]?.clientY ?? 0) : e.clientY;
-
-  tile.classList.remove('tile-dragging');
-  tile.style.position = '';
-  tile.style.zIndex = '';
-  tile.style.transform = '';
-
-  const tilesEl = document.getElementById('home-tiles');
-  tilesEl.querySelectorAll('.tile-drop-target').forEach(t => t.classList.remove('tile-drop-target'));
-
-  if (moved) {
-    const target = _getTileAtPoint(clientX, clientY, tile);
-    if (target && target.dataset.section) {
-      // Swap in DOM
-      const allTiles = Array.from(tilesEl.querySelectorAll('.home-tile[data-section]'));
-      const fromIdx = allTiles.indexOf(tile);
-      const toIdx = allTiles.indexOf(target);
-      if (fromIdx !== -1 && toIdx !== -1 && fromIdx !== toIdx) {
-        // Save new order
-        const sections = allTiles.map(t => t.dataset.section);
-        const [removed] = sections.splice(fromIdx, 1);
-        sections.splice(toIdx, 0, removed);
-        state.tileOrder = sections;
-        saveState();
-        // Re-render to reflect new order (keep reorder mode)
-        renderHome();
-        _initTileDragListeners();
-      }
-    }
-  }
-  _tileReorderState = null;
-}
 
 
 // =====================
