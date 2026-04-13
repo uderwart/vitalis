@@ -886,14 +886,9 @@
   <!-- 7. KACHELN -->
   <div id="home-tiles" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;"></div>
 
-  <!-- 8a. PERSÖNLICHE BESTÄTIGUNG -->
-  <div id="home-kudos-card" style="display:none;border-radius:16px;padding:14px 16px;margin-bottom:12px;background:linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.06));border:1.5px solid rgba(201,168,76,0.25);">
-    <div id="home-kudos-content" style="font-size:0.85rem;color:var(--ink);line-height:1.55;"></div>
-  </div>
-
-  <!-- 8b. TIPP DES TAGES (rotiert täglich) -->
+  <!-- 8. TIPP DER WOCHE -->
   <div id="home-tip-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
-    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Tipp des Tages</div>
+    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Wussten Sie?</div>
     <div id="home-tip-text" style="font-size:0.85rem;color:var(--ink);line-height:1.5;"></div>
     <div id="home-tip-source" style="font-size:0.72rem;color:var(--muted);margin-top:6px;font-style:italic;"></div>
     <button id="home-tip-btn" onclick="" style="margin-top:10px;padding:8px 16px;border-radius:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;display:none;">Jetzt eintragen →</button>
@@ -1155,46 +1150,67 @@
   <button onclick="closeCheckout()" style="margin-top:10px;background:none;border:none;color:rgba(255,255,255,0.3);font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;width:100%;text-align:center;">Abbrechen</button>
 </div>
 <div id="section-feeling" class="section">
+
+  <!-- MATRIX TRACKER -->
   <div class="card">
     <h2>Wie fühlst du dich?</h2>
+    <p class="small-note" style="margin-bottom:12px;line-height:1.5;">Tippe auf bis zu 5 Gefühle – auch aus verschiedenen Bereichen. Gemischte Gefühle sind normal.</p>
 
-    <!-- VOR -->
-    <h3 style="margin-bottom:8px;">VOR der Aktivität</h3>
-    <div class="vitalis-slider-wrap">
-      <div class="vitalis-slider-value" id="feeling-before-val">5</div>
-      <div class="vitalis-slider-desc" id="feeling-before-desc">okay</div>
-      <input type="range" id="feeling-before-slider" min="1" max="10" value="5"
-        oninput="updateSlider('feeling-before', this.value)">
-      <div class="slider-labels"><span>😩 Miserabel</span><span>😄 Super</span></div>
+    <!-- Kern / Erweitert Toggle -->
+    <div style="display:flex;gap:6px;margin-bottom:12px;">
+      <button class="chip active" id="fm-tab-kern" onclick="setFeelingMatrixMode('kern')">Kernwörter</button>
+      <button class="chip" id="fm-tab-erweitert" onclick="setFeelingMatrixMode('erweitert')">Erweitert (GFK)</button>
     </div>
-    <button class="log-btn secondary" onclick="logFeelingBefore()" style="margin-bottom:0;">
-      💾 Vor-Gefühl speichern
-    </button>
 
-    <hr class="divider">
+    <!-- Matrix Grid -->
+    <div id="feeling-matrix" style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr auto 1fr;gap:0;border-radius:16px;overflow:hidden;border:1px solid var(--border);">
+      <!-- Unangenehm + Aktiviert -->
+      <div style="background:#f9e4dd;padding:10px 8px;min-height:120px;">
+        <div style="font-size:0.7rem;font-weight:600;color:#993C1D;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">UNANGENEHM + AKTIVIERT</div>
+        <div id="fm-q-ua" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
+      </div>
+      <!-- Angenehm + Aktiviert -->
+      <div style="background:#dbeaf7;padding:10px 8px;min-height:120px;">
+        <div style="font-size:0.7rem;font-weight:600;color:#185FA5;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">ANGENEHM + AKTIVIERT</div>
+        <div id="fm-q-aa" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
+      </div>
+      <!-- Neutral Row -->
+      <div style="grid-column:1/3;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--border);position:relative;">
+        <span style="position:absolute;left:8px;font-size:0.65rem;color:var(--muted);">unangenehm</span>
+        <div id="fm-q-neutral" style="display:flex;gap:4px;"></div>
+        <span style="position:absolute;right:8px;font-size:0.65rem;color:var(--muted);">angenehm</span>
+      </div>
+      <!-- Unangenehm + Ruhig -->
+      <div style="background:#e8e6f8;padding:10px 8px;min-height:120px;">
+        <div style="font-size:0.7rem;font-weight:600;color:#534AB7;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">UNANGENEHM + RUHIG</div>
+        <div id="fm-q-ur" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
+      </div>
+      <!-- Angenehm + Ruhig -->
+      <div style="background:#d6f0e5;padding:10px 8px;min-height:120px;">
+        <div style="font-size:0.7rem;font-weight:600;color:#0F6E56;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">ANGENEHM + RUHIG</div>
+        <div id="fm-q-ar" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--muted);margin-top:4px;padding:0 4px;">
+      <span>↑ aktiviert</span><span>↓ ruhig</span>
+    </div>
 
-    <!-- NACH -->
-    <h3 style="margin-bottom:8px;">NACH der Aktivität</h3>
-    <div id="feeling-after-pending" style="display:none;padding:8px 12px;background:var(--bg);border-radius:10px;border-left:3px solid var(--accent);margin-bottom:10px;font-size:0.82rem;color:var(--muted);">
-      ⏳ Vor-Gefühl gespeichert – trage nach der Aktivität den Nachher-Wert ein.
-    </div>
-    <div class="vitalis-slider-wrap">
-      <div class="vitalis-slider-value" id="feeling-after-val">5</div>
-      <div class="vitalis-slider-desc" id="feeling-after-desc">okay</div>
-      <input type="range" id="feeling-after-slider" min="1" max="10" value="5"
-        oninput="updateSlider('feeling-after', this.value)">
-      <div class="slider-labels"><span>😩 Miserabel</span><span>😄 Super</span></div>
-    </div>
-    <div style="display:flex;gap:8px;">
-      <button class="log-btn secondary" onclick="logFeelingAfter()" style="flex:1;">
-        💾 Nach-Gefühl ergänzen
+    <!-- Selection Display -->
+    <div id="fm-selection" style="display:none;margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:12px;border:2px solid var(--accent);">
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:6px;">Ausgewählt (<span id="fm-count">0</span>/5):</div>
+      <div id="fm-selected-tags" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;"></div>
+      <textarea id="fm-context" placeholder="Was hat das Gefühl ausgelöst? (optional)" rows="2"
+        style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;background:var(--card);color:var(--ink);"></textarea>
+      <button class="log-btn" onclick="saveFeelingMatrix()" style="margin-top:8px;">
+        💾 Gefühl speichern
       </button>
-      <button class="log-btn" onclick="logFeelingBoth()" style="flex:1;">
-        ✅ Beide speichern
-      </button>
+    </div>
+    <div id="fm-hint" style="display:none;margin-top:8px;padding:8px 12px;background:#fff3cd;border-radius:10px;font-size:0.78rem;color:#856404;">
+      Maximal 5 Gefühle – tippe auf ein markiertes Wort, um es abzuwählen.
     </div>
   </div>
 
+  <!-- VERLAUF -->
   <div class="card">
     <h2>Verlauf</h2>
     <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
@@ -1203,8 +1219,81 @@
       <button class="chip" id="ff-monat" onclick="setFeelingFilter('monat')">Monat</button>
       <button class="chip" id="ff-alles" onclick="setFeelingFilter('alles')">Alles</button>
     </div>
+    <!-- Quadrant Summary -->
+    <div id="fm-quadrant-summary" style="display:none;margin-bottom:12px;"></div>
     <div class="feeling-history" id="feeling-history"></div>
     <p class="small-note" id="feeling-empty" style="display:none;">Noch keine Einträge.</p>
+  </div>
+
+  <!-- WISSEN -->
+  <div class="card">
+    <h2>Gefühle verstehen</h2>
+    <p class="small-note" style="margin-bottom:14px;line-height:1.5;">Wissen über Emotionen hilft, sie besser wahrzunehmen und einzuordnen.</p>
+
+    <!-- Circumplex -->
+    <div class="wissen-item" style="margin-bottom:8px;">
+      <div onclick="toggleWissen('w-circumplex')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:1.1rem;">🎯</span>
+        <span style="flex:1;font-weight:500;font-size:0.9rem;">Die Gefühls-Matrix erklärt</span>
+        <span id="w-circumplex-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+      </div>
+      <div id="w-circumplex" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
+        Gefühle lassen sich auf zwei Achsen einordnen: <strong>Valenz</strong> (angenehm ↔ unangenehm) und <strong>Aktivierung</strong> (aktiviert ↔ ruhig). Das ergibt vier Bereiche – z.B. ist Wut unangenehm und aktiviert, Traurigkeit unangenehm und ruhig. Dieses Modell hilft dir, genauer zu erkennen, was du fühlst.
+        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Russell, J. A. (1980). A circumplex model of affect. Journal of Personality and Social Psychology, 39(6), 1161–1178.</div>
+      </div>
+    </div>
+
+    <!-- Echte vs. Pseudogefühle -->
+    <div class="wissen-item" style="margin-bottom:8px;">
+      <div onclick="toggleWissen('w-pseudo')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:1.1rem;">🔍</span>
+        <span style="flex:1;font-weight:500;font-size:0.9rem;">Echte Gefühle vs. Pseudogefühle</span>
+        <span id="w-pseudo-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+      </div>
+      <div id="w-pseudo" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
+        In der Gewaltfreien Kommunikation unterscheidet man <strong>echte Gefühle</strong> von <strong>Pseudogefühlen</strong>. „Ich fühle mich ignoriert" ist kein Gefühl, sondern eine Interpretation – es beschreibt, was ich glaube, dass der andere tut. Das echte Gefühl dahinter könnte sein: „Ich bin traurig" oder „Ich bin verunsichert". Echte Gefühle beginnen mit „Ich bin…" oder „Ich fühle mich…" gefolgt von einem Empfindungswort.
+        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Rosenberg, M. B. (2003). Gewaltfreie Kommunikation: Eine Sprache des Lebens. Junfermann Verlag.</div>
+      </div>
+    </div>
+
+    <!-- Gemischte Gefühle -->
+    <div class="wissen-item" style="margin-bottom:8px;">
+      <div onclick="toggleWissen('w-mixed')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:1.1rem;">🌈</span>
+        <span style="flex:1;font-weight:500;font-size:0.9rem;">Gemischte Gefühle sind normal</span>
+        <span id="w-mixed-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+      </div>
+      <div id="w-mixed" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
+        Menschen erleben oft gleichzeitig Gefühle aus verschiedenen Bereichen – z.B. dankbar <em>und</em> traurig bei einem Abschied, oder stolz <em>und</em> ängstlich vor einer Herausforderung. Diese Fähigkeit, gemischte Emotionen wahrzunehmen, ist ein Zeichen emotionaler Reife und kein Widerspruch.
+        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Larsen, J. T. et al. (2001). Can people feel happy and sad at the same time? Journal of Personality and Social Psychology, 81(4), 684–696.</div>
+      </div>
+    </div>
+
+    <!-- Gefühle und Bedürfnisse -->
+    <div class="wissen-item" style="margin-bottom:8px;">
+      <div onclick="toggleWissen('w-needs')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:1.1rem;">💡</span>
+        <span style="flex:1;font-weight:500;font-size:0.9rem;">Gefühle als Wegweiser zu Bedürfnissen</span>
+        <span id="w-needs-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+      </div>
+      <div id="w-needs" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
+        In der GFK zeigen Gefühle an, ob Bedürfnisse erfüllt sind oder nicht. Angenehme Gefühle (rechte Seite der Matrix) deuten auf erfüllte Bedürfnisse hin – z.B. Geborgenheit → Bedürfnis nach Sicherheit ist erfüllt. Unangenehme Gefühle (linke Seite) weisen auf unerfüllte Bedürfnisse hin – z.B. Einsamkeit → Bedürfnis nach Verbundenheit. Das Benennen des Gefühls ist der erste Schritt, das dahinterliegende Bedürfnis zu erkennen.
+        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Rosenberg, M. B. (2003). CNVC Feelings & Needs Inventory. cnvc.org</div>
+      </div>
+    </div>
+
+    <!-- Emotionale Granularität -->
+    <div class="wissen-item" style="margin-bottom:8px;">
+      <div onclick="toggleWissen('w-granularity')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:1.1rem;">🧠</span>
+        <span style="flex:1;font-weight:500;font-size:0.9rem;">Warum genaues Benennen hilft</span>
+        <span id="w-granularity-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+      </div>
+      <div id="w-granularity" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
+        Forschung zeigt: Je differenzierter wir unsere Emotionen benennen, desto besser können wir sie regulieren. Wer statt „schlecht" sagt „Ich bin frustriert, weil…", aktiviert im Gehirn Regionen, die bei der Emotionsverarbeitung helfen. Dieses Phänomen heisst <strong>emotionale Granularität</strong>. Allein das Finden des richtigen Wortes hat bereits eine beruhigende Wirkung.
+        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Barrett, L. F. (2004). Feelings or words? Journal of Personality and Social Psychology, 87(2), 266–281.<br>Pennebaker, J. W. (1997). Writing about emotional experiences as a therapeutic process. Psychological Science, 8(3), 162–166.</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -3046,162 +3135,6 @@ function showToast(msg) {
 // =====================
 // HOME (Kacheln)
 // =====================
-function renderMotivation() {
-  const card = document.getElementById('home-kudos-card');
-  const content = document.getElementById('home-kudos-content');
-  if (!card || !content) return;
-
-  const now = new Date();
-  const todayStr = now.toDateString();
-  const kudos = [];
-
-  // 1. Aktivitäts-Minuten heute
-  const todayActs = (state.activityLog || []).filter(e => new Date(e.ts).toDateString() === todayStr);
-  if (todayActs.length > 0) {
-    const totalMin = todayActs.reduce((s, e) => s + (e.min || 0), 0);
-    const names = [...new Set(todayActs.map(e => e.name))].join(', ');
-    if (totalMin > 0) {
-      kudos.push('🏃 Du hast heute ' + totalMin + ' Minuten ' + names + ' gemacht – weiter so!');
-    }
-  }
-
-  // 2. Aktivitäts-Minuten diese Woche (nur wenn heute noch nichts)
-  if (todayActs.length === 0) {
-    const weekStart = new Date(now);
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay() + (weekStart.getDay() === 0 ? -6 : 1));
-    weekStart.setHours(0, 0, 0, 0);
-    const weekActs = (state.activityLog || []).filter(e => new Date(e.ts) >= weekStart);
-    if (weekActs.length > 0) {
-      const weekMin = weekActs.reduce((s, e) => s + (e.min || 0), 0);
-      kudos.push('🏃 Diese Woche schon ' + weekMin + ' Minuten aktiv gewesen – stark!');
-    }
-  }
-
-  // 3. Wasser-Streak (aufeinanderfolgende Tage mit Ziel erreicht)
-  const waterStreak = countWaterStreak();
-  if (waterStreak >= 2) {
-    kudos.push('💧 Wasserziel seit ' + waterStreak + ' Tagen in Folge erreicht – dein Körper dankt es dir.');
-  } else if (state.waterMl >= state.waterGoal) {
-    kudos.push('💧 Wasserziel heute erreicht – gut gemacht!');
-  }
-
-  // 4. Alkoholfreie Tage in Folge
-  const soberStreak = countSoberStreak();
-  if (soberStreak >= 3) {
-    kudos.push('✅ Seit ' + soberStreak + ' Tagen alkoholfrei – das wirkt sich messbar auf deinen Schlaf aus.');
-  }
-
-  // 5. Achtsamkeit heute
-  const todayMind = (state.mindfulnessLog || []).filter(e => new Date(e.ts).toDateString() === todayStr);
-  if (todayMind.length > 0) {
-    const mindMin = todayMind.reduce((s, e) => s + (e.min || 0), 0);
-    kudos.push('🪷 ' + mindMin + ' Minuten Achtsamkeit heute – jede Minute zählt.');
-  }
-
-  // 6. Kontakte diese Woche erledigt
-  const week = typeof getCurrentWeekKey === 'function' ? getCurrentWeekKey() : '';
-  const weekContacts = (state.socialContacts || []).filter(c => c.week === week);
-  const doneContacts = weekContacts.filter(c => c.done);
-  if (doneContacts.length > 0) {
-    const names = doneContacts.map(c => c.name).join(', ');
-    kudos.push('❤️ Schon ' + doneContacts.length + ' Kontakt' + (doneContacts.length > 1 ? 'e' : '') + ' diese Woche gepflegt (' + names + ').');
-  }
-
-  // 7. Streak
-  if (state.streak >= 5) {
-    kudos.push('🔥 ' + state.streak + ' Tage Streak – Kontinuität schlägt Perfektion.');
-  }
-
-  // 8. Dankbarkeit heute
-  const gratToday = (state.gratitudeLog || []).find(e => new Date(e.ts).toDateString() === todayStr);
-  if (gratToday) {
-    kudos.push('🌟 Dankbarkeit notiert – das stärkt nachweislich das Wohlbefinden.');
-  }
-
-  // Show max 2 kudos (rotate based on day to keep it fresh)
-  if (kudos.length === 0) {
-    card.style.display = 'none';
-    return;
-  }
-
-  // Pick up to 2, with daily rotation for variety
-  const dayIdx = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
-  let selected;
-  if (kudos.length <= 2) {
-    selected = kudos;
-  } else {
-    const start = dayIdx % kudos.length;
-    selected = [kudos[start], kudos[(start + 1) % kudos.length]];
-  }
-
-  content.innerHTML =
-    '<div style="font-size:0.72rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">✨ Dein Fortschritt</div>' +
-    selected.map(k => '<div style="margin-bottom:6px;">' + k + '</div>').join('');
-  card.style.display = '';
-}
-
-// Helper: consecutive days with water goal met (including today)
-function countWaterStreak() {
-  const logs = state.waterLog || [];
-  if (logs.length === 0) return 0;
-
-  // Build a set of dates where goal was met
-  const goalDates = new Set();
-  logs.forEach(e => {
-    if (e.ml >= state.waterGoal) goalDates.add(e.date);
-  });
-  // Also check today's live value
-  const todayStr = new Date().toDateString();
-  if (state.waterMl >= state.waterGoal) goalDates.add(todayStr);
-
-  let streak = 0;
-  const d = new Date();
-  for (let i = 0; i < 90; i++) {
-    if (goalDates.has(d.toDateString())) {
-      streak++;
-      d.setDate(d.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-  return streak;
-}
-
-// Helper: consecutive sober days (from alcDaysLog)
-function countSoberStreak() {
-  const logs = state.alcDaysLog || [];
-  if (logs.length === 0) return 0;
-
-  // Build map of dates
-  const drankMap = {};
-  logs.forEach(e => {
-    drankMap[new Date(e.date).toDateString()] = e.drank;
-  });
-
-  let streak = 0;
-  const d = new Date();
-  for (let i = 0; i < 90; i++) {
-    const key = d.toDateString();
-    if (drankMap[key] === false) {
-      // Explicitly logged as sober
-      streak++;
-      d.setDate(d.getDate() - 1);
-    } else if (drankMap[key] === true) {
-      // Drank – streak broken
-      break;
-    } else {
-      // Not logged – only count forward from first logged day
-      if (streak === 0 && i === 0) {
-        // Today not logged yet – skip and check yesterday
-        d.setDate(d.getDate() - 1);
-        continue;
-      }
-      break;
-    }
-  }
-  return streak;
-}
-
 function renderHome() {
   // Weekly export reminder (every Sunday)
   const today = new Date();
@@ -3250,14 +3183,14 @@ function renderHome() {
     } else { subEl.style.display = 'none'; }
   }
 
-  // Tip of the day (daily rotation)
+  // Tip of the week
   const tipCard = document.getElementById('home-tip-card');
   const tipText = document.getElementById('home-tip-text');
   const tipSource = document.getElementById('home-tip-source');
   if (tipCard && tipText && goal && GOAL_TIPS[goal]) {
     const tips = GOAL_TIPS[goal];
-    const dayNum = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
-    const tip = tips[dayNum % tips.length];
+    const weekNum = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+    const tip = tips[weekNum % tips.length];
     tipText.textContent = tip.text;
     tipSource.textContent = tip.source;
     tipCard.style.display = '';
@@ -3268,9 +3201,6 @@ function renderHome() {
       tipBtn.style.display = '';
     }
   } else if (tipCard) { tipCard.style.display = 'none'; }
-
-  // Personal kudos (data-based positive feedback)
-  renderMotivation();
 
   // Gratitude check-in
   const gratitudeCard = document.getElementById('gratitude-checkin-card');
@@ -3462,142 +3392,376 @@ function initSlider(id, val) {
 }
 
 // =====================
-// FEELING
+// FEELING – MATRIX-BASED (Circumplex + GFK)
 // =====================
-function renderFeeling() {
-  initSlider('feeling-before', 5);
-  initSlider('feeling-after', 5);
-  // Show pending hint if there's an open before-entry today
-  const todayStr = new Date().toDateString();
-  const pending = state.feelingLog.find(e =>
-    new Date(e.ts).toDateString() === todayStr && e.before !== null && e.after === null
-  );
-  const hint = document.getElementById('feeling-after-pending');
-  if (hint) hint.style.display = pending ? '' : 'none';
-  renderFeelingHistory();
+const FEELING_MATRIX = {
+  kern: {
+    ua: [
+      {label:'wütend', desc:'Ärger, der sich aufbaut oder ausbricht'},
+      {label:'ängstlich', desc:'Sorge, Unruhe, innere Anspannung'},
+      {label:'gestresst', desc:'Überlastet, unter Druck'},
+      {label:'frustriert', desc:'Etwas klappt nicht wie gewollt'},
+      {label:'genervt', desc:'Gereizt durch Kleinigkeiten'},
+      {label:'panisch', desc:'Starke Angst, Kontrollverlust'}
+    ],
+    aa: [
+      {label:'begeistert', desc:'Voller Vorfreude und Energie'},
+      {label:'fröhlich', desc:'Gute Laune, beschwingt'},
+      {label:'energiegeladen', desc:'Tatendrang, wach und bereit'},
+      {label:'inspiriert', desc:'Kreative Ideen, Motivation'},
+      {label:'aufgeregt', desc:'Positive Spannung, Erwartung'},
+      {label:'stolz', desc:'Zufrieden mit einer Leistung'}
+    ],
+    ur: [
+      {label:'traurig', desc:'Niedergeschlagen, bedrückt'},
+      {label:'erschöpft', desc:'Ausgelaugt, keine Energie mehr'},
+      {label:'einsam', desc:'Mangel an Verbundenheit'},
+      {label:'lustlos', desc:'Kein Antrieb, gleichgültig'},
+      {label:'hoffnungslos', desc:'Sehe keinen Ausweg'},
+      {label:'gelangweilt', desc:'Nichts reizt mich gerade'}
+    ],
+    ar: [
+      {label:'zufrieden', desc:'Im Reinen mit mir und der Welt'},
+      {label:'gelassen', desc:'Ruhig, nichts bringt mich aus der Fassung'},
+      {label:'dankbar', desc:'Wertschätzung für das, was ist'},
+      {label:'entspannt', desc:'Körper und Geist lassen los'},
+      {label:'geborgen', desc:'Sicher und aufgehoben'},
+      {label:'friedlich', desc:'Innerer Frieden, Harmonie'}
+    ]
+  },
+  erweitert: {
+    ua: [
+      {label:'wütend', desc:'Ärger, der sich aufbaut oder ausbricht'},
+      {label:'ängstlich', desc:'Sorge, Unruhe, innere Anspannung'},
+      {label:'gestresst', desc:'Überlastet, unter Druck'},
+      {label:'frustriert', desc:'Etwas klappt nicht wie gewollt'},
+      {label:'genervt', desc:'Gereizt durch Kleinigkeiten'},
+      {label:'panisch', desc:'Starke Angst, Kontrollverlust'},
+      {label:'zornig', desc:'Intensiver, gerichteter Ärger', gfk:true},
+      {label:'erbost', desc:'Aufgebracht über eine Ungerechtigkeit', gfk:true},
+      {label:'aufgewühlt', desc:'Innerlich durcheinander, emotional aufgeladen', gfk:true},
+      {label:'fassungslos', desc:'Kann nicht glauben, was passiert', gfk:true},
+      {label:'angespannt', desc:'Körperlich und seelisch unter Spannung', gfk:true},
+      {label:'unruhig', desc:'Kann nicht stillsitzen, innerlich getrieben', gfk:true},
+      {label:'verunsichert', desc:'Boden unter den Füssen verloren', gfk:true},
+      {label:'besorgt', desc:'Gedanken kreisen um mögliche Probleme', gfk:true},
+      {label:'erschrocken', desc:'Plötzlicher Schock, Überrumplung', gfk:true},
+      {label:'widerwillig', desc:'Innerer Widerstand, Abneigung', gfk:true},
+      {label:'enttäuscht', desc:'Erwartung wurde nicht erfüllt', gfk:true},
+      {label:'verzweifelt', desc:'Sehe keinen Ausweg, tiefe Not', gfk:true}
+    ],
+    aa: [
+      {label:'begeistert', desc:'Voller Vorfreude und Energie'},
+      {label:'fröhlich', desc:'Gute Laune, beschwingt'},
+      {label:'energiegeladen', desc:'Tatendrang, wach und bereit'},
+      {label:'inspiriert', desc:'Kreative Ideen, Motivation'},
+      {label:'aufgeregt', desc:'Positive Spannung, Erwartung'},
+      {label:'stolz', desc:'Zufrieden mit einer Leistung'},
+      {label:'leidenschaftlich', desc:'Brennt für etwas, voll dabei', gfk:true},
+      {label:'überschwänglich', desc:'Freude schwappt über', gfk:true},
+      {label:'entzückt', desc:'Positiv überrascht, bezaubert', gfk:true},
+      {label:'mutig', desc:'Bereit, etwas zu wagen', gfk:true},
+      {label:'neugierig', desc:'Will etwas entdecken oder verstehen', gfk:true},
+      {label:'erwartungsvoll', desc:'Gespannt auf das, was kommt', gfk:true},
+      {label:'erstaunt', desc:'Positiv überrascht, verwundert', gfk:true},
+      {label:'bewegt', desc:'Innerlich berührt durch etwas Schönes', gfk:true},
+      {label:'lebendig', desc:'Spüre das Leben intensiv', gfk:true},
+      {label:'heiter', desc:'Unbeschwert und leicht', gfk:true}
+    ],
+    ur: [
+      {label:'traurig', desc:'Niedergeschlagen, bedrückt'},
+      {label:'erschöpft', desc:'Ausgelaugt, keine Energie mehr'},
+      {label:'einsam', desc:'Mangel an Verbundenheit'},
+      {label:'lustlos', desc:'Kein Antrieb, gleichgültig'},
+      {label:'hoffnungslos', desc:'Sehe keinen Ausweg'},
+      {label:'gelangweilt', desc:'Nichts reizt mich gerade'},
+      {label:'melancholisch', desc:'Stille Schwere, wehmütig', gfk:true},
+      {label:'niedergeschlagen', desc:'Gedrückte Stimmung, schwer', gfk:true},
+      {label:'entmutigt', desc:'Glaube nicht mehr an den Erfolg', gfk:true},
+      {label:'hilflos', desc:'Weiss nicht, was ich tun soll', gfk:true},
+      {label:'müde', desc:'Körperlich und seelisch erschlafft', gfk:true},
+      {label:'apathisch', desc:'Fühle gar nichts, wie betäubt', gfk:true},
+      {label:'beschämt', desc:'Möchte mich verstecken', gfk:true},
+      {label:'verletzt', desc:'Seelischer Schmerz, wund', gfk:true},
+      {label:'isoliert', desc:'Abgeschnitten von anderen', gfk:true},
+      {label:'schwermütig', desc:'Anhaltende innere Schwere', gfk:true}
+    ],
+    ar: [
+      {label:'zufrieden', desc:'Im Reinen mit mir und der Welt'},
+      {label:'gelassen', desc:'Ruhig, nichts bringt mich aus der Fassung'},
+      {label:'dankbar', desc:'Wertschätzung für das, was ist'},
+      {label:'entspannt', desc:'Körper und Geist lassen los'},
+      {label:'geborgen', desc:'Sicher und aufgehoben'},
+      {label:'friedlich', desc:'Innerer Frieden, Harmonie'},
+      {label:'erleichtert', desc:'Last fällt ab, Spannung löst sich', gfk:true},
+      {label:'ausgeglichen', desc:'In der Mitte, harmonisch', gfk:true},
+      {label:'beruhigt', desc:'Aufregung hat sich gelegt', gfk:true},
+      {label:'sicher', desc:'Vertrauen in mich und die Situation', gfk:true},
+      {label:'liebevoll', desc:'Voller Zuneigung und Wärme', gfk:true},
+      {label:'mitfühlend', desc:'Anteilnahme am Erleben anderer', gfk:true},
+      {label:'offen', desc:'Bereit für Neues, ohne Abwehr', gfk:true},
+      {label:'erfüllt', desc:'Tiefe innere Sättigung', gfk:true},
+      {label:'vertrauensvoll', desc:'Zuversicht, es wird gut', gfk:true},
+      {label:'sanft', desc:'Weich, zart, achtsam mit mir', gfk:true}
+    ]
+  },
+  neutral: [
+    {label:'okay', desc:'Weder gut noch schlecht – einfach da'},
+    {label:'gemischt', desc:'Verschiedene Gefühle gleichzeitig'},
+    {label:'neutral', desc:'Keine starke Empfindung'}
+  ]
+};
+
+const FM_COLORS = {
+  ua: {bg:'#f0997b', selBg:'#d85a30', selText:'#fff', gfkBg:'#f5c4b3', text:'#4a1b0c'},
+  aa: {bg:'#85b7eb', selBg:'#378add', selText:'#fff', gfkBg:'#b5d4f4', text:'#042c53'},
+  ur: {bg:'#afa9ec', selBg:'#7f77dd', selText:'#fff', gfkBg:'#cecbf6', text:'#26215c'},
+  ar: {bg:'#5dcaa5', selBg:'#1d9e75', selText:'#fff', gfkBg:'#9fe1cb', text:'#04342c'},
+  neutral: {bg:'var(--border)', selBg:'var(--ink)', selText:'var(--card)', gfkBg:'var(--border)', text:'var(--ink)'}
+};
+
+const QUADRANT_NAMES = {ua:'unangenehm + aktiviert', aa:'angenehm + aktiviert', ur:'unangenehm + ruhig', ar:'angenehm + ruhig', neutral:'neutral'};
+
+let fmMode = 'kern';
+let fmSelected = []; // [{label, quadrant, desc, gfk}]
+
+function setFeelingMatrixMode(mode) {
+  fmMode = mode;
+  document.getElementById('fm-tab-kern').classList.toggle('active', mode === 'kern');
+  document.getElementById('fm-tab-erweitert').classList.toggle('active', mode === 'erweitert');
+  // Re-render but keep selection
+  renderFeelingMatrix();
 }
 
-function logFeelingBefore() {
-  const before = parseInt(document.getElementById('feeling-before-slider')?.value || 5);
-  const entry = { ts: new Date().toISOString(), before, after: null };
+function renderFeelingMatrix() {
+  const data = FEELING_MATRIX[fmMode] || FEELING_MATRIX.kern;
+  ['ua','aa','ur','ar'].forEach(q => {
+    const el = document.getElementById('fm-q-' + q);
+    if (!el) return;
+    el.innerHTML = '';
+    data[q].forEach(f => el.appendChild(makeFeelingChip(f, q)));
+  });
+  const nEl = document.getElementById('fm-q-neutral');
+  if (nEl) {
+    nEl.innerHTML = '';
+    FEELING_MATRIX.neutral.forEach(f => nEl.appendChild(makeFeelingChip(f, 'neutral')));
+  }
+  updateFeelingSelection();
+}
+
+function makeFeelingChip(f, quadrant) {
+  const col = FM_COLORS[quadrant];
+  const isSelected = fmSelected.some(s => s.label === f.label);
+  const btn = document.createElement('button');
+  btn.textContent = f.label;
+  const isGfk = f.gfk;
+  btn.style.cssText = `padding:5px 9px;border-radius:16px;font-size:${isGfk?'0.72rem':'0.78rem'};font-weight:${isSelected?'600':'400'};font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;line-height:1.2;border:1.5px solid ${isSelected ? col.selBg : 'transparent'};`;
+  if (isSelected) {
+    btn.style.background = col.selBg;
+    btn.style.color = col.selText;
+    btn.style.transform = 'scale(1.05)';
+  } else {
+    btn.style.background = isGfk ? col.gfkBg : col.bg;
+    btn.style.color = col.text;
+  }
+  btn.onclick = () => toggleFeelingWord(f, quadrant);
+  return btn;
+}
+
+function toggleFeelingWord(f, quadrant) {
+  const idx = fmSelected.findIndex(s => s.label === f.label);
+  if (idx >= 0) {
+    fmSelected.splice(idx, 1);
+  } else {
+    if (fmSelected.length >= 5) {
+      document.getElementById('fm-hint').style.display = '';
+      setTimeout(() => { document.getElementById('fm-hint').style.display = 'none'; }, 3000);
+      return;
+    }
+    fmSelected.push({label: f.label, quadrant, desc: f.desc, gfk: !!f.gfk});
+  }
+  renderFeelingMatrix();
+}
+
+function updateFeelingSelection() {
+  const selDiv = document.getElementById('fm-selection');
+  const tagsDiv = document.getElementById('fm-selected-tags');
+  const countEl = document.getElementById('fm-count');
+  if (!fmSelected.length) {
+    selDiv.style.display = 'none';
+    return;
+  }
+  selDiv.style.display = '';
+  countEl.textContent = fmSelected.length;
+  tagsDiv.innerHTML = '';
+  fmSelected.forEach((s, i) => {
+    const col = FM_COLORS[s.quadrant];
+    const tag = document.createElement('div');
+    tag.style.cssText = `display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:14px;font-size:0.8rem;font-weight:500;background:${col.selBg};color:${col.selText};`;
+    tag.innerHTML = `<span>${s.label}</span><span onclick="removeFeelingWord(${i})" style="cursor:pointer;opacity:0.7;font-size:0.9rem;margin-left:2px;">✕</span>`;
+    // Tooltip with desc
+    tag.title = s.desc;
+    tagsDiv.appendChild(tag);
+  });
+}
+
+function removeFeelingWord(idx) {
+  fmSelected.splice(idx, 1);
+  renderFeelingMatrix();
+}
+
+function saveFeelingMatrix() {
+  if (!fmSelected.length) { showToast('Bitte mindestens ein Gefühl wählen.'); return; }
+  const context = document.getElementById('fm-context').value.trim();
+  const entry = {
+    ts: new Date().toISOString(),
+    feelings: fmSelected.map(s => ({label: s.label, quadrant: s.quadrant})),
+    context: context || null,
+    // Legacy compat: map to rough before value for old Verlauf code
+    before: null,
+    after: null
+  };
   state.feelingLog.unshift(entry);
   if (state.feelingLog.length > 200) state.feelingLog.pop();
   saveState();
-  initSlider('feeling-before', 5);
+  fmSelected = [];
+  document.getElementById('fm-context').value = '';
+  renderFeelingMatrix();
   renderFeelingHistory();
-  const hint = document.getElementById('feeling-after-pending');
-  if (hint) hint.style.display = '';
-  showToast('😊 Vor-Gefühl gespeichert!');
+  const count = entry.feelings.length;
+  showToast('😊 ' + count + (count === 1 ? ' Gefühl' : ' Gefühle') + ' gespeichert!');
 }
 
-function logFeelingAfter() {
-  const after = parseInt(document.getElementById('feeling-after-slider')?.value || 5);
-  // Find most recent entry without after value today
-  const todayStr = new Date().toDateString();
-  const pending = state.feelingLog.find(e =>
-    new Date(e.ts).toDateString() === todayStr && e.before !== null && e.after === null
-  );
-  if (pending) {
-    pending.after = after;
-    saveState();
-    renderFeelingHistory();
-    initSlider('feeling-after', 5);
-    const hint = document.getElementById('feeling-after-pending');
-    if (hint) hint.style.display = 'none';
-    showToast('😊 Nach-Gefühl ergänzt!');
-  } else {
-    // No pending entry – save as standalone after-only entry
-    state.feelingLog.unshift({ ts: new Date().toISOString(), before: null, after });
-    if (state.feelingLog.length > 200) state.feelingLog.pop();
-    saveState();
-    initSlider('feeling-after', 5);
-    renderFeelingHistory();
-    showToast('😊 Nach-Gefühl gespeichert!');
-  }
-}
-
-function logFeelingBoth() {
-  const before = parseInt(document.getElementById('feeling-before-slider')?.value || 5);
-  const after  = parseInt(document.getElementById('feeling-after-slider')?.value  || 5);
-  state.feelingLog.unshift({ ts: new Date().toISOString(), before, after });
-  if (state.feelingLog.length > 200) state.feelingLog.pop();
-  saveState();
-  initSlider('feeling-before', 5);
-  initSlider('feeling-after', 5);
+function renderFeeling() {
+  renderFeelingMatrix();
   renderFeelingHistory();
-  const hint = document.getElementById('feeling-after-pending');
-  if (hint) hint.style.display = 'none';
-  showToast('✅ Beide Gefühle gespeichert!');
 }
 
-// Keep old logFeeling as alias for both
-function logFeeling() { logFeelingBoth(); }
+function toggleWissen(id) {
+  const el = document.getElementById(id);
+  const icon = document.getElementById(id + '-icon');
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : '';
+  if (icon) icon.textContent = open ? '▼' : '▲';
+}
+
+// Keep old functions as no-ops for backward compat
+function logFeelingBefore() {}
+function logFeelingAfter() {}
+function logFeelingBoth() {}
+function logFeeling() {}
 
 function renderFeelingHistory() {
   const list = document.getElementById('feeling-history');
   const empty = document.getElementById('feeling-empty');
+  const summaryDiv = document.getElementById('fm-quadrant-summary');
   list.innerHTML = '';
   const filtered = filterByDate(state.feelingLog, feelingFilter);
-  if (!filtered.length) { empty.style.display=''; return; }
+  if (!filtered.length) { empty.style.display=''; if(summaryDiv) summaryDiv.style.display='none'; return; }
   empty.style.display = 'none';
+
+  // Quadrant summary
+  if (summaryDiv && filtered.length >= 3) {
+    const qCount = {ua:0, aa:0, ur:0, ar:0, neutral:0};
+    filtered.forEach(e => {
+      if (e.feelings) e.feelings.forEach(f => { if(qCount[f.quadrant]!==undefined) qCount[f.quadrant]++; });
+    });
+    const total = Object.values(qCount).reduce((a,b)=>a+b, 0);
+    if (total > 0) {
+      summaryDiv.style.display = '';
+      summaryDiv.innerHTML = `
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;">Quadranten-Verteilung:</div>
+        <div style="display:flex;gap:4px;height:8px;border-radius:4px;overflow:hidden;">
+          ${qCount.ua ? `<div style="flex:${qCount.ua};background:#d85a30;" title="unangenehm+aktiviert: ${qCount.ua}"></div>` : ''}
+          ${qCount.aa ? `<div style="flex:${qCount.aa};background:#378add;" title="angenehm+aktiviert: ${qCount.aa}"></div>` : ''}
+          ${qCount.ur ? `<div style="flex:${qCount.ur};background:#7f77dd;" title="unangenehm+ruhig: ${qCount.ur}"></div>` : ''}
+          ${qCount.ar ? `<div style="flex:${qCount.ar};background:#1d9e75;" title="angenehm+ruhig: ${qCount.ar}"></div>` : ''}
+          ${qCount.neutral ? `<div style="flex:${qCount.neutral};background:var(--muted);" title="neutral: ${qCount.neutral}"></div>` : ''}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;font-size:0.7rem;color:var(--muted);">
+          ${qCount.ua ? `<span style="display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#d85a30;display:inline-block;"></span>${qCount.ua}× unang.+akt.</span>` : ''}
+          ${qCount.aa ? `<span style="display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#378add;display:inline-block;"></span>${qCount.aa}× ang.+akt.</span>` : ''}
+          ${qCount.ur ? `<span style="display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#7f77dd;display:inline-block;"></span>${qCount.ur}× unang.+ruhig</span>` : ''}
+          ${qCount.ar ? `<span style="display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#1d9e75;display:inline-block;"></span>${qCount.ar}× ang.+ruhig</span>` : ''}
+        </div>
+      `;
+    } else {
+      summaryDiv.style.display = 'none';
+    }
+  }
+
   filtered.slice(0,20).forEach((e) => {
     const i = state.feelingLog.indexOf(e);
     const d = new Date(e.ts);
     const time = feelingFilter === 'heute'
       ? d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})
       : d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
-    const before = e.before !== null ? e.before : '—';
-    const after  = e.after  !== null ? e.after  : '—';
-    const color  = (v) => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
-    const isOpen = e.after === null && e.before !== null;
-    const uid = 'fe-' + i;
 
     const outer = document.createElement('div');
-    outer.style.cssText = `border:2px solid ${isOpen ? 'var(--accent)' : 'var(--border)'};border-radius:12px;overflow:hidden;margin-bottom:2px;`;
+    outer.style.cssText = 'border:2px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2px;';
 
     const summary = document.createElement('div');
     summary.className = 'feeling-entry';
-    summary.style.cssText = 'cursor:pointer;padding:10px 12px;margin:0;border-radius:0;';
-    summary.innerHTML = `
-      <span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(before)};">${before}</span>
-      <span class="arrow">→</span>
-      <span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(after)};">${after}</span>
-      ${isOpen ? '<span style="font-size:0.7rem;color:var(--accent);margin-left:4px;">⏳</span>' : ''}
-      <span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${time}</span>
-      <span id="${uid}-icon" style="color:var(--muted);font-size:0.8rem;margin-left:6px;">▼</span>
-    `;
+    summary.style.cssText = 'cursor:pointer;padding:10px 12px;margin:0;border-radius:0;flex-wrap:wrap;';
+
+    // New format (matrix) vs old format (slider numbers)
+    if (e.feelings && Array.isArray(e.feelings)) {
+      const chips = e.feelings.map(f => {
+        const col = FM_COLORS[f.quadrant] || FM_COLORS.neutral;
+        return `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:500;background:${col.selBg};color:${col.selText};line-height:1.4;">${f.label}</span>`;
+      }).join(' ');
+      summary.innerHTML = `
+        <div style="display:flex;flex-wrap:wrap;gap:3px;flex:1;">${chips}</div>
+        <span style="font-size:0.78rem;color:var(--muted);white-space:nowrap;margin-left:8px;">${time}</span>
+        <span id="fe-${i}-icon" style="color:var(--muted);font-size:0.8rem;margin-left:6px;">▼</span>
+      `;
+    } else {
+      // Legacy format: before/after numbers
+      const before = e.before !== null ? e.before : '—';
+      const after  = e.after  !== null ? e.after  : '—';
+      const color  = (v) => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
+      const isOpen = e.after === null && e.before !== null;
+      summary.innerHTML = `
+        <span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(before)};">${before}</span>
+        <span class="arrow">→</span>
+        <span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(after)};">${after}</span>
+        ${isOpen ? '<span style="font-size:0.7rem;color:var(--accent);margin-left:4px;">⏳</span>' : ''}
+        <span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${time}</span>
+        <span id="fe-${i}-icon" style="color:var(--muted);font-size:0.8rem;margin-left:6px;">▼</span>
+      `;
+    }
 
     const detail = document.createElement('div');
-    detail.id = uid;
+    detail.id = 'fe-' + i;
     detail.style.cssText = 'display:none;padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);';
-    detail.innerHTML = `
-      <div style="margin-bottom:10px;">
-        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;">VOR Aktivität</label>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <input type="range" min="1" max="10" value="${e.before||5}"
-            style="-webkit-appearance:none;flex:1;height:5px;border-radius:10px;background:var(--border);outline:none;"
-            oninput="editFeelingEntry(${i},'before',this.value);this.previousElementSibling && (this.previousElementSibling.textContent=this.value)"
-            onchange="editFeelingEntry(${i},'before',this.value)">
-          <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${color(before)};min-width:20px;">${before}</span>
-        </div>
-      </div>
-      <div style="margin-bottom:12px;">
-        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;">NACH Aktivität</label>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <input type="range" min="1" max="10" value="${e.after||5}"
-            style="-webkit-appearance:none;flex:1;height:5px;border-radius:10px;background:var(--border);outline:none;"
-            oninput="editFeelingEntry(${i},'after',this.value)"
-            onchange="editFeelingEntry(${i},'after',this.value)">
-          <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${color(after)};min-width:20px;">${after}</span>
-        </div>
-      </div>
-      <button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;">🗑 Löschen</button>
-    `;
+
+    if (e.feelings && Array.isArray(e.feelings)) {
+      const descList = e.feelings.map(f => {
+        const col = FM_COLORS[f.quadrant] || FM_COLORS.neutral;
+        return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+          <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:500;background:${col.selBg};color:${col.selText};">${f.label}</span>
+          <span style="font-size:0.72rem;color:var(--muted);">${QUADRANT_NAMES[f.quadrant] || ''}</span>
+        </div>`;
+      }).join('');
+      const ctxHtml = e.context ? `<div style="margin-top:8px;padding:8px 10px;background:var(--card);border-radius:8px;font-size:0.8rem;color:var(--ink);border-left:3px solid var(--accent);">${e.context}</div>` : '';
+      detail.innerHTML = `${descList}${ctxHtml}<button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;margin-top:10px;">🗑 Löschen</button>`;
+    } else {
+      // Legacy detail view
+      const before = e.before !== null ? e.before : 5;
+      const after = e.after !== null ? e.after : 5;
+      detail.innerHTML = `
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;">Alter Eintrag (Schieber-Format)</div>
+        <div>Vorher: <strong>${e.before !== null ? e.before : '–'}</strong> · Nachher: <strong>${e.after !== null ? e.after : '–'}</strong></div>
+        <button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;margin-top:10px;">🗑 Löschen</button>
+      `;
+    }
 
     summary.onclick = () => {
       const open = detail.style.display !== 'none';
       detail.style.display = open ? 'none' : '';
-      document.getElementById(uid+'-icon').textContent = open ? '▼' : '▲';
+      const icon = document.getElementById('fe-' + i + '-icon');
+      if (icon) icon.textContent = open ? '▼' : '▲';
     };
 
     outer.appendChild(summary);
@@ -6210,6 +6374,19 @@ function renderVerlauf() {
   renderVerlaufList('vl-feeling-list', 'vl-feeling-empty', allFeels, e => {
     const d = new Date(e.ts);
     const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+
+    // New matrix format
+    if (e.feelings && Array.isArray(e.feelings)) {
+      const chips = e.feelings.map(f => {
+        const col = (typeof FM_COLORS !== 'undefined' && FM_COLORS[f.quadrant]) ? FM_COLORS[f.quadrant] : {selBg:'var(--accent)',selText:'white'};
+        return `<span style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:0.7rem;font-weight:500;background:${col.selBg};color:${col.selText};">${f.label}</span>`;
+      }).join(' ');
+      const fidx = e.source ? -1 : state.feelingLog.indexOf(e);
+      const fdel = fidx >= 0 ? `<button onclick="deleteFeelingEntry(${fidx});renderVerlauf()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>` : '';
+      return `<div style="display:flex;flex-wrap:wrap;gap:2px;flex:1;">${chips}</div><span style="font-size:0.78rem;color:var(--muted);white-space:nowrap;margin-left:6px;">${ds}</span>${fdel}`;
+    }
+
+    // Legacy number format + activity/mindfulness feelings
     const sc = v => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
     const before = e.before !== null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${sc(e.before)};">${e.before}</span>` : '<span style="color:var(--muted);">–</span>';
     const after  = e.after  !== null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${sc(e.after)};">${e.after}</span>` : '<span style="color:var(--muted);">⏳</span>';
