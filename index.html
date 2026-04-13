@@ -7396,6 +7396,64 @@ function startCheckout() {
   }
 
   document.getElementById('co-note').value = '';
+
+  // Init Beschwerden step - check if already logged today
+  const todaySymptoms = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+  const todayFree = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+  const todaySick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
+  const symStepContent = document.getElementById('co-step-3');
+  if (symStepContent) {
+    if (todaySick) {
+      symStepContent.innerHTML = `
+        <div style="font-size:3rem;margin-bottom:12px;">🛏</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Krankheitstag</div>
+        <div style="font-size:0.85rem;color:rgba(168,216,234,0.9);margin-bottom:12px;">✅ Bereits als Krankheitstag eingetragen</div>
+        ${todaySymptoms.length ? '<div style="font-size:0.82rem;color:rgba(255,255,255,0.6);margin-bottom:8px;">' + todaySymptoms.map(s => s.type + (s.zone !== 'Allgemein' ? ' (' + s.zone + ')' : '') + ' · ' + s.intensity + '/10').join('<br>') + '</div>' : ''}
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-top:12px;">Gute Besserung! 💛</div>`;
+      coSym = 'sick';
+    } else if (todaySymptoms.length > 0) {
+      symStepContent.innerHTML = `
+        <div style="font-size:3rem;margin-bottom:12px;">🩹</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Beschwerden heute</div>
+        <div style="font-size:0.82rem;color:rgba(168,216,234,0.9);margin-bottom:16px;">✅ Bereits eingetragen:</div>
+        <div style="text-align:left;margin-bottom:16px;">
+          ${todaySymptoms.map(s => `<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:0.85rem;color:rgba(255,255,255,0.8);">
+            ${s.zone !== 'Allgemein' ? s.zone + ' – ' : ''}${s.type} · ${s.intensity}/10${s.note ? ' · ' + s.note : ''}
+          </div>`).join('')}
+        </div>
+        <button onclick="closeCheckout();showSection('body');setTimeout(()=>{const el=document.getElementById('symptom-card');if(el)el.scrollIntoView({behavior:'smooth'})},300)"
+          style="width:100%;padding:14px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">
+          🩹 Weitere Beschwerde eintragen →
+        </button>`;
+      coSym = 'yes';
+    } else if (todayFree) {
+      symStepContent.innerHTML = `
+        <div style="font-size:3rem;margin-bottom:12px;">🙏</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Beschwerdefrei</div>
+        <div style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ Bereits als beschwerdefrei eingetragen</div>`;
+      coSym = 'no';
+    } else {
+      symStepContent.innerHTML = `
+        <div style="font-size:3rem;margin-bottom:12px;">🩹</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Körperliche Beschwerden?</div>
+        <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:28px;">Hattest du heute Beschwerden?</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button id="co-sym-no" onclick="coToggle('sym','no')"
+            style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+            🙏 Nein, beschwerdefrei
+          </button>
+          <button id="co-sym-yes" onclick="coToggle('sym','yes')"
+            style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+            🩹 Ja, Beschwerden eintragen →
+          </button>
+          <button id="co-sym-sick" onclick="coToggle('sym','sick')"
+            style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
+            🛏 Krank / bettlägerig
+          </button>
+        </div>`;
+    }
+  }
+
   coGoStep(0);
   document.getElementById('checkout-overlay').style.display = 'flex';
 }
