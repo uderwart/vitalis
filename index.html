@@ -854,21 +854,7 @@
     <button onclick="exportPlanToCalendar()" style="margin-top:10px;width:100%;padding:9px;border-radius:10px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">📅 In Kalender exportieren</button>
   </div>
 
-  <!-- 5. SCHLAF MORGEN-CHECK -->
-  <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
-    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌙 Guten Morgen!</div>
-    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht? (1 = schlecht · 10 = super)</div>
-    <div style="text-align:center;font-family:'DM Serif Display',serif;font-size:2.5rem;color:#f4c261;margin-bottom:6px;" id="checkin-sleep-val">5</div>
-    <input type="range" id="checkin-sleep-slider" min="1" max="10" value="5"
-      style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.3);outline:none;cursor:pointer;margin-bottom:16px;"
-      oninput="document.getElementById('checkin-sleep-val').textContent=this.value">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <button onclick="skipSleepCheckin()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
-      <button onclick="quickLogSleepSlider()" style="padding:8px 20px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Speichern ✓</button>
-    </div>
-  </div>
-
-  <!-- 6. AKTIVE AKTIVITÄT BANNER -->
+  <!-- 5. AKTIVE AKTIVITÄT BANNER -->
   <div id="active-activity-banner" style="display:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;border-radius:16px;padding:16px 18px;margin-bottom:12px;">
     <div style="display:flex;align-items:center;gap:12px;">
       <div style="font-size:1.8rem;" id="active-act-icon">🏃</div>
@@ -3065,14 +3051,6 @@ function renderHome() {
   const dateEl = document.getElementById('home-date');
   if (dateEl) dateEl.textContent = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
 
-  // Sleep check-in
-  const checkinCard = document.getElementById('sleep-checkin-card');
-  const sleepLoggedToday = state.sleepLog.length > 0 && new Date(state.sleepLog[0].ts).toDateString() === todayStr;
-  const sleepSkipped = state.sleepCheckinSkipped === todayStr;
-  if (hour >= 5 && hour < 12 && !sleepLoggedToday && !sleepSkipped) {
-    checkinCard.style.display = ''; renderSleepCheckinGrid();
-  } else { checkinCard.style.display = 'none'; }
-
   // Goal subtitle
   const goal = state.profile?.mainGoal;
   renderDailyCheck();
@@ -3446,6 +3424,7 @@ function editFeelingEntry(i, field, val) {
   if (state.feelingLog[i]) {
     state.feelingLog[i][field] = parseInt(val);
     saveState();
+    showToast('✅ Gefühl aktualisiert.');
   }
 }
 
@@ -3527,6 +3506,7 @@ function setWaterGoal(v) {
   state.waterGoal = Math.max(500, parseInt(v) || 2000);
   saveState();
   renderWater();
+  showToast('✅ Wasserziel gespeichert.');
 }
 
 function resetWater() {
@@ -3645,6 +3625,7 @@ function updateActivitySteps(event, i) {
     state.activities[i].stepsDefault = val;
     saveState();
     renderActivities();
+    showToast('✅ Schritte aktualisiert.');
   }
 }
 
@@ -3654,6 +3635,7 @@ function updateActivityPts(event, i) {
     state.activities[i].ptsPerMin = val;
     saveState();
     renderActivities();
+    showToast('✅ Punkte/Min aktualisiert.');
   }
 }
 
@@ -3674,6 +3656,7 @@ function updateActivityLink(i, url) {
   state.activities[i].link = url.trim();
   saveState();
   if (state.selectedActivity === i) showActivityLink(i);
+  showToast('✅ Link gespeichert.');
 }
 
 function showActivityLink(i) {
@@ -4212,11 +4195,13 @@ function useJoker() {
 function setAlcMax(v) {
   state.alcMax = Math.max(1, parseInt(v) || 2);
   saveState(); renderAlcohol();
+  showToast('✅ Alkohol-Limit gespeichert.');
 }
 
 function setJokerMax(v) {
   state.jokerMax = Math.max(0, parseInt(v) || 2);
   saveState(); renderAlcohol();
+  showToast('✅ Joker-Limit gespeichert.');
 }
 
 function toggleAlcHistory() {
@@ -5041,11 +5026,13 @@ function toggleSweetsToday(had) {
 function setSweetsMax(v) {
   state.sweetsMax = Math.max(1, parseInt(v) || 3);
   saveState(); renderSweets();
+  showToast('✅ Süssigkeiten-Limit gespeichert.');
 }
 
 function setSweetsJokerMax(v) {
   state.sweetsJokerMax = Math.max(0, parseInt(v) || 2);
   saveState();
+  showToast('✅ Joker-Limit gespeichert.');
 }
 
 function resetSweetsWeek() {
@@ -5063,6 +5050,7 @@ function setHeight(v) {
     state.heightCm = val;
     saveState();
     renderBMI();
+    showToast('✅ Körpergrösse gespeichert.');
   }
 }
 
@@ -5209,37 +5197,6 @@ function skipGratitude() {
   state.gratitudeSkipped = new Date().toDateString();
   saveState();
   document.getElementById('gratitude-checkin-card').style.display = 'none';
-}
-
-function renderSleepCheckinGrid() {
-  const grid = document.getElementById('sleep-checkin-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  SLEEP_QUALITY.forEach((q, i) => {
-    const btn = document.createElement('button');
-    btn.style.cssText = 'padding:8px 4px;border:2px solid rgba(255,255,255,0.2);border-radius:12px;background:rgba(255,255,255,0.1);cursor:pointer;color:white;font-family:"DM Sans",sans-serif;text-align:center;transition:all 0.15s;';
-    btn.innerHTML = `<div style="font-size:1.4rem;">${q.emoji}</div><div style="font-size:0.6rem;opacity:0.7;margin-top:2px;white-space:pre-line;">${q.label}</div>`;
-    btn.onmouseenter = () => btn.style.background = 'rgba(255,255,255,0.25)';
-    btn.onmouseleave = () => btn.style.background = 'rgba(255,255,255,0.1)';
-    btn.onclick = () => quickLogSleep(i);
-    grid.appendChild(btn);
-  });
-}
-
-function quickLogSleepSlider() {
-  const score = parseInt(document.getElementById('checkin-sleep-slider')?.value || 5);
-  state.sleepLog.unshift({ ts: new Date().toISOString(), score, hours: null, bedtime: null, wake: null, note: null });
-  if (state.sleepLog.length > 200) state.sleepLog.pop();
-  saveState();
-  const _scc=document.getElementById('sleep-checkin-card'); if(_scc) _scc.style.display = 'none';
-  showToast('🌙 Schlaf notiert. Guten Morgen!');
-  renderHome();
-}
-
-function skipSleepCheckin() {
-  state.sleepCheckinSkipped = new Date().toDateString();
-  saveState();
-  const _scc=document.getElementById('sleep-checkin-card'); if(_scc) _scc.style.display = 'none';
 }
 
 // =====================
@@ -6289,18 +6246,21 @@ function updateMindfulnessDur(e, i) {
   e.stopPropagation();
   getMindfulnessExercises()[i].min = parseInt(e.target.value) || 5;
   saveState(); renderMindfulness();
+  showToast('✅ Dauer aktualisiert.');
 }
 
 function updateMindfulnessPts(e, i) {
   e.stopPropagation();
   getMindfulnessExercises()[i].ptsPerMin = parseInt(e.target.value) || 3;
   saveState(); renderMindfulness();
+  showToast('✅ Punkte/Min aktualisiert.');
 }
 
 function updateMindfulnessLink(i, url) {
   getMindfulnessExercises()[i].link = url.trim();
   saveState();
   if (state.selectedMindfulness === i) showMindfulnessLink(i);
+  showToast('✅ Link gespeichert.');
 }
 
 function addMindfulnessExercise() {
@@ -8101,6 +8061,7 @@ function saveProfile() {
   state.profile.intention = document.getElementById('profile-intention')?.value.trim() || '';
   saveState();
   renderHome();
+  showToast('✅ Profil gespeichert.');
 }
 
 function renderSettings() {
@@ -8172,6 +8133,7 @@ function saveBreathingSettings() {
   state.breathingWindowEnd     = parseInt(document.getElementById('breathing-end')?.value) || 17;
   saveState();
   scheduleBreathing();
+  showToast('✅ Atem-Einstellungen gespeichert.');
 }
 
 // =====================
