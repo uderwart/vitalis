@@ -1203,6 +1203,10 @@
         style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;background:var(--card);color:var(--ink);"></textarea>
       <button class="log-btn" onclick="saveFeelingMatrix()" style="margin-top:8px;">💾 Gefühl speichern</button>
     </div>
+    <!-- Bedürfnis-Reflexion (erscheint nach Speichern) -->
+    <div id="fm-needs-reflection" style="display:none;margin-top:14px;padding:14px;background:linear-gradient(135deg,#f0f4ff,#e8ecff);border-radius:12px;border:2px solid rgba(58,91,199,0.2);">
+      <div style="font-family:'DM Serif Display',serif;font-size:1rem;color:#3a5bc7;margin-bottom:6px;">💡 Was steckt dahinter?</div>
+    </div>
     <div id="fm-hint" style="display:none;margin-top:8px;padding:8px 12px;background:#fff3cd;border-radius:10px;font-size:0.78rem;color:#856404;">
       Maximal 5 Gefühle – tippe auf ein markiertes Wort, um es abzuwählen.
     </div>
@@ -1280,6 +1284,17 @@
       <div id="w-granularity" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
         Je differenzierter wir Emotionen benennen, desto besser können wir sie regulieren. Allein das Finden des richtigen Wortes hat bereits eine beruhigende Wirkung – das nennt man <strong>emotionale Granularität</strong>.
         <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Barrett, L. F. (2004). Journal of Personality and Social Psychology, 87(2).<br>Pennebaker, J. W. (1997). Psychological Science, 8(3).</div>
+      </div>
+    </div>
+    <div style="margin-bottom:8px;">
+      <div onclick="toggleWissen('w-needs')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:1.1rem;">💡</span>
+        <span style="flex:1;font-weight:500;font-size:0.9rem;">Gefühle als Wegweiser zu Bedürfnissen</span>
+        <span id="w-needs-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+      </div>
+      <div id="w-needs" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
+        In der GFK ist jedes Gefühl ein Signal: Angenehme Gefühle zeigen, dass Bedürfnisse erfüllt sind. Unangenehme Gefühle zeigen, dass etwas fehlt. Der Schritt vom Gefühl zum Bedürfnis macht handlungsfähig – statt „ich bin wütend" wird „mir fehlt Respekt" daraus, und das lässt sich adressieren.
+        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Rosenberg, M. B. (2003). Gewaltfreie Kommunikation.<br>CNVC – Center for Nonviolent Communication: Needs Inventory.</div>
       </div>
     </div>
   </div>
@@ -3412,7 +3427,7 @@ function renderHome() {
       })()
     },
     {
-      icon: '😊', label: 'Gefühl', section: 'feeling',
+      icon: '😊', label: "Wie geht's?", section: 'feeling',
       color: '#d85a30', bg: 'linear-gradient(135deg,#fef3ee,#f9e4dd)',
       value: (() => {
         const tf = state.feelingLog.filter(e => new Date(e.ts).toDateString() === todayStr);
@@ -3721,15 +3736,97 @@ function updateFeelingSelection() {
 
 function removeFeelingWord(idx) { fmSelected.splice(idx,1); renderFeelingMatrix(); }
 
+// Bedürfnisse nach CNVC, gemappt auf Circumplex-Quadranten
+const NEEDS_BY_QUADRANT = {
+  aa: { label: 'erfüllt – du spürst', needs: ['Lebendigkeit','Kreativität','Wirksamkeit','Verbindung','Autonomie','Abenteuer','Freude','Wachstum'] },
+  ar: { label: 'erfüllt – du spürst', needs: ['Sicherheit','Ruhe','Zugehörigkeit','Akzeptanz','Vertrauen','Geborgenheit','Harmonie','Frieden'] },
+  ua: { label: 'bedroht – dir fehlt vielleicht', needs: ['Respekt','Autonomie','Sicherheit','Fairness','Kontrolle','Klarheit','Integrität','Schutz'] },
+  ur: { label: 'unerfüllt – dir fehlt vielleicht', needs: ['Verbindung','Erholung','Sinn','Zugehörigkeit','Unterstützung','Hoffnung','Trost','Empathie'] }
+};
+
 function saveFeelingMatrix() {
   if(!fmSelected.length) { showToast('Bitte mindestens ein Gefühl wählen.'); return; }
   const context = document.getElementById('fm-context').value.trim();
-  const entry = { ts:new Date().toISOString(), feelings:fmSelected.map(s=>({label:s.label,quadrant:s.quadrant})), context:context||null, before:null, after:null };
+  const entry = { ts:new Date().toISOString(), feelings:fmSelected.map(s=>({label:s.label,quadrant:s.quadrant})), context:context||null, before:null, after:null, needs:null };
   state.feelingLog.unshift(entry);
   if(state.feelingLog.length > 200) state.feelingLog.pop();
-  saveState(); fmSelected=[]; document.getElementById('fm-context').value='';
-  renderFeelingMatrix(); renderFeelingHistory();
-  showToast('😊 '+entry.feelings.length+(entry.feelings.length===1?' Gefühl':' Gefühle')+' gespeichert!');
+  saveState();
+
+  // Show needs reflection
+  showNeedsReflection(entry, 0);
+}
+
+function showNeedsReflection(entry, logIndex) {
+  const quadrants = [...new Set(entry.feelings.map(f => f.quadrant))];
+  const allNeeds = [];
+  quadrants.forEach(q => {
+    const n = NEEDS_BY_QUADRANT[q];
+    if(n) n.needs.forEach(need => { if(!allNeeds.includes(need)) allNeeds.push(need); });
+  });
+
+  const isPositive = quadrants.every(q => q === 'aa' || q === 'ar');
+  const title = isPositive ? 'Was ist gerade erfüllt?' : 'Was brauchst du gerade?';
+  const subtitle = isPositive
+    ? 'Welche Bedürfnisse sind gerade genährt?'
+    : 'Welches Bedürfnis steckt vielleicht dahinter?';
+
+  const sel = document.getElementById('fm-selection');
+  if(sel) sel.style.display = 'none';
+
+  const needsDiv = document.getElementById('fm-needs-reflection');
+  if(!needsDiv) return;
+  needsDiv.style.display = '';
+  needsDiv.innerHTML = `
+    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;line-height:1.4;">${subtitle}</div>
+    <div id="fm-needs-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+      ${allNeeds.map(n => `<span onclick="toggleNeedChip(this)" data-need="${n}" style="display:inline-block;padding:6px 12px;border-radius:20px;font-size:0.78rem;cursor:pointer;border:1.5px solid var(--border);background:white;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;">${n}</span>`).join('')}
+    </div>
+    <textarea id="fm-needs-note" placeholder="Eigenes Bedürfnis oder Gedanke... (optional)" rows="1"
+      style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.82rem;resize:none;background:var(--card);color:var(--ink);margin-bottom:8px;"></textarea>
+    <div style="display:flex;gap:8px;">
+      <button class="log-btn" onclick="saveNeedsReflection(${logIndex})" style="flex:1;">💡 Speichern</button>
+      <button class="log-btn secondary" onclick="skipNeedsReflection()" style="flex:1;">Überspringen</button>
+    </div>
+  `;
+}
+
+function toggleNeedChip(el) {
+  const active = el.dataset.active === '1';
+  el.dataset.active = active ? '0' : '1';
+  el.style.background = active ? 'white' : 'rgba(58,91,199,0.1)';
+  el.style.color = active ? 'var(--muted)' : '#3a5bc7';
+  el.style.borderColor = active ? 'var(--border)' : 'rgba(58,91,199,0.5)';
+}
+
+function saveNeedsReflection(logIndex) {
+  const chips = document.querySelectorAll('#fm-needs-chips span');
+  const selected = [];
+  chips.forEach(c => { if(c.dataset.active === '1') selected.push(c.dataset.need); });
+  const note = (document.getElementById('fm-needs-note')?.value || '').trim();
+  if(selected.length || note) {
+    const entry = state.feelingLog[logIndex];
+    if(entry) {
+      entry.needs = selected.length ? selected : null;
+      if(note) entry.needsNote = note;
+      saveState();
+    }
+  }
+  finishNeedsReflection();
+  showToast('😊 ' + (selected.length ? selected.length + ' Bedürfnis' + (selected.length > 1 ? 'se' : '') + ' erkannt' : 'Gespeichert') + '!');
+}
+
+function skipNeedsReflection() {
+  finishNeedsReflection();
+  showToast('😊 Gefühle gespeichert!');
+}
+
+function finishNeedsReflection() {
+  const needsDiv = document.getElementById('fm-needs-reflection');
+  if(needsDiv) needsDiv.style.display = 'none';
+  fmSelected = [];
+  document.getElementById('fm-context').value = '';
+  renderFeelingMatrix();
+  renderFeelingHistory();
 }
 
 function renderFeeling() { renderFeelingMatrix(); renderFeelingHistory(); }
@@ -3801,7 +3898,8 @@ function renderFeelingHistory() {
     if(e.feelings && Array.isArray(e.feelings)) {
       const descList=e.feelings.map(f => { const col=FM_COLORS[f.quadrant]||FM_COLORS.neutral; return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:500;background:${col.selBg};color:${col.selText};">${f.label}</span><span style="font-size:0.72rem;color:var(--muted);">${QUADRANT_NAMES[f.quadrant]||''}</span></div>`; }).join('');
       const ctxHtml=e.context?`<div style="margin-top:8px;padding:8px 10px;background:var(--card);border-radius:8px;font-size:0.8rem;color:var(--ink);border-left:3px solid var(--accent);">${e.context}</div>`:'';
-      detail.innerHTML=`${descList}${ctxHtml}<button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;margin-top:10px;">🗑 Löschen</button>`;
+      const needsHtml=e.needs&&e.needs.length?`<div style="margin-top:8px;padding:8px 10px;background:rgba(58,91,199,0.05);border-radius:8px;border-left:3px solid #3a5bc7;"><div style="font-size:0.68rem;color:#3a5bc7;font-weight:600;margin-bottom:4px;">BEDÜRFNISSE</div><div style="font-size:0.78rem;color:var(--ink);">${e.needs.join(', ')}${e.needsNote?' · '+e.needsNote:''}</div></div>`:'';
+      detail.innerHTML=`${descList}${ctxHtml}${needsHtml}<button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;margin-top:10px;">🗑 Löschen</button>`;
     } else {
       detail.innerHTML=`<div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;">Alter Eintrag (Schieber)</div><div>Vorher: <strong>${e.before!==null?e.before:'–'}</strong> · Nachher: <strong>${e.after!==null?e.after:'–'}</strong></div><button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;margin-top:10px;">🗑 Löschen</button>`;
     }
