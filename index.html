@@ -4169,19 +4169,9 @@ function moveActivity(e, i, dir) {
 function updateActivityDuration(event, i) {
   const val = parseInt(event.target.value);
   if (!isNaN(val) && val >= 1 && val <= 300) {
-    showConfirm(
-      'Dauer ändern?',
-      'Wenn du die Dauer änderst, wird dein Streak zurückgesetzt.',
-      () => {
-        state.activities[i].min = val;
-        state.streak = 0;
-        state.lastActiveDate = null;
-        document.getElementById('streak-header-num').textContent = 0;
-        saveState();
-        renderActivities();
-        showToast('Dauer geändert – Streak zurückgesetzt.');
-      }
-    );
+    state.activities[i].min = val;
+    saveState();
+    renderActivities();
   }
 }
 
@@ -6785,34 +6775,40 @@ function renderMindfulness() {
     const div = document.createElement('div');
     div.style.cssText = `background:${isActive ? 'linear-gradient(135deg,#1a1a3e,#2d3561)' : 'var(--bg)'};border:2px solid ${isActive ? 'transparent' : 'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:10px;`;
 
+    const muid = 'mind-card-' + i;
     div.innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:1.8rem;">${a.icon||'🪷'}</span>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:1.5rem;">${a.icon||'🪷'}</span>
         <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:1rem;color:${isActive?'white':'var(--ink)'};">${a.name}</div>
-          <div style="font-size:0.78rem;color:${isActive?'rgba(255,255,255,0.7)':'var(--muted)'};margin-top:2px;">
-            ${a.min} Min · <span style="color:${isActive?'#f4c261':'var(--gold)'};">+${pts} Pkt</span>
-            ${isActive ? `<span id="mind-timer-${i}" style="margin-left:8px;font-weight:700;color:white;"></span>` : ''}
+          <div style="font-weight:700;font-size:0.95rem;color:${isActive?'white':'var(--ink)'};">${a.name}</div>
+          <div style="font-size:0.75rem;color:${isActive?'rgba(255,255,255,0.6)':'var(--muted)'};margin-top:1px;">
+            ${a.min} Min · +${pts} Pkt
           </div>
         </div>
-        ${isActive
-          ? `<button onclick="stopMindfulness()" style="padding:10px 18px;border-radius:12px;border:2px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.15);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;white-space:nowrap;">⏹ Stopp</button>`
-          : `<button onclick="startMindfulness(event,${i})" style="padding:10px 18px;border-radius:12px;border:2px solid #5b7fa6;background:transparent;color:#5b7fa6;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;white-space:nowrap;">▶ Start</button>`
-        }
         ${a.custom ? `<button onclick="deleteMindfulnessEx(event,${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:0;flex-shrink:0;">✕</button>` : ''}
+        <button onclick="event.stopPropagation();const d=document.getElementById('${muid}');d.style.display=d.style.display==='none'?'':'none'" style="background:none;border:none;color:${isActive?'rgba(255,255,255,0.4)':'var(--muted)'};cursor:pointer;font-size:0.8rem;padding:4px;">⚙️</button>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
-        <input type="number" value="${a.min}" min="1" max="120"
-          style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
-          onclick="event.stopPropagation()" onchange="updateMindfulnessDur(event,${i})">
-        <span style="font-size:0.78rem;color:var(--muted);">Min</span>
-        <input type="number" value="${a.ptsPerMin||3}" min="1" max="20"
-          style="width:50px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
-          onclick="event.stopPropagation()" onchange="updateMindfulnessPts(event,${i})">
-        <span style="font-size:0.78rem;color:var(--muted);">Pkt/Min</span>
-        ${a.link ? `<a href="${a.link}" target="_blank" style="font-size:0.78rem;color:#457b9d;text-decoration:none;">🔗 Link</a>` : ''}
+      ${isActive
+        ? `<div style="display:flex;align-items:center;gap:12px;">
+            <div id="mind-timer-${i}" style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:white;flex:1;"></div>
+            <button onclick="stopMindfulness()" style="padding:10px 24px;border-radius:12px;border:2px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">⏹ Stopp</button>
+          </div>`
+        : `<button onclick="startMindfulness(event,${i})" style="width:100%;padding:11px;border-radius:12px;border:none;background:#5b7fa6;color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">▶ Start · ${a.min} Min</button>`
+      }
+      ${a.link ? `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" style="display:block;font-size:0.72rem;color:#5b7fa6;text-decoration:none;margin-top:6px;">🔗 Link öffnen</a>` : ''}
+      <div id="${muid}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid ${isActive?'rgba(255,255,255,0.15)':'var(--border)'};">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+          <input type="number" value="${a.min}" min="1" max="120"
+            style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
+            onclick="event.stopPropagation()" onchange="updateMindfulnessDur(event,${i})">
+          <span style="font-size:0.78rem;color:var(--muted);">Min</span>
+          <input type="number" value="${a.ptsPerMin||3}" min="1" max="20"
+            style="width:50px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
+            onclick="event.stopPropagation()" onchange="updateMindfulnessPts(event,${i})">
+          <span style="font-size:0.78rem;color:var(--muted);">Pkt/Min</span>
+        </div>
         <input type="url" value="${a.link||''}" placeholder="🔗 Link (optional)"
-          style="flex:1;min-width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;color:var(--muted);background:var(--bg);"
+          style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--muted);background:var(--bg);"
           onchange="updateMindfulnessLink(${i}, this.value)" onclick="event.stopPropagation()">
       </div>
     `;
@@ -8697,10 +8693,26 @@ function startMindfulness(event, i) {
   if (state.activeMindfulness) { showToast('Erst die laufende Übung stoppen.'); return; }
   const ex = getMindfulnessExercises();
   const a = ex[i];
+
+  // Map mindfulness IDs to breathing technique keys
+  const breathMap = { 'box':'box', '478':'4-7-8', '424':'4-2-4', 'coherent':'coherent' };
+  const techKey = breathMap[a.id];
+
+  if (techKey && typeof TECHNIQUES !== 'undefined' && TECHNIQUES[techKey]) {
+    // Breathing exercise → open animated overlay
+    state.breathingTechnique = techKey;
+    state.breathingDuration = a.min;
+    state.activeMindfulness = { idx: i, name: a.name, icon: a.icon||'🪷', startTs: new Date().toISOString() };
+    saveState();
+    renderMindfulness();
+    showBreathingOverlay();
+    return;
+  }
+
+  // Regular mindfulness (meditation etc.) → timer
   state.activeMindfulness = { idx: i, name: a.name, icon: a.icon||'🪷', startTs: new Date().toISOString() };
   saveState();
   renderMindfulness();
-  // Start inline timer
   if (mindfulnessTimerInterval) clearInterval(mindfulnessTimerInterval);
   mindfulnessTimerInterval = setInterval(() => {
     const el = document.getElementById('mind-timer-' + i);
