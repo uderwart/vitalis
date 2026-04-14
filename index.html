@@ -2943,6 +2943,13 @@
       <button class="chip"        id="mchip-gestern"   onclick="selectMindfulnessDate('gestern')">Gestern</button>
       <button class="chip"        id="mchip-vorgestern" onclick="selectMindfulnessDate('vorgestern')">Vorgestern</button>
     </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Wie lange? (Minuten)</label>
+      <input type="number" id="mindfulness-manual-min" min="1" max="120" value=""
+        placeholder="z.B. 13"
+        style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;"
+        oninput="updateMindfulnessPreview()">
+    </div>
     <div style="font-size:0.78rem;color:var(--muted);margin:8px 0 12px;padding:8px 12px;background:var(--bg);border-radius:8px;" id="mindfulness-time-preview">
       Bitte Übung und Zeitpunkt wählen.
     </div>
@@ -4113,6 +4120,7 @@ function renderActivities() {
         : `<button onclick="startActivity(event,${i})" style="width:100%;padding:11px;border-radius:12px;border:none;background:var(--accent);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">▶ Start · ${isSteps ? stepsVal.toLocaleString('de-DE')+' Schritte' : a.min+' Min'}</button>`
       }
       ${a.link ? `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" style="display:block;font-size:0.72rem;color:var(--accent);text-decoration:none;margin-top:6px;">🔗 Link öffnen</a>` : ''}
+      ${!isActive ? `<button onclick="event.stopPropagation();selectActivity(${i})" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.78rem;cursor:pointer;margin-top:6px;">📝 Nachtragen</button>` : ''}
       <div id="${uid}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid ${isActive?'rgba(255,255,255,0.15)':'var(--border)'};">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
           ${isSteps ? `
@@ -6756,9 +6764,12 @@ function updateMindfulnessPreview() {
     return;
   }
   const e = ex[i];
+  const manualMin = parseInt(document.getElementById('mindfulness-manual-min')?.value);
+  const min = (manualMin && manualMin > 0) ? manualMin : e.min;
+  const pts = min * (e.ptsPerMin || 3);
   const dateLabel = selectedMindfulnessDate === new Date().toDateString() ? 'Heute'
     : selectedMindfulnessDate === (() => { const d=new Date(); d.setDate(d.getDate()-1); return d.toDateString(); })() ? 'Gestern' : 'Vorgestern';
-  if (preview) preview.innerHTML = `⏱ <strong>${dateLabel}</strong> · ${e.name} · ${e.min} Min · +${e.min * e.ptsPerMin} Punkte`;
+  if (preview) preview.innerHTML = `⏱ <strong>${dateLabel}</strong> · ${e.name} · ${min} Min · +${pts} Punkte`;
   const btn = document.getElementById('mindfulness-log-btn');
   if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
 }
@@ -6796,6 +6807,7 @@ function renderMindfulness() {
         : `<button onclick="startMindfulness(event,${i})" style="width:100%;padding:11px;border-radius:12px;border:none;background:#5b7fa6;color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">▶ Start · ${a.min} Min</button>`
       }
       ${a.link ? `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" style="display:block;font-size:0.72rem;color:#5b7fa6;text-decoration:none;margin-top:6px;">🔗 Link öffnen</a>` : ''}
+      ${!isActive ? `<button onclick="event.stopPropagation();selectMindfulnessEx(${i})" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.78rem;cursor:pointer;margin-top:6px;">📝 Nachtragen</button>` : ''}
       <div id="${muid}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid ${isActive?'rgba(255,255,255,0.15)':'var(--border)'};">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
           <input type="number" value="${a.min}" min="1" max="120"
@@ -6888,18 +6900,23 @@ function logMindfulness() {
   const ex = getMindfulnessExercises();
   if (i === null || i === undefined || !ex[i]) { showToast('Bitte Übung wählen.'); return; }
   const a = ex[i];
-  const pts = a.min * (a.ptsPerMin || 3);
+  const manualMin = parseInt(document.getElementById('mindfulness-manual-min')?.value);
+  const min = (manualMin && manualMin > 0) ? manualMin : a.min;
+  const pts = min * (a.ptsPerMin || 3);
   const d = getDateFromKey(
     document.getElementById('mchip-gestern')?.classList.contains('active') ? 'gestern' :
     document.getElementById('mchip-vorgestern')?.classList.contains('active') ? 'vorgestern' : 'heute'
   );
   d.setHours(new Date().getHours(), new Date().getMinutes(), 0, 0);
   if (!state.mindfulnessLog) state.mindfulnessLog = [];
-  state.mindfulnessLog.unshift({ name: a.name, icon: a.icon||'🧘', min: a.min, pts, ts: d.toISOString(), feeling: {} });
+  state.mindfulnessLog.unshift({ name: a.name, icon: a.icon||'🧘', min, pts, ts: d.toISOString(), ptsPerMin: a.ptsPerMin||3, feeling: {} });
   addPoints(pts, a.icon + ' ' + a.name);
   saveState();
+  // Reset manual min input
+  const minInput = document.getElementById('mindfulness-manual-min');
+  if (minInput) minInput.value = '';
   renderMindfulness();
-  showToast('✅ ' + a.name + ' geloggt! +' + pts + ' Punkte');
+  showToast('✅ ' + a.name + ' · ' + min + ' Min geloggt! +' + pts + ' Punkte');
   setTimeout(() => showFeelingOverlay({ type: 'mindfulness', logIndex: 0, phase: 'before' }), 400);
 }
 
