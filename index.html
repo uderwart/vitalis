@@ -1970,73 +1970,133 @@
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:4px;grid-auto-rows:auto;" id="verlauf-kacheln"></div>
 
   <!-- Aktivitäten -->
-  <div class="card" id="vl-activity-card">
-    <h2>🏃 Aktivitäten</h2>
-    <div id="vl-activity-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-    <p class="small-note" id="vl-activity-empty">Keine Einträge im Zeitraum.</p>
+  <div class="card" id="vl-activity-card" style="padding:0;overflow:hidden;">
+    <div onclick="toggleVerlaufSection('vl-activity')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+      <h2 style="flex:1;margin:0;">🏃 Aktivitäten</h2>
+      <span id="vl-activity-count" style="font-size:0.78rem;color:var(--muted);"></span>
+      <span id="vl-activity-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+    </div>
+    <div id="vl-activity-body" style="display:none;padding:0 16px 14px;">
+      <div id="vl-activity-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p class="small-note" id="vl-activity-empty">Keine Einträge im Zeitraum.</p>
+    </div>
   </div>
 
   <!-- Wasser -->
-  <div class="card">
-    <h2>💧 Wasser</h2>
-    <div id="vl-water-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-    <p class="small-note" id="vl-water-empty">Keine Einträge im Zeitraum.</p>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div onclick="toggleVerlaufSection('vl-water')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+      <h2 style="flex:1;margin:0;">💧 Wasser</h2>
+      <span id="vl-water-count" style="font-size:0.78rem;color:var(--muted);"></span>
+      <span id="vl-water-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+    </div>
+    <div id="vl-water-body" style="display:none;padding:0 16px 14px;">
+      <div id="vl-water-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p class="small-note" id="vl-water-empty">Keine Einträge im Zeitraum.</p>
+    </div>
   </div>
 
   <!-- Gefühl -->
-  <div class="card" id="vl-feeling-card">
-    <h2>😊 Gefühl</h2>
-    <div id="vl-feeling-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-    <p class="small-note" id="vl-feeling-empty">Keine Einträge im Zeitraum.</p>
+  <div class="card" id="vl-feeling-card" style="padding:0;overflow:hidden;">
+    <div onclick="toggleVerlaufSection('vl-feeling')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+      <h2 style="flex:1;margin:0;">😊 Wie geht's?</h2>
+      <span id="vl-feeling-count" style="font-size:0.78rem;color:var(--muted);"></span>
+      <span id="vl-feeling-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+    </div>
+    <div id="vl-feeling-body" style="display:none;padding:0 16px 14px;">
+      <div id="vl-feeling-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p class="small-note" id="vl-feeling-empty">Keine Einträge im Zeitraum.</p>
+    </div>
   </div>
 
   <!-- Süssigkeiten -->
-  <div class="card" id="vl-sweets-card">
-    <h2>🍬 Süssigkeiten</h2>
-    <div id="vl-sweets-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-    <p class="small-note" id="vl-sweets-empty">Keine Einträge im Zeitraum.</p>
+  <div class="card" id="vl-sweets-card" style="padding:0;overflow:hidden;">
+    <div onclick="toggleVerlaufSection('vl-sweets')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+      <h2 style="flex:1;margin:0;">🍬 Süssigkeiten</h2>
+      <span id="vl-sweets-count" style="font-size:0.78rem;color:var(--muted);"></span>
+      <span id="vl-sweets-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+    </div>
+    <div id="vl-sweets-body" style="display:none;padding:0 16px 14px;">
+      <div id="vl-sweets-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p class="small-note" id="vl-sweets-empty">Keine Einträge im Zeitraum.</p>
+    </div>
   </div>
 
   <!-- Schlaf -->
-  <div class="card">
-    <h2>🌙 Schlaf</h2>
-    <div id="vl-sleep-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-    <p class="small-note" id="vl-sleep-empty">Keine Einträge im Zeitraum.</p>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div onclick="toggleVerlaufSection('vl-sleep')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+      <h2 style="flex:1;margin:0;">🌙 Schlaf</h2>
+      <span id="vl-sleep-count" style="font-size:0.78rem;color:var(--muted);"></span>
+      <span id="vl-sleep-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+    </div>
+    <div id="vl-sleep-body" style="display:none;padding:0 16px 14px;">
+      <div id="vl-sleep-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p class="small-note" id="vl-sleep-empty">Keine Einträge im Zeitraum.</p>
+    </div>
   </div>
 
   <!-- Dankbarkeit -->
-  <div class="card">
-    <h2>🌟 Dankbarkeit</h2>
-    <div id="vl-gratitude-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-    <p class="small-note" id="vl-gratitude-empty">Keine Einträge im Zeitraum.</p>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div onclick="toggleVerlaufSection('vl-gratitude')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+      <h2 style="flex:1;margin:0;">🌟 Dankbarkeit</h2>
+      <span id="vl-gratitude-count" style="font-size:0.78rem;color:var(--muted);"></span>
+      <span id="vl-gratitude-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+    </div>
+    <div id="vl-gratitude-body" style="display:none;padding:0 16px 14px;">
+      <div id="vl-gratitude-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p class="small-note" id="vl-gratitude-empty">Keine Einträge im Zeitraum.</p>
+    </div>
   </div>
 
   <!-- Körper -->
-  <div class="card">
-    <h2>🧘 Körpergefühl</h2>
-    <div id="vl-body-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-    <p class="small-note" id="vl-body-empty">Keine Einträge im Zeitraum.</p>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div onclick="toggleVerlaufSection('vl-body')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+      <h2 style="flex:1;margin:0;">🧘 Körpergefühl</h2>
+      <span id="vl-body-count" style="font-size:0.78rem;color:var(--muted);"></span>
+      <span id="vl-body-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+    </div>
+    <div id="vl-body-body" style="display:none;padding:0 16px 14px;">
+      <div id="vl-body-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p class="small-note" id="vl-body-empty">Keine Einträge im Zeitraum.</p>
+    </div>
   </div>
 
   <!-- Achtsamkeit -->
-  <div class="card">
-    <h2>🪷 Achtsamkeit</h2>
-    <div id="vl-mind-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-    <p class="small-note" id="vl-mind-empty">Keine Einträge im Zeitraum.</p>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div onclick="toggleVerlaufSection('vl-mind')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+      <h2 style="flex:1;margin:0;">🪷 Achtsamkeit</h2>
+      <span id="vl-mind-count" style="font-size:0.78rem;color:var(--muted);"></span>
+      <span id="vl-mind-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+    </div>
+    <div id="vl-mind-body" style="display:none;padding:0 16px 14px;">
+      <div id="vl-mind-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p class="small-note" id="vl-mind-empty">Keine Einträge im Zeitraum.</p>
+    </div>
   </div>
 
   <!-- Kontakte -->
-  <div class="card">
-    <h2>❤️ Kontakte</h2>
-    <div id="vl-social-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-    <p class="small-note" id="vl-social-empty">Keine Einträge im Zeitraum.</p>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div onclick="toggleVerlaufSection('vl-social')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+      <h2 style="flex:1;margin:0;">❤️ Kontakte</h2>
+      <span id="vl-social-count" style="font-size:0.78rem;color:var(--muted);"></span>
+      <span id="vl-social-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+    </div>
+    <div id="vl-social-body" style="display:none;padding:0 16px 14px;">
+      <div id="vl-social-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p class="small-note" id="vl-social-empty">Keine Einträge im Zeitraum.</p>
+    </div>
   </div>
 
   <!-- Beschwerden -->
-  <div class="card">
-    <h2>🩹 Beschwerden</h2>
-    <div id="vl-symptom-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-    <p class="small-note" id="vl-symptom-empty">Keine Einträge im Zeitraum.</p>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div onclick="toggleVerlaufSection('vl-symptom')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+      <h2 style="flex:1;margin:0;">🩹 Beschwerden</h2>
+      <span id="vl-symptom-count" style="font-size:0.78rem;color:var(--muted);"></span>
+      <span id="vl-symptom-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
+    </div>
+    <div id="vl-symptom-body" style="display:none;padding:0 16px 14px;">
+      <div id="vl-symptom-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p class="small-note" id="vl-symptom-empty">Keine Einträge im Zeitraum.</p>
+    </div>
   </div>
 
 </div>
@@ -6379,6 +6439,15 @@ function filterByDate(log, filter) {
   });
 }
 
+function toggleVerlaufSection(id) {
+  const body = document.getElementById(id + '-body');
+  const icon = document.getElementById(id + '-icon');
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if (icon) icon.textContent = open ? '▼' : '▲';
+}
+
 function toggleKachel(id) {
   const el = document.getElementById(id);
   const icon = document.getElementById(id + '-icon');
@@ -6645,6 +6714,9 @@ function renderVerlaufList(listId, emptyId, entries, rowFn) {
   const list  = document.getElementById(listId);
   const empty = document.getElementById(emptyId);
   list.innerHTML = '';
+  // Update count badge
+  const countEl = document.getElementById(listId.replace('-list', '-count'));
+  if (countEl) countEl.textContent = entries.length > 0 ? entries.length + '×' : '';
   if (!entries.length) { empty.style.display=''; return; }
   empty.style.display = 'none';
   entries.slice(0,50).forEach(e => {
