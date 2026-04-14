@@ -866,19 +866,6 @@
   </div>
 
   <!-- 5. SCHLAF MORGEN-CHECK -->
-  <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
-    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌙 Guten Morgen!</div>
-    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht? (1 = schlecht · 10 = super)</div>
-    <div style="text-align:center;font-family:'DM Serif Display',serif;font-size:2.5rem;color:#f4c261;margin-bottom:6px;" id="checkin-sleep-val">5</div>
-    <input type="range" id="checkin-sleep-slider" min="1" max="10" value="5"
-      style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.3);outline:none;cursor:pointer;margin-bottom:16px;"
-      oninput="document.getElementById('checkin-sleep-val').textContent=this.value">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <button onclick="skipSleepCheckin()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
-      <button onclick="quickLogSleepSlider()" style="padding:8px 20px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Speichern ✓</button>
-    </div>
-  </div>
-
   <!-- 6. AKTIVE AKTIVITÄT BANNER -->
   <div id="active-activity-banner" style="display:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;border-radius:16px;padding:16px 18px;margin-bottom:12px;">
     <div style="display:flex;align-items:center;gap:12px;">
@@ -1066,34 +1053,12 @@
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
 
-    <!-- Step 0: Aktivität bestätigen -->
+    <!-- Step 0: Tagesübersicht -->
     <div id="co-step-0" style="text-align:center;">
-      <div style="font-size:3rem;margin-bottom:12px;" id="co-act-icon">🏃</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin-bottom:8px;" id="co-act-title">Warst du aktiv?</div>
-      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:24px;" id="co-act-subtitle">Heute geplant oder spontan</div>
-      <div id="co-act-planned" style="display:none;margin-bottom:20px;">
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:8px;">HEUTE GEPLANT</div>
-        <div id="co-act-planned-name" style="font-weight:700;font-size:1.1rem;color:white;margin-bottom:16px;"></div>
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:6px;">Wie viel hast du gemacht?</div>
-        <div style="font-family:'DM Serif Display',serif;font-size:3rem;color:white;margin-bottom:6px;" id="co-dur-val">0 Min</div>
-        <input type="range" id="co-dur-slider" min="0" max="90" step="5" value="0"
-          style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:8px;"
-          oninput="coDurUpdate(this.value)">
-        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
-          <span>Nicht gemacht</span><span id="co-dur-max">geplant</span>
-        </div>
-      </div>
-      <div id="co-act-unplanned" style="display:none;">
-        <div style="font-size:0.82rem;color:rgba(255,255,255,0.6);margin-bottom:12px;">Wähle eine Aktivität</div>
-        <div id="co-act-list" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
-        <div id="co-dur-unplanned" style="display:none;margin-top:16px;">
-          <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:6px;">Wie lange?</div>
-          <div style="font-family:'DM Serif Display',serif;font-size:2.5rem;color:white;margin-bottom:6px;" id="co-dur-val2">30 Min</div>
-          <input type="range" id="co-dur-slider2" min="5" max="180" step="5" value="30"
-            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;"
-            oninput="document.getElementById('co-dur-val2').textContent=this.value+' Min'">
-        </div>
-      </div>
+      <div style="font-size:3rem;margin-bottom:12px;" id="co-act-icon">📋</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin-bottom:8px;" id="co-act-title">Dein Tag</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:24px;" id="co-act-subtitle"></div>
+      <div id="co-act-planned" style="display:none;margin-bottom:20px;text-align:left;"></div>
     </div>
 
     <!-- Step 1: Wasser -->
@@ -3292,14 +3257,6 @@ function renderHome() {
   if (greetEl) greetEl.textContent = greeting;
   const dateEl = document.getElementById('home-date');
   if (dateEl) dateEl.textContent = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
-
-  // Sleep check-in
-  const checkinCard = document.getElementById('sleep-checkin-card');
-  const sleepLoggedToday = state.sleepLog.length > 0 && new Date(state.sleepLog[0].ts).toDateString() === todayStr;
-  const sleepSkipped = state.sleepCheckinSkipped === todayStr;
-  if (hour >= 5 && hour < 12 && !sleepLoggedToday && !sleepSkipped) {
-    checkinCard.style.display = ''; renderSleepCheckinGrid();
-  } else { checkinCard.style.display = 'none'; }
 
   // Goal subtitle
   const goal = state.profile?.mainGoal;
@@ -6435,7 +6392,7 @@ function renderVerlauf() {
 
   // Gefühl – aus feelingLog UND aus activityLog/mindfulnessLog
   const feelsManual = filterByDate(state.feelingLog, verlaufFilter)
-    .filter(e => e.before != null || e.after != null);
+    .filter(e => e.before != null || e.after != null || (e.feelings && e.feelings.length > 0));
   const feelsFromActs = filterByDate(state.activityLog, verlaufFilter)
     .filter(e => e.feeling?.before != null || e.feeling?.after != null)
     .map(e => ({ ts: e.ts, source: e.icon + ' ' + e.name, before: e.feeling?.before ?? null, after: e.feeling?.after ?? null }));
@@ -7493,58 +7450,44 @@ function startCheckout() {
 
     acts.forEach((a, j) => {
       const idx = indices[j];
-      // Check if already logged today
       const alreadyLogged = state.activityLog.find(e =>
         new Date(e.ts).toDateString() === todayStr && e.name === a.name
       );
       if (alreadyLogged) {
         html += `
-          <div style="margin-bottom:16px;opacity:0.7;">
-            <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:4px;">${a.icon||'🏃'} ${a.name}</div>
-            <div style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ Bereits geloggt – ${alreadyLogged.min} Min · +${alreadyLogged.pts} Punkte</div>
-            <input type="hidden" id="co-dur-slider-${idx}" value="0">
+          <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:1.3rem;">${a.icon||'🏃'}</span>
+            <span style="flex:1;font-weight:700;font-size:1rem;color:white;">${a.name}</span>
+            <span style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ ${alreadyLogged.min} Min</span>
           </div>`;
       } else {
         html += `
-          <div style="margin-bottom:16px;">
-            <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🏃'} ${a.name} – ${a.min} Min geplant</div>
-            <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
-            <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-dur-val-${idx}">0 Min</div>
-            <input type="range" id="co-dur-slider-${idx}" min="0" max="${Math.max(a.min,120)}" step="5" value="0"
-              style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
-              oninput="document.getElementById('co-dur-val-${idx}').textContent=this.value+' Min'">
-            <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
-              <span>Nicht gemacht</span><span>${a.min} Min</span>
-            </div>
+          <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:1.3rem;">${a.icon||'🏃'}</span>
+            <span style="flex:1;font-weight:700;font-size:1rem;color:white;">${a.name}</span>
+            <span style="font-size:1rem;color:rgba(255,255,255,0.3);">○</span>
           </div>`;
       }
     });
 
     minds.forEach((a, j) => {
       const idx = (planned.mindIndices||[])[j];
-      // Check if already logged today
       const alreadyLogged = (state.mindfulnessLog||[]).find(e =>
         new Date(e.ts).toDateString() === todayStr && e.name === a.name
       );
       if (alreadyLogged) {
         html += `
-          <div style="margin-bottom:16px;opacity:0.7;">
-            <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:4px;">${a.icon||'🪷'} ${a.name}</div>
-            <div style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ Bereits geloggt – ${alreadyLogged.min} Min · +${alreadyLogged.pts} Punkte</div>
-            <input type="hidden" id="co-mind-slider-${idx}" value="0">
+          <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:1.3rem;">${a.icon||'🪷'}</span>
+            <span style="flex:1;font-weight:700;font-size:1rem;color:white;">${a.name}</span>
+            <span style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ ${alreadyLogged.min} Min</span>
           </div>`;
       } else {
         html += `
-          <div style="margin-bottom:16px;">
-            <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🪷'} ${a.name} – ${a.min} Min geplant</div>
-            <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
-            <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-mind-val-${idx}">0 Min</div>
-            <input type="range" id="co-mind-slider-${idx}" min="0" max="${Math.max(a.min,60)}" step="5" value="0"
-              style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
-              oninput="document.getElementById('co-mind-val-${idx}').textContent=this.value+' Min'">
-            <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
-              <span>Nicht gemacht</span><span>${a.min} Min</span>
-            </div>
+          <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:1.3rem;">${a.icon||'🪷'}</span>
+            <span style="flex:1;font-weight:700;font-size:1rem;color:white;">${a.name}</span>
+            <span style="font-size:1rem;color:rgba(255,255,255,0.3);">○</span>
           </div>`;
       }
     });
@@ -7564,24 +7507,24 @@ function startCheckout() {
     const total = acts.length + minds.length + contacts.length;
     document.getElementById('co-act-planned').innerHTML = html;
     document.getElementById('co-act-icon').textContent = total > 1 ? '📋' : (acts[0]?.icon || minds[0]?.icon || '❤️');
-    document.getElementById('co-act-title').textContent = 'Wie war dein Tag?';
-    document.getElementById('co-act-subtitle').textContent = '';
+    document.getElementById('co-act-title').textContent = 'Dein Tag';
+    document.getElementById('co-act-subtitle').textContent = 'Was du geplant hast – und was passiert ist.';
     plannedDiv.style.display = '';
     unplannedDiv.style.display = 'none';
   } else {
-    document.getElementById('co-act-icon').textContent = '🏃';
-    document.getElementById('co-act-title').textContent = 'Warst du aktiv?';
-    document.getElementById('co-act-subtitle').textContent = 'Spontan oder vergessen einzutragen?';
+    // Nothing planned – just show a simple summary
+    document.getElementById('co-act-icon').textContent = '📋';
+    const todayActs = state.activityLog.filter(e => new Date(e.ts).toDateString() === todayStr);
+    const todayMind = (state.mindfulnessLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
+    if (todayActs.length || todayMind.length) {
+      document.getElementById('co-act-title').textContent = 'Heute gemacht';
+      document.getElementById('co-act-subtitle').textContent = todayActs.map(e=>e.name).concat(todayMind.map(e=>e.name)).join(', ');
+    } else {
+      document.getElementById('co-act-title').textContent = 'Heute keine Aktivität';
+      document.getElementById('co-act-subtitle').textContent = 'Morgen ist ein neuer Tag.';
+    }
     plannedDiv.style.display = 'none';
-    unplannedDiv.style.display = '';
-    // Build activity list
-    const list = document.getElementById('co-act-list');
-    list.innerHTML = (state.activities||[]).map((a,i) => `
-      <button class="tm-activity-btn" onclick="coSelectActivity(${i},this)">
-        <span style="font-size:1.2rem;">${a.icon||'🏃'}</span>
-        <span style="flex:1;margin-left:10px;">${a.name}</span>
-        <span style="font-size:0.8rem;opacity:0.6;">${a.min} Min</span>
-      </button>`).join('');
+    unplannedDiv.style.display = 'none';
   }
 
   document.getElementById('co-note').value = '';
@@ -7792,52 +7735,10 @@ function coHabitSet(val) {
 function coSave() {
   const todayStr = new Date().toDateString();
 
-  // 1. Aktivitäten
-  const planned = state.profile?.morningPlanned;
-  if (planned && planned.date === todayStr) {
-    const indices = planned.actIndices || (planned.actIdx != null ? [planned.actIdx] : []);
-    indices.forEach(idx => {
-      const durMin = parseInt(document.getElementById(`co-dur-slider-${idx}`)?.value || 0);
-      if (durMin > 0) {
-        const a = state.activities[idx];
-        if (a) {
-          const pts = durMin * (a.ptsPerMin||1);
-          state.activityLog.unshift({ name:a.name, icon:a.icon||'🏃', min:durMin, pts, label:durMin+' min', ts:new Date().toISOString(), ptsPerMin:a.ptsPerMin||1, steps:false, feeling:{} });
-          if (state.activityLog.length > 200) state.activityLog.pop();
-          addPoints(pts, (a.icon||'🏃') + ' ' + a.name);
-          checkStreak();
-        }
-      }
-    });
-  } else if (coSelectedActivity !== null) {
-    const durMin = parseInt(document.getElementById('co-dur-slider2')?.value || 30);
-    const a = state.activities[coSelectedActivity];
-    if (a && durMin > 0) {
-      const pts = durMin * (a.ptsPerMin||1);
-      state.activityLog.unshift({ name:a.name, icon:a.icon||'🏃', min:durMin, pts, label:durMin+' min', ts:new Date().toISOString(), ptsPerMin:a.ptsPerMin||1, steps:false, feeling:{} });
-      if (state.activityLog.length > 200) state.activityLog.pop();
-      addPoints(pts, (a.icon||'🏃') + ' ' + a.name);
-      checkStreak();
-    }
-  }
-
-  // 1b. Achtsamkeit
-  const plannedMinds = planned?.mindIndices || [];
-  plannedMinds.forEach(idx => {
-    const durMin = parseInt(document.getElementById(`co-mind-slider-${idx}`)?.value || 0);
-    if (durMin > 0) {
-      const exs = getMindfulnessExercises ? getMindfulnessExercises() : [];
-      const a = exs[idx];
-      if (a) {
-        const pts = durMin * (a.ptsPerMin||3);
-        if (!state.mindfulnessLog) state.mindfulnessLog = [];
-        state.mindfulnessLog.unshift({ name:a.name, icon:a.icon||'🪷', min:durMin, pts, ts:new Date().toISOString(), ptsPerMin:a.ptsPerMin||3, feeling:{} });
-        addPoints(pts, (a.icon||'🪷') + ' ' + a.name);
-      }
-    }
-  });
+  // 1. Aktivitäten & Achtsamkeit – werden über Timer geloggt, nicht im Checkout
 
   // 1c. Kontakte
+  const planned = state.profile?.morningPlanned;
   const week = getCurrentWeekKey ? getCurrentWeekKey() : '';
   const contactPlans = planned?.contactPlans || [];
   coCompletedContacts.forEach(j => {
@@ -7967,7 +7868,6 @@ function startTwoMin() {
     <button class="tm-activity-btn" onclick="tmSelectActivity(${i},this)">
       <span style="font-size:1.2rem;">${a.icon||'🏃'}</span>
       <span style="flex:1;margin-left:8px;">${a.name}</span>
-      <span style="font-size:0.78rem;opacity:0.6;">${a.steps ? (a.stepsDefault||5000)+' Schr.' : a.min+' Min'}</span>
     </button>`).join('');
 
   // Build mindfulness list
@@ -7978,7 +7878,6 @@ function startTwoMin() {
       <button class="tm-activity-btn" onclick="tmSelectMindfulness(${i},this)">
         <span style="font-size:1.2rem;">${a.icon||'🪷'}</span>
         <span style="flex:1;margin-left:8px;">${a.name}</span>
-        <span style="font-size:0.78rem;opacity:0.6;">${a.min} Min</span>
       </button>`).join('');
   }
 
@@ -8074,7 +7973,7 @@ function tmBuildSequence() {
   const hasPlanned = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContactPlans.length > 0;
   const steps = [];
   if (needSleep) steps.push('sleep');
-  steps.push(0, 1);
+  steps.push(1);
   if (state.woopEnabled && hasPlanned) steps.push('woop');
   steps.push(2, 3);
   tmStepSequence = steps;
