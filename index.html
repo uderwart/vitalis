@@ -3660,12 +3660,16 @@ function renderHome() {
     tiles.appendChild(tile);
   });
 
-  // Gratitude entry
-  if (gratEntry) {
+  // Gratitude entry – under the quote card
+  const quoteCard = document.getElementById('home-quote-fullwidth');
+  if (gratEntry && quoteCard) {
+    const existing = document.getElementById('home-gratitude-display');
+    if (existing) existing.remove();
     const gt = document.createElement('div');
-    gt.style.cssText = 'grid-column:span 2;padding:14px 16px;background:linear-gradient(135deg,rgba(45,27,78,0.07),rgba(74,32,96,0.07));border-radius:20px;border:1.5px solid rgba(155,89,182,0.2);cursor:pointer;margin-top:0;';
+    gt.id = 'home-gratitude-display';
+    gt.style.cssText = 'padding:12px 18px;background:linear-gradient(135deg,rgba(45,27,78,0.07),rgba(74,32,96,0.07));border-radius:0 0 16px 16px;margin-top:-12px;margin-bottom:12px;border:1.5px solid rgba(155,89,182,0.2);border-top:1px solid rgba(155,89,182,0.15);';
     gt.innerHTML = '<div style="font-size:0.7rem;color:#9b59b6;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🌟 Heute dankbar für</div><div style="font-size:0.88rem;color:var(--ink);font-style:italic;">&ldquo;' + gratEntry.text + '&rdquo;</div>';
-    tiles.appendChild(gt);
+    quoteCard.after(gt);
   }
 }
 
