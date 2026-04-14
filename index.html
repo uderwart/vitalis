@@ -3737,11 +3737,45 @@ function updateFeelingSelection() {
 function removeFeelingWord(idx) { fmSelected.splice(idx,1); renderFeelingMatrix(); }
 
 // Bedürfnisse nach CNVC, gemappt auf Circumplex-Quadranten
-const NEEDS_BY_QUADRANT = {
-  aa: { label: 'erfüllt – du spürst', needs: ['Lebendigkeit','Kreativität','Wirksamkeit','Verbindung','Autonomie','Abenteuer','Freude','Wachstum'] },
-  ar: { label: 'erfüllt – du spürst', needs: ['Sicherheit','Ruhe','Zugehörigkeit','Akzeptanz','Vertrauen','Geborgenheit','Harmonie','Frieden'] },
-  ua: { label: 'bedroht – dir fehlt vielleicht', needs: ['Respekt','Autonomie','Sicherheit','Fairness','Kontrolle','Klarheit','Integrität','Schutz'] },
-  ur: { label: 'unerfüllt – dir fehlt vielleicht', needs: ['Verbindung','Erholung','Sinn','Zugehörigkeit','Unterstützung','Hoffnung','Trost','Empathie'] }
+// Bedürfnisse pro Gefühl (CNVC-basiert, Rosenberg 2003)
+const FEELING_NEEDS = {
+  // ua – unangenehm + aktiviert
+  'wütend':['Respekt','Fairness','Autonomie'], 'ängstlich':['Sicherheit','Schutz','Klarheit'],
+  'gestresst':['Ruhe','Entlastung','Unterstützung'], 'frustriert':['Wirksamkeit','Fortschritt','Klarheit'],
+  'genervt':['Ruhe','Respekt','Rückzug'], 'panisch':['Sicherheit','Kontrolle','Schutz'],
+  'zornig':['Respekt','Integrität','Fairness'], 'erbost':['Gerechtigkeit','Fairness'],
+  'aufgewühlt':['Klarheit','Ruhe','Ordnung'], 'fassungslos':['Verstehen','Sinn'],
+  'angespannt':['Entlastung','Ruhe'], 'unruhig':['Sicherheit','Stabilität'],
+  'verunsichert':['Sicherheit','Orientierung'], 'besorgt':['Sicherheit','Kontrolle'],
+  'erschrocken':['Schutz','Sicherheit'], 'widerwillig':['Autonomie','Wahlfreiheit'],
+  'enttäuscht':['Verlässlichkeit','Vertrauen'], 'verzweifelt':['Hoffnung','Unterstützung'],
+  // aa – angenehm + aktiviert
+  'begeistert':['Lebendigkeit','Inspiration'], 'fröhlich':['Freude','Leichtigkeit'],
+  'energiegeladen':['Vitalität','Bewegung'], 'inspiriert':['Kreativität','Wachstum'],
+  'aufgeregt':['Abenteuer','Neues'], 'stolz':['Wirksamkeit','Anerkennung'],
+  'leidenschaftlich':['Hingabe','Sinn'], 'überschwänglich':['Ausdruck','Freude'],
+  'entzückt':['Schönheit','Staunen'], 'mutig':['Autonomie','Wachstum'],
+  'neugierig':['Verstehen','Entdeckung'], 'erwartungsvoll':['Hoffnung','Vorfreude'],
+  'erstaunt':['Staunen','Offenheit'], 'bewegt':['Verbindung','Tiefe'],
+  'lebendig':['Lebendigkeit','Präsenz'], 'heiter':['Leichtigkeit','Freude'],
+  // ur – unangenehm + ruhig
+  'traurig':['Trost','Verbindung','Empathie'], 'erschöpft':['Erholung','Ruhe','Selbstfürsorge'],
+  'einsam':['Verbindung','Zugehörigkeit','Nähe'], 'lustlos':['Sinn','Inspiration','Vitalität'],
+  'hoffnungslos':['Hoffnung','Unterstützung','Sinn'], 'gelangweilt':['Anregung','Sinn','Abwechslung'],
+  'melancholisch':['Trost','Ausdruck'], 'niedergeschlagen':['Ermutigung','Hoffnung'],
+  'entmutigt':['Ermutigung','Vertrauen'], 'hilflos':['Unterstützung','Handlungsfähigkeit'],
+  'müde':['Erholung','Ruhe','Selbstfürsorge'], 'apathisch':['Sinn','Lebendigkeit'],
+  'beschämt':['Akzeptanz','Mitgefühl'], 'verletzt':['Empathie','Heilung'],
+  'isoliert':['Zugehörigkeit','Verbindung'], 'schwermütig':['Trost','Leichtigkeit'],
+  // ar – angenehm + ruhig
+  'zufrieden':['Frieden','Genügsamkeit'], 'gelassen':['Frieden','Sicherheit','Vertrauen'],
+  'dankbar':['Fülle','Wertschätzung'], 'entspannt':['Ruhe','Wohlbefinden'],
+  'geborgen':['Sicherheit','Zugehörigkeit','Nähe'], 'friedlich':['Harmonie','Frieden'],
+  'erleichtert':['Freiheit','Entlastung'], 'ausgeglichen':['Harmonie','Balance'],
+  'beruhigt':['Sicherheit','Stabilität'], 'sicher':['Vertrauen','Stabilität'],
+  'liebevoll':['Nähe','Verbindung'], 'mitfühlend':['Empathie','Verbindung'],
+  'offen':['Freiheit','Neugier'], 'erfüllt':['Sinn','Ganzheit'],
+  'vertrauensvoll':['Vertrauen','Sicherheit'], 'sanft':['Selbstfürsorge','Mitgefühl']
 };
 
 function saveFeelingMatrix() {
@@ -3751,68 +3785,66 @@ function saveFeelingMatrix() {
   state.feelingLog.unshift(entry);
   if(state.feelingLog.length > 200) state.feelingLog.pop();
   saveState();
-
-  // Show needs reflection
   showNeedsReflection(entry, 0);
 }
 
 function showNeedsReflection(entry, logIndex) {
-  const quadrants = [...new Set(entry.feelings.map(f => f.quadrant))];
-  const allNeeds = [];
-  quadrants.forEach(q => {
-    const n = NEEDS_BY_QUADRANT[q];
-    if(n) n.needs.forEach(need => { if(!allNeeds.includes(need)) allNeeds.push(need); });
-  });
-
-  const isPositive = quadrants.every(q => q === 'aa' || q === 'ar');
-  const title = isPositive ? 'Was ist gerade erfüllt?' : 'Was brauchst du gerade?';
-  const subtitle = isPositive
+  const isAllPositive = entry.feelings.every(f => f.quadrant === 'aa' || f.quadrant === 'ar');
+  const subtitle = isAllPositive
     ? 'Welche Bedürfnisse sind gerade genährt?'
-    : 'Welches Bedürfnis steckt vielleicht dahinter?';
-
+    : 'Was könnte dahinterstecken?';
   const sel = document.getElementById('fm-selection');
   if(sel) sel.style.display = 'none';
-
   const needsDiv = document.getElementById('fm-needs-reflection');
   if(!needsDiv) return;
   needsDiv.style.display = '';
-  needsDiv.innerHTML = `
-    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;line-height:1.4;">${subtitle}</div>
-    <div id="fm-needs-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-      ${allNeeds.map(n => `<span onclick="toggleNeedChip(this)" data-need="${n}" style="display:inline-block;padding:6px 12px;border-radius:20px;font-size:0.78rem;cursor:pointer;border:1.5px solid var(--border);background:white;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.15s;">${n}</span>`).join('')}
-    </div>
-    <textarea id="fm-needs-note" placeholder="Eigenes Bedürfnis oder Gedanke... (optional)" rows="1"
-      style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.82rem;resize:none;background:var(--card);color:var(--ink);margin-bottom:8px;"></textarea>
+  let html = `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;line-height:1.4;">${subtitle}</div>`;
+  entry.feelings.forEach(f => {
+    const col = FM_COLORS[f.quadrant] || FM_COLORS.neutral;
+    const needs = FEELING_NEEDS[f.label] || [];
+    html += `<div style="margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <span style="padding:3px 10px;border-radius:10px;font-size:0.78rem;font-weight:600;background:${col.selBg};color:${col.selText};">${f.label}</span>
+        <span style="font-size:0.75rem;color:var(--muted);">→</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;padding-left:4px;">
+        ${needs.map(n => `<span onclick="toggleNeedChip(this)" data-need="${n}" data-feeling="${f.label}" style="display:inline-block;padding:5px 11px;border-radius:16px;font-size:0.78rem;cursor:pointer;border:1.5px solid rgba(58,91,199,0.25);background:rgba(58,91,199,0.06);color:#3a5bc7;font-family:'DM Sans',sans-serif;transition:all 0.15s;">${n}</span>`).join('')}
+      </div>
+    </div>`;
+  });
+  html += `<textarea id="fm-needs-note" placeholder="Eigener Gedanke... (optional)" rows="1"
+    style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.82rem;resize:none;background:var(--card);color:var(--ink);margin-bottom:8px;"></textarea>
     <div style="display:flex;gap:8px;">
       <button class="log-btn" onclick="saveNeedsReflection(${logIndex})" style="flex:1;">💡 Speichern</button>
       <button class="log-btn secondary" onclick="skipNeedsReflection()" style="flex:1;">Überspringen</button>
-    </div>
-  `;
+    </div>`;
+  needsDiv.innerHTML = html;
 }
 
 function toggleNeedChip(el) {
   const active = el.dataset.active === '1';
   el.dataset.active = active ? '0' : '1';
-  el.style.background = active ? 'white' : 'rgba(58,91,199,0.1)';
-  el.style.color = active ? 'var(--muted)' : '#3a5bc7';
-  el.style.borderColor = active ? 'var(--border)' : 'rgba(58,91,199,0.5)';
+  el.style.background = active ? 'rgba(58,91,199,0.06)' : 'rgba(58,91,199,0.18)';
+  el.style.borderColor = active ? 'rgba(58,91,199,0.25)' : '#3a5bc7';
+  el.style.fontWeight = active ? '400' : '600';
 }
 
 function saveNeedsReflection(logIndex) {
-  const chips = document.querySelectorAll('#fm-needs-chips span');
+  const chips = document.querySelectorAll('#fm-needs-reflection span[data-need]');
   const selected = [];
   chips.forEach(c => { if(c.dataset.active === '1') selected.push(c.dataset.need); });
   const note = (document.getElementById('fm-needs-note')?.value || '').trim();
   if(selected.length || note) {
     const entry = state.feelingLog[logIndex];
     if(entry) {
-      entry.needs = selected.length ? selected : null;
+      entry.needs = selected.length ? [...new Set(selected)] : null;
       if(note) entry.needsNote = note;
       saveState();
     }
   }
   finishNeedsReflection();
-  showToast('😊 ' + (selected.length ? selected.length + ' Bedürfnis' + (selected.length > 1 ? 'se' : '') + ' erkannt' : 'Gespeichert') + '!');
+  const unique = [...new Set(selected)];
+  showToast(unique.length ? '💡 ' + unique.join(', ') : '😊 Gespeichert!');
 }
 
 function skipNeedsReflection() {
@@ -3828,6 +3860,7 @@ function finishNeedsReflection() {
   renderFeelingMatrix();
   renderFeelingHistory();
 }
+
 
 function renderFeeling() { renderFeelingMatrix(); renderFeelingHistory(); }
 
