@@ -3600,7 +3600,7 @@ function renderHome() {
     const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
     const parts = q.split(' — ');
     TILES.push({
-      icon: '✨', label: 'Gedanke', section: null,
+      icon: '✨', label: 'Gedanke', section: 'quote',
       color: '#6b8f71', bg: 'linear-gradient(135deg,#f5f0e8,#ede4d4)',
       value: '', sub: parts[0], bar: null,
       _quote: true, _source: parts[1] || null
@@ -3609,6 +3609,8 @@ function renderHome() {
 
   // Sort tiles by saved order
   if (state.tileOrder && Array.isArray(state.tileOrder)) {
+    // Migrate: add new sections if missing
+    ['rewards','quote'].forEach(s => { if (!state.tileOrder.includes(s)) state.tileOrder.push(s); });
     TILES.sort((a, b) => {
       const ia = state.tileOrder.indexOf(a.section);
       const ib = state.tileOrder.indexOf(b.section);
@@ -3636,7 +3638,7 @@ function renderHome() {
     tile.style.borderColor = 'transparent';
     tile.dataset.section = t.section || '';
     tile.dataset.idx = idx;
-    if (!isReordering && t.section) {
+    if (!isReordering && t.section && t.section !== 'quote') {
       tile.onclick = () => showSection(t.section);
     }
     const reorderBtns = isReordering ? `<div style="position:absolute;top:6px;right:6px;display:flex;flex-direction:column;gap:2px;z-index:10;">
@@ -3697,12 +3699,13 @@ function finishTileReorder() {
 }
 
 function moveTile(fromIdx, direction) {
-  const step = 2; // 2-column grid: one row = 2 positions
+  const step = 2;
   const toIdx = fromIdx + (direction * step);
   if (!state.tileOrder) {
-    const defaultSections = ['water','activity','nutrition','sleep','weight','body','feeling','social','mindfulness','gratitude'];
-    state.tileOrder = defaultSections;
+    state.tileOrder = ['water','activity','nutrition','sleep','weight','body','feeling','social','mindfulness','gratitude','rewards','quote'];
   }
+  // Migrate: add new sections if missing from old saved order
+  ['rewards','quote'].forEach(s => { if (!state.tileOrder.includes(s)) state.tileOrder.push(s); });
   if (toIdx < 0 || toIdx >= state.tileOrder.length) return;
   const temp = state.tileOrder[fromIdx];
   state.tileOrder[fromIdx] = state.tileOrder[toIdx];
@@ -4141,10 +4144,11 @@ function renderActivities() {
     const stepsVal = a.stepsDefault || 5000;
     const totalPts = isSteps ? Math.round(stepsVal / 1000) * 10 : a.min * ppm;
     const isActive = state.activeActivity?.idx === i;
+    const isSelected = state.selectedActivity === i;
     const uid = 'act-card-' + i;
 
     const div = document.createElement('div');
-    div.style.cssText = `background:${isActive ? 'linear-gradient(135deg,#1a3a2a,#2d5a3d)' : 'var(--card)'};border:2px solid ${isActive ? 'transparent' : 'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:10px;`;
+    div.style.cssText = `background:${isActive ? 'linear-gradient(135deg,#1a3a2a,#2d5a3d)' : isSelected ? '#eef6f1' : 'var(--card)'};border:2px solid ${isActive ? 'transparent' : isSelected ? 'var(--accent)' : 'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:10px;`;
 
     div.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
@@ -6828,8 +6832,9 @@ function renderMindfulness() {
   ex.forEach((a, i) => {
     const pts = a.min * (a.ptsPerMin || 3);
     const isActive = state.activeMindfulness?.idx === i;
+    const isSelected = state.selectedMindfulness === i;
     const div = document.createElement('div');
-    div.style.cssText = `background:${isActive ? 'linear-gradient(135deg,#1a1a3e,#2d3561)' : 'var(--bg)'};border:2px solid ${isActive ? 'transparent' : 'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:10px;`;
+    div.style.cssText = `background:${isActive ? 'linear-gradient(135deg,#1a1a3e,#2d3561)' : isSelected ? '#eef2f8' : 'var(--bg)'};border:2px solid ${isActive ? 'transparent' : isSelected ? '#5b7fa6' : 'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:10px;`;
 
     const muid = 'mind-card-' + i;
     div.innerHTML = `
