@@ -6547,7 +6547,7 @@ function renderVerlauf() {
   const acts    = filterByDate(state.activityLog, verlaufFilter);
   const mindEntries = filterByDate(state.mindfulnessLog||[], verlaufFilter);
   const feels   = filterByDate(state.feelingLog,  verlaufFilter);
-  const sweets  = filterByDate(state.sweetsLog,   verlaufFilter);
+  const sweets  = filterByDate(state.sweetsDaysLog||[], verlaufFilter);
   const bodies  = filterByDate(state.bodyLog,     verlaufFilter);
   const allActs = [...acts, ...mindEntries];
   const totalMin = allActs.reduce((t,e) => t+(e.min||0), 0);
@@ -6582,9 +6582,8 @@ function renderVerlauf() {
       <div style="font-size:0.72rem;color:var(--muted);">Tagesziele Wasser</div>
     </div>
     <div class="card" style="margin:0;text-align:center;">
-      <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent2);">${sweets.length}</div>
-      <div style="font-size:0.72rem;color:var(--muted);">Süssigkeiten</div>
-      <div style="font-size:0.78rem;color:var(--muted);">${totalKcal ? totalKcal+' kcal' : ''}</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent2);">${sweets.filter(e=>e.had).length}<span style="font-size:1rem;color:var(--muted);">/${sweets.length}</span></div>
+      <div style="font-size:0.72rem;color:var(--muted);">Tage mit Süssem</div>
     </div>
     <div class="card" style="margin:0;text-align:center;">
       <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--gold);">${feels.length}</div>
@@ -6636,19 +6635,11 @@ function renderVerlauf() {
     }
   }
 
-  // Gefühl – aus feelingLog UND aus activityLog/mindfulnessLog
+  // Gefühl – nur aus feelingLog (Matrix-Einträge)
   const feelsManual = filterByDate(state.feelingLog, verlaufFilter)
     .filter(e => e.before != null || e.after != null || (e.feelings && e.feelings.length > 0));
-  const vlFeelsFromActs = filterByDate(state.activityLog, verlaufFilter)
-    .filter(e => e.feeling?.before != null || e.feeling?.after != null)
-    .map(e => ({ ts: e.ts, source: e.icon + ' ' + e.name, before: e.feeling?.before ?? null, after: e.feeling?.after ?? null }));
-  const vlFeelsFromMind = filterByDate(state.mindfulnessLog||[], verlaufFilter)
-    .filter(e => e.feeling?.before != null || e.feeling?.after != null)
-    .map(e => ({ ts: e.ts, source: e.icon + ' ' + e.name, before: e.feeling?.before ?? null, after: e.feeling?.after ?? null }));
-  const allFeels = [...feelsManual.map(e => ({...e, source: null})), ...vlFeelsFromActs, ...vlFeelsFromMind]
-    .sort((a,b) => new Date(b.ts) - new Date(a.ts));
 
-  renderVerlaufList('vl-feeling-list', 'vl-feeling-empty', allFeels, e => {
+  renderVerlaufList('vl-feeling-list', 'vl-feeling-empty', feelsManual, e => {
     const d = new Date(e.ts);
     const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
     if (e.feelings && Array.isArray(e.feelings)) {
@@ -6668,10 +6659,10 @@ function renderVerlauf() {
 
   // Süssigkeiten
   renderVerlaufList('vl-sweets-list', 'vl-sweets-empty', sweets, e => {
-    const d = new Date(e.ts);
-    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
-    const sidx = state.sweetsLog.indexOf(e);
-    return `<span style="flex:1;">${e.icon||'🍬'} ${e.name}</span><span style="color:var(--muted);font-size:0.78rem;">${e.kcal?e.kcal+' kcal':''}</span><span style="color:var(--muted);font-size:0.78rem;">${ds}</span><button onclick="state.sweetsLog.splice(${sidx},1);saveState();renderVerlauf()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
+    const d = new Date(e.date);
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const sidx = (state.sweetsDaysLog||[]).indexOf(e);
+    return `<span style="flex:1;">${e.had ? '🍬 Süssigkeiten' : '✅ Ohne Süsses'}</span><span style="color:var(--muted);font-size:0.78rem;">${ds}</span><button onclick="(state.sweetsDaysLog||[]).splice(${sidx},1);saveState();renderVerlauf()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
 
   // Schlaf
