@@ -3573,6 +3573,40 @@ function renderHome() {
       color:tileColor, bg:'linear-gradient(135deg,#f0f4ff,#e0e8ff)', value:tileValue, sub:tileSub, bar:tileBar, barColor:tileColor });
   })();
 
+  // Gedanke des Tages – wechselt bei jedem Laden
+  (() => {
+    const QUOTES = [
+      'Zwischen Reiz und Reaktion liegt ein Raum. In ihm liegt unsere Freiheit. — Viktor Frankl',
+      'Du kannst die Wellen nicht stoppen, aber du kannst lernen zu surfen. — Jon Kabat-Zinn',
+      'Wer seine Gefühle benennen kann, nimmt ihnen die Macht. — Lisa Feldman Barrett',
+      'Echte Veränderung kommt aus Mitgefühl, nicht aus Disziplin. — Kristin Neff',
+      'Der Weg ist das Ziel – aber nur, wenn du ihn bewusst gehst.',
+      'Ein guter Tag beginnt mit der Frage: Was brauche ich? — Marshall Rosenberg',
+      'Dankbarkeit verwandelt, was wir haben, in genug. — Melody Beattie',
+      'Gewohnheiten sind die unsichtbare Architektur deines Alltags. — Charles Duhigg',
+      'Nicht die Dinge beunruhigen uns, sondern unsere Sicht auf die Dinge. — Epiktet',
+      'Jeder Atemzug ist eine neue Chance, ganz da zu sein.',
+      'Was du heute tust, entscheidet, wer du morgen bist.',
+      'Bewusstsein schlägt Kontrolle. Immer.',
+      'Kontinuität schlägt Perfektion. Ein ausgelassener Tag ändert nichts. — Lally et al.',
+      'Der beste Zeitpunkt anzufangen war gestern. Der zweitbeste ist jetzt.',
+      'Emotionen sind keine Störungen – sie sind Wegweiser. — Rosenberg',
+      'Freundlichkeit dir selbst gegenüber ist keine Schwäche, sondern Stärke. — Neff',
+      'Was wir regelmässig tun, formt unser Gehirn. Was wir beobachten, können wir verändern.',
+      'Der Körper spricht, bevor der Kopf es merkt. Hör ihm zu.',
+      'Schlaf ist die beste Meditation. — Dalai Lama',
+      'Wenn Plan A nicht funktioniert: Das Alphabet hat noch 25 weitere Buchstaben.',
+    ];
+    const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+    const parts = q.split(' — ');
+    TILES.push({
+      icon: '✨', label: 'Gedanke', section: null,
+      color: '#6b8f71', bg: 'linear-gradient(135deg,#f5f0e8,#ede4d4)',
+      value: '', sub: parts[0], bar: null,
+      _quote: true, _source: parts[1] || null
+    });
+  })();
+
   // Sort tiles by saved order
   if (state.tileOrder && Array.isArray(state.tileOrder)) {
     TILES.sort((a, b) => {
@@ -3600,9 +3634,9 @@ function renderHome() {
     if (t._symptomFree && state.tilePulseEnabled !== false) tile.classList.add('tile-pulse');
     tile.style.background = t.bg;
     tile.style.borderColor = 'transparent';
-    tile.dataset.section = t.section;
+    tile.dataset.section = t.section || '';
     tile.dataset.idx = idx;
-    if (!isReordering) {
+    if (!isReordering && t.section) {
       tile.onclick = () => showSection(t.section);
     }
     const reorderBtns = isReordering ? `<div style="position:absolute;top:6px;right:6px;display:flex;flex-direction:column;gap:2px;z-index:10;">
@@ -3610,15 +3644,26 @@ function renderHome() {
       <button onclick="event.stopPropagation();moveTile(${idx},1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--ink);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;${idx>=TILES.length-2?'opacity:0.3;pointer-events:none;':''}">▼</button>
     </div>` : '';
     tile.style.position = 'relative';
-    tile.innerHTML =
-      reorderBtns +
-      '<div>' +
-        '<div class="tile-icon">' + t.icon + '</div>' +
-        '<div class="tile-label">' + t.label + '</div>' +
-        '<div class="tile-value" style="color:' + t.color + ';">' + t.value + '</div>' +
-        '<div class="tile-sub">' + t.sub + '</div>' +
-      '</div>' +
-      (t.bar !== null ? '<div class="tile-bar" style="background:' + (t.barColor||'var(--accent)') + ';width:' + t.bar + '%;"></div>' : '');
+    if (t._quote) {
+      tile.style.cursor = 'default';
+      tile.innerHTML = reorderBtns +
+        '<div>' +
+          '<div class="tile-icon">' + t.icon + '</div>' +
+          '<div class="tile-label">' + t.label + '</div>' +
+          '<div style="font-size:0.75rem;font-style:italic;color:var(--ink);line-height:1.4;margin-top:4px;">' + t.sub + '</div>' +
+          (t._source ? '<div style="font-size:0.65rem;color:var(--muted);margin-top:3px;">— ' + t._source + '</div>' : '') +
+        '</div>';
+    } else {
+      tile.innerHTML =
+        reorderBtns +
+        '<div>' +
+          '<div class="tile-icon">' + t.icon + '</div>' +
+          '<div class="tile-label">' + t.label + '</div>' +
+          '<div class="tile-value" style="color:' + t.color + ';">' + t.value + '</div>' +
+          '<div class="tile-sub">' + t.sub + '</div>' +
+        '</div>' +
+        (t.bar !== null ? '<div class="tile-bar" style="background:' + (t.barColor||'var(--accent)') + ';width:' + t.bar + '%;"></div>' : '');
+    }
     tiles.appendChild(tile);
   });
 
