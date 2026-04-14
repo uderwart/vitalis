@@ -7904,7 +7904,7 @@ function startTwoMin() {
     }
   }
   // Show overlay
-  tmGoStep(0);
+  tmGoStep(tmStepSequence[0]);
   document.getElementById('twomin-overlay').style.display = 'flex';
 }
 
@@ -7960,7 +7960,7 @@ function tmUpdateFeel(v) {
 }
 
 // Steps: 'sleep'=Schlaf (optional morgens), 0=Wasser, 1=Planung, 'woop'=WOOP (optional), 2=Gefühl, 3=Dankbarkeit
-let tmStepSequence = [0, 1, 2, 3]; // rebuilt in startTwoMin
+let tmStepSequence = [1, 2, 3]; // rebuilt in startTwoMin
 let tmSleepSkipped = false;
 
 function tmBuildSequence() {
