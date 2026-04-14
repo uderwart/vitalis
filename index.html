@@ -863,6 +863,7 @@
       </div>
     </div>
     <button onclick="exportPlanToCalendar()" style="margin-top:10px;width:100%;padding:9px;border-radius:10px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">📅 In Kalender exportieren</button>
+    <div id="planned-woop" style="display:none;margin-top:10px;padding-top:8px;border-top:1px solid rgba(45,90,61,0.2);font-size:0.82rem;color:var(--ink);"></div>
   </div>
 
   <!-- 5. SCHLAF MORGEN-CHECK -->
@@ -881,7 +882,10 @@
     </div>
   </div>
 
-  <!-- 7. KACHELN -->
+  <!-- 7. GEDANKE DES TAGES -->
+  <div id="home-quote-fullwidth" style="background:linear-gradient(135deg,#f5f0e8,#ede4d4);border-radius:16px;padding:14px 18px;margin-bottom:12px;"></div>
+
+  <!-- 8. KACHELN -->
   <div id="home-tiles" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;"></div>
 
   <!-- 8. TIPP DER WOCHE -->
@@ -934,11 +938,8 @@
     </div>
   </div>
 
-  <!-- 11. WENN-DANN PLAN (ganz unten) -->
-  <div id="intention-card" style="display:none;background:var(--card);border:2px solid var(--accent);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
-    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Dein Plan für heute</div>
-    <div id="intention-text" style="font-size:0.88rem;color:var(--ink);line-height:1.5;font-style:italic;"></div>
-  </div>
+  <!-- 11. GEDANKE DES TAGES (wird per JS befüllt) -->
+  <div id="home-quote-card" style="display:none;"></div>
 
 </div>
 
@@ -3599,12 +3600,13 @@ function renderHome() {
     ];
     const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
     const parts = q.split(' — ');
-    TILES.push({
-      icon: '✨', label: 'Gedanke', section: 'quote',
-      color: '#6b8f71', bg: 'linear-gradient(135deg,#f5f0e8,#ede4d4)',
-      value: '', sub: parts[0], bar: null,
-      _quote: true, _source: parts[1] || null
-    });
+    const quoteCard = document.getElementById('home-quote-fullwidth');
+    if (quoteCard) {
+      quoteCard.innerHTML = `
+        <div style="font-size:0.85rem;font-style:italic;color:var(--ink);line-height:1.5;">${parts[0]}</div>
+        ${parts[1] ? `<div style="font-size:0.72rem;color:var(--muted);margin-top:4px;text-align:right;">— ${parts[1]}</div>` : ''}
+      `;
+    }
   })();
 
   // Sort tiles by saved order
@@ -3646,26 +3648,15 @@ function renderHome() {
       <button onclick="event.stopPropagation();moveTile(${idx},1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--ink);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;${idx>=TILES.length-2?'opacity:0.3;pointer-events:none;':''}">▼</button>
     </div>` : '';
     tile.style.position = 'relative';
-    if (t._quote) {
-      tile.style.cursor = 'default';
-      tile.innerHTML = reorderBtns +
-        '<div>' +
-          '<div class="tile-icon">' + t.icon + '</div>' +
-          '<div class="tile-label">' + t.label + '</div>' +
-          '<div style="font-size:0.75rem;font-style:italic;color:var(--ink);line-height:1.4;margin-top:4px;">' + t.sub + '</div>' +
-          (t._source ? '<div style="font-size:0.65rem;color:var(--muted);margin-top:3px;">— ' + t._source + '</div>' : '') +
-        '</div>';
-    } else {
-      tile.innerHTML =
-        reorderBtns +
-        '<div>' +
-          '<div class="tile-icon">' + t.icon + '</div>' +
-          '<div class="tile-label">' + t.label + '</div>' +
-          '<div class="tile-value" style="color:' + t.color + ';">' + t.value + '</div>' +
-          '<div class="tile-sub">' + t.sub + '</div>' +
-        '</div>' +
-        (t.bar !== null ? '<div class="tile-bar" style="background:' + (t.barColor||'var(--accent)') + ';width:' + t.bar + '%;"></div>' : '');
-    }
+    tile.innerHTML =
+      reorderBtns +
+      '<div>' +
+        '<div class="tile-icon">' + t.icon + '</div>' +
+        '<div class="tile-label">' + t.label + '</div>' +
+        '<div class="tile-value" style="color:' + t.color + ';">' + t.value + '</div>' +
+        '<div class="tile-sub">' + t.sub + '</div>' +
+      '</div>' +
+      (t.bar !== null ? '<div class="tile-bar" style="background:' + (t.barColor||'var(--accent)') + ';width:' + t.bar + '%;"></div>' : '');
     tiles.appendChild(tile);
   });
 
@@ -8642,6 +8633,17 @@ function renderPlannedActivity() {
   document.getElementById('planned-act-icon').textContent = all.length === 1 ? (acts[0]?.icon || minds[0]?.icon || '📋') : '📋';
   document.getElementById('planned-act-name').textContent = all.join(' · ');
   card.style.display = '';
+
+  // WOOP plans inline
+  const woops = planned.woops;
+  const woopDiv = document.getElementById('planned-woop');
+  if (woopDiv && state.woopEnabled && woops?.length > 0) {
+    const content = woops.filter(w => w.obstacle || w.plan).map(w =>
+      `<div style="font-size:0.8rem;margin-bottom:4px;">${w.obstacle ? '🚧 ' + w.obstacle : ''}${w.plan ? ' → ' + w.plan : ''}</div>`
+    ).join('');
+    if (content) { woopDiv.innerHTML = content; woopDiv.style.display = ''; }
+    else woopDiv.style.display = 'none';
+  } else if (woopDiv) { woopDiv.style.display = 'none'; }
 }
 
 function renderDailyCheck() {
@@ -8654,27 +8656,7 @@ function renderDailyCheck() {
 }
 
 function renderIntention() {
-  const card = document.getElementById('intention-card');
-  const text = document.getElementById('intention-text');
-  if (!card || !text) return;
-
-  const woops = state.profile?.morningPlanned?.woops;
-  const todayPlan = state.profile?.morningPlanned?.date === new Date().toDateString();
-
-  if (state.woopEnabled && todayPlan && woops?.length > 0) {
-    const content = woops.map(w => {
-      if (!w.obstacle && !w.plan) return '';
-      return `<div style="margin-bottom:6px;">
-        <span style="font-weight:600;font-size:0.85rem;">${w.name}</span><br>
-        ${w.obstacle ? `<span style="color:var(--muted);font-size:0.8rem;">🚧 ${w.obstacle}</span><br>` : ''}
-        ${w.plan ? `<span style="font-size:0.8rem;">→ ${w.plan}</span>` : ''}
-      </div>`;
-    }).filter(Boolean).join('');
-    if (content) { text.innerHTML = content; card.style.display = ''; }
-    else card.style.display = 'none';
-  } else {
-    card.style.display = 'none';
-  }
+  // WOOP plans are now shown in planned-activity-card
 }
 // =====================
 let obSelectedGoal = null;
