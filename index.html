@@ -6545,10 +6545,12 @@ function renderVerlauf() {
   document.getElementById('verlauf-zeitraum').textContent = label;
 
   const acts    = filterByDate(state.activityLog, verlaufFilter);
+  const mindEntries = filterByDate(state.mindfulnessLog||[], verlaufFilter);
   const feels   = filterByDate(state.feelingLog,  verlaufFilter);
   const sweets  = filterByDate(state.sweetsLog,   verlaufFilter);
   const bodies  = filterByDate(state.bodyLog,     verlaufFilter);
-  const totalMin = acts.reduce((t,e) => t+(e.min||0), 0);
+  const allActs = [...acts, ...mindEntries];
+  const totalMin = allActs.reduce((t,e) => t+(e.min||0), 0);
   const totalKcal = sweets.reduce((t,e) => t+(e.kcal||0), 0);
 
   // Kacheln
@@ -6557,18 +6559,18 @@ function renderVerlauf() {
     <div class="card" style="margin:0;text-align:center;cursor:pointer;grid-column:span 2;" onclick="toggleKachel('kachel-acts')">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
         <div style="display:flex;align-items:baseline;gap:8px;">
-          <span style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent);">${acts.length}</span>
+          <span style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent);">${allActs.length}</span>
           <span style="font-size:0.72rem;color:var(--muted);">Aktivitäten · ${totalMin} Min</span>
         </div>
         <span id="kachel-acts-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
       </div>
       <div id="kachel-acts" style="display:none;text-align:left;margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">
-        ${acts.length === 0 ? '<p style="font-size:0.82rem;color:var(--muted);">Keine Einträge.</p>' :
-          acts.map(e => {
+        ${allActs.length === 0 ? '<p style="font-size:0.82rem;color:var(--muted);">Keine Einträge.</p>' :
+          allActs.sort((a,b)=>new Date(b.ts)-new Date(a.ts)).map(e => {
             const d = new Date(e.ts);
             const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
             return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
-              <span style="font-size:0.85rem;">${e.icon||'🏃'} ${e.name} · ${e.label||e.min+' min'}</span>
+              <span style="font-size:0.85rem;">${e.icon||'🏃'} ${e.name} · ${e.min} Min</span>
               <span style="font-size:0.75rem;color:var(--muted);">${ds}</span>
               <span style="font-size:0.78rem;color:var(--gold);font-weight:600;">+${e.pts}</span>
             </div>`;
@@ -6586,7 +6588,7 @@ function renderVerlauf() {
     </div>
     <div class="card" style="margin:0;text-align:center;">
       <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--gold);">${feels.length}</div>
-      <div style="font-size:0.72rem;color:var(--muted);">Gefühls-Checks</div>
+      <div style="font-size:0.72rem;color:var(--muted);">Wie geht's?</div>
     </div>
   `;
 
@@ -6637,13 +6639,13 @@ function renderVerlauf() {
   // Gefühl – aus feelingLog UND aus activityLog/mindfulnessLog
   const feelsManual = filterByDate(state.feelingLog, verlaufFilter)
     .filter(e => e.before != null || e.after != null || (e.feelings && e.feelings.length > 0));
-  const feelsFromActs = filterByDate(state.activityLog, verlaufFilter)
+  const vlFeelsFromActs = filterByDate(state.activityLog, verlaufFilter)
     .filter(e => e.feeling?.before != null || e.feeling?.after != null)
     .map(e => ({ ts: e.ts, source: e.icon + ' ' + e.name, before: e.feeling?.before ?? null, after: e.feeling?.after ?? null }));
-  const feelsFromMind = filterByDate(state.mindfulnessLog||[], verlaufFilter)
+  const vlFeelsFromMind = filterByDate(state.mindfulnessLog||[], verlaufFilter)
     .filter(e => e.feeling?.before != null || e.feeling?.after != null)
     .map(e => ({ ts: e.ts, source: e.icon + ' ' + e.name, before: e.feeling?.before ?? null, after: e.feeling?.after ?? null }));
-  const allFeels = [...feelsManual.map(e => ({...e, source: null})), ...feelsFromActs, ...feelsFromMind]
+  const allFeels = [...feelsManual.map(e => ({...e, source: null})), ...vlFeelsFromActs, ...vlFeelsFromMind]
     .sort((a,b) => new Date(b.ts) - new Date(a.ts));
 
   renderVerlaufList('vl-feeling-list', 'vl-feeling-empty', allFeels, e => {
@@ -6715,8 +6717,7 @@ function renderVerlauf() {
   });
 
   // Achtsamkeit
-  const minds = filterByDate(state.mindfulnessLog||[], verlaufFilter);
-  renderVerlaufList('vl-mind-list', 'vl-mind-empty', minds, e => {
+  renderVerlaufList('vl-mind-list', 'vl-mind-empty', mindEntries, e => {
     const d = new Date(e.ts);
     const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const ts = d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
