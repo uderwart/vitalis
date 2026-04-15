@@ -6859,6 +6859,7 @@ function renderMindfulness() {
         <input type="url" value="${a.link||''}" placeholder="🔗 Link (optional)"
           style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--muted);background:var(--bg);"
           onchange="updateMindfulnessLink(${i}, this.value)" onclick="event.stopPropagation()">
+        ${!['box','478','424','coherent'].includes(a.id) ? `<button onclick="deleteMindfulnessEx(event,${i})" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid #e0a0a0;background:transparent;color:#c0392b;font-family:'DM Sans',sans-serif;font-size:0.78rem;cursor:pointer;margin-top:8px;">Löschen</button>` : ''}
       </div>
     `;
     list.appendChild(div);
