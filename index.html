@@ -150,17 +150,6 @@
   .home-tile.wide .tile-icon { margin-bottom: 0; font-size: 2.2rem; }
   .home-tile.wide .tile-content { flex: 1; }
 
-  /* Tile reorder mode */
-  .tile-reorder-mode .home-tile {
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  @keyframes tile-pulse-gold {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
-    50% { box-shadow: 0 0 16px 4px rgba(201,168,76,0.35); }
-  }
-  .tile-pulse { animation: tile-pulse-gold 1.5s ease-in-out 2; }
-
   /* MAIN */
   main { padding: 16px; max-width: 480px; margin: 0 auto; }
 
@@ -863,10 +852,22 @@
       </div>
     </div>
     <button onclick="exportPlanToCalendar()" style="margin-top:10px;width:100%;padding:9px;border-radius:10px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">📅 In Kalender exportieren</button>
-    <div id="planned-woop" style="display:none;margin-top:10px;padding-top:8px;border-top:1px solid rgba(45,90,61,0.2);font-size:0.82rem;color:var(--ink);"></div>
   </div>
 
   <!-- 5. SCHLAF MORGEN-CHECK -->
+  <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌙 Guten Morgen!</div>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht? (1 = schlecht · 10 = super)</div>
+    <div style="text-align:center;font-family:'DM Serif Display',serif;font-size:2.5rem;color:#f4c261;margin-bottom:6px;" id="checkin-sleep-val">5</div>
+    <input type="range" id="checkin-sleep-slider" min="1" max="10" value="5"
+      style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.3);outline:none;cursor:pointer;margin-bottom:16px;"
+      oninput="document.getElementById('checkin-sleep-val').textContent=this.value">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button onclick="skipSleepCheckin()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+      <button onclick="quickLogSleepSlider()" style="padding:8px 20px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Speichern ✓</button>
+    </div>
+  </div>
+
   <!-- 6. AKTIVE AKTIVITÄT BANNER -->
   <div id="active-activity-banner" style="display:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;border-radius:16px;padding:16px 18px;margin-bottom:12px;">
     <div style="display:flex;align-items:center;gap:12px;">
@@ -882,10 +883,7 @@
     </div>
   </div>
 
-  <!-- 7. GEDANKE DES TAGES -->
-  <div id="home-quote-fullwidth" style="background:linear-gradient(135deg,#f5f0e8,#ede4d4);border-radius:16px;padding:14px 18px;margin-bottom:12px;"></div>
-
-  <!-- 8. KACHELN -->
+  <!-- 7. KACHELN -->
   <div id="home-tiles" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;"></div>
 
   <!-- 8. TIPP DER WOCHE -->
@@ -938,8 +936,11 @@
     </div>
   </div>
 
-  <!-- 11. GEDANKE DES TAGES (wird per JS befüllt) -->
-  <div id="home-quote-card" style="display:none;"></div>
+  <!-- 11. WENN-DANN PLAN (ganz unten) -->
+  <div id="intention-card" style="display:none;background:var(--card);border:2px solid var(--accent);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
+    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Dein Plan für heute</div>
+    <div id="intention-text" style="font-size:0.88rem;color:var(--ink);line-height:1.5;font-style:italic;"></div>
+  </div>
 
 </div>
 
@@ -1049,17 +1050,37 @@
     <div class="tm-dot" id="co-dot-1"></div>
     <div class="tm-dot" id="co-dot-2"></div>
     <div class="tm-dot" id="co-dot-3"></div>
-    <div class="tm-dot" id="co-dot-4"></div>
-    <div class="tm-dot" id="co-dot-5"></div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
 
-    <!-- Step 0: Tagesübersicht -->
+    <!-- Step 0: Aktivität bestätigen -->
     <div id="co-step-0" style="text-align:center;">
-      <div style="font-size:3rem;margin-bottom:12px;" id="co-act-icon">📋</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin-bottom:8px;" id="co-act-title">Dein Tag</div>
-      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:24px;" id="co-act-subtitle"></div>
-      <div id="co-act-planned" style="display:none;margin-bottom:20px;text-align:left;"></div>
+      <div style="font-size:3rem;margin-bottom:12px;" id="co-act-icon">🏃</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin-bottom:8px;" id="co-act-title">Warst du aktiv?</div>
+      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:24px;" id="co-act-subtitle">Heute geplant oder spontan</div>
+      <div id="co-act-planned" style="display:none;margin-bottom:20px;">
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:8px;">HEUTE GEPLANT</div>
+        <div id="co-act-planned-name" style="font-weight:700;font-size:1.1rem;color:white;margin-bottom:16px;"></div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:6px;">Wie viel hast du gemacht?</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:3rem;color:white;margin-bottom:6px;" id="co-dur-val">0 Min</div>
+        <input type="range" id="co-dur-slider" min="0" max="90" step="5" value="0"
+          style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:8px;"
+          oninput="coDurUpdate(this.value)">
+        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
+          <span>Nicht gemacht</span><span id="co-dur-max">geplant</span>
+        </div>
+      </div>
+      <div id="co-act-unplanned" style="display:none;">
+        <div style="font-size:0.82rem;color:rgba(255,255,255,0.6);margin-bottom:12px;">Wähle eine Aktivität</div>
+        <div id="co-act-list" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
+        <div id="co-dur-unplanned" style="display:none;margin-top:16px;">
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:6px;">Wie lange?</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:2.5rem;color:white;margin-bottom:6px;" id="co-dur-val2">30 Min</div>
+          <input type="range" id="co-dur-slider2" min="5" max="180" step="5" value="30"
+            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;"
+            oninput="document.getElementById('co-dur-val2').textContent=this.value+' Min'">
+        </div>
+      </div>
     </div>
 
     <!-- Step 1: Wasser -->
@@ -1112,42 +1133,13 @@
       </div>
     </div>
 
-    <!-- Step 3: Beschwerden -->
+    <!-- Step 3: Dankbarkeit -->
     <div id="co-step-3" style="display:none;text-align:center;">
-      <div style="font-size:3rem;margin-bottom:12px;">🩹</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Körperliche Beschwerden?</div>
-      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:28px;">Hattest du heute Beschwerden?</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <button id="co-sym-no" onclick="coToggle('sym','no')"
-          style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-          🙏 Nein, beschwerdefrei
-        </button>
-        <button id="co-sym-yes" onclick="coToggle('sym','yes')"
-          style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-          🩹 Ja, Beschwerden eintragen →
-        </button>
-        <button id="co-sym-sick" onclick="coToggle('sym','sick')"
-          style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-          🛏 Krank / bettlägerig
-        </button>
-      </div>
-    </div>
-
-    <!-- Step 4: Dankbarkeit -->
-    <div id="co-step-4" style="display:none;text-align:center;">
       <div style="font-size:3rem;margin-bottom:12px;">🌟</div>
       <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Wofür bist du dankbar?</div>
       <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:20px;">Optional – oder einfach fertig</div>
       <textarea id="co-note" placeholder="Heute war ich dankbar für…" rows="4"
         style="width:100%;padding:14px;border:none;border-radius:14px;background:rgba(255,255,255,0.12);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;resize:none;outline:none;box-sizing:border-box;"></textarea>
-    </div>
-
-    <!-- Step 5: Gewohnheitentausch (nur wenn aktiv) -->
-    <div id="co-step-5" style="display:none;text-align:center;">
-      <div style="font-size:3rem;margin-bottom:12px;">🔄</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;" id="co-habit-title">Hast du heute getauscht?</div>
-      <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:20px;" id="co-habit-subtitle"></div>
-      <div id="co-habit-content"></div>
     </div>
   </div>
 
@@ -1158,62 +1150,46 @@
   <button onclick="closeCheckout()" style="margin-top:10px;background:none;border:none;color:rgba(255,255,255,0.3);font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;width:100%;text-align:center;">Abbrechen</button>
 </div>
 <div id="section-feeling" class="section">
-
-  <!-- MATRIX TRACKER -->
   <div class="card">
     <h2>Wie fühlst du dich?</h2>
-    <p class="small-note" style="margin-bottom:12px;line-height:1.5;">Tippe auf bis zu 5 Gefühle – auch aus verschiedenen Bereichen. Gemischte Gefühle sind normal.</p>
 
-    <div style="display:flex;gap:6px;margin-bottom:12px;">
-      <button class="chip active" id="fm-tab-kern" onclick="setFeelingMatrixMode('kern')">Kernwörter</button>
-      <button class="chip" id="fm-tab-erweitert" onclick="setFeelingMatrixMode('erweitert')">Erweitert (GFK)</button>
+    <!-- VOR -->
+    <h3 style="margin-bottom:8px;">VOR der Aktivität</h3>
+    <div class="vitalis-slider-wrap">
+      <div class="vitalis-slider-value" id="feeling-before-val">5</div>
+      <div class="vitalis-slider-desc" id="feeling-before-desc">okay</div>
+      <input type="range" id="feeling-before-slider" min="1" max="10" value="5"
+        oninput="updateSlider('feeling-before', this.value)">
+      <div class="slider-labels"><span>😩 Miserabel</span><span>😄 Super</span></div>
     </div>
+    <button class="log-btn secondary" onclick="logFeelingBefore()" style="margin-bottom:0;">
+      💾 Vor-Gefühl speichern
+    </button>
 
-    <div id="feeling-matrix" style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:0;border-radius:16px;overflow:hidden;border:1px solid var(--border);position:relative;">
-      <div style="background:#f9e4dd;padding:10px 8px;min-height:120px;">
-        <div style="font-size:0.7rem;font-weight:600;color:#993C1D;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">UNANGENEHM + AKTIVIERT</div>
-        <div id="fm-q-ua" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
-      </div>
-      <div style="background:#dbeaf7;padding:10px 8px;min-height:120px;">
-        <div style="font-size:0.7rem;font-weight:600;color:#185FA5;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">ANGENEHM + AKTIVIERT</div>
-        <div id="fm-q-aa" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
-      </div>
-      <div style="background:#e8e6f8;padding:10px 8px;min-height:120px;">
-        <div style="font-size:0.7rem;font-weight:600;color:#534AB7;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">UNANGENEHM + RUHIG</div>
-        <div id="fm-q-ur" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
-      </div>
-      <div style="background:#d6f0e5;padding:10px 8px;min-height:120px;">
-        <div style="font-size:0.7rem;font-weight:600;color:#0F6E56;text-align:center;margin-bottom:6px;letter-spacing:0.3px;">ANGENEHM + RUHIG</div>
-        <div id="fm-q-ar" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
-      </div>
-      <!-- Achsenlinien -->
-      <div style="position:absolute;top:50%;left:0;right:0;height:0;border-top:1.5px solid rgba(0,0,0,0.15);pointer-events:none;"></div>
-      <div style="position:absolute;left:50%;top:0;bottom:0;width:0;border-left:1.5px solid rgba(0,0,0,0.15);pointer-events:none;"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:0.82rem;font-weight:500;color:var(--ink);margin-top:6px;padding:0 4px;">
-      <span>← unangenehm</span><span>angenehm →</span>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-top:2px;padding:0 4px;">
-      <span>↑ aktiviert (oben)</span><span>↓ ruhig (unten)</span>
-    </div>
+    <hr class="divider">
 
-    <div id="fm-selection" style="display:none;margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:12px;border:2px solid var(--accent);">
-      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:6px;">Ausgewählt (<span id="fm-count">0</span>/5):</div>
-      <div id="fm-selected-tags" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;"></div>
-      <textarea id="fm-context" placeholder="Was hat das Gefühl ausgelöst? (optional)" rows="2"
-        style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;background:var(--card);color:var(--ink);"></textarea>
-      <button class="log-btn" onclick="saveFeelingMatrix()" style="margin-top:8px;">💾 Gefühl speichern</button>
+    <!-- NACH -->
+    <h3 style="margin-bottom:8px;">NACH der Aktivität</h3>
+    <div id="feeling-after-pending" style="display:none;padding:8px 12px;background:var(--bg);border-radius:10px;border-left:3px solid var(--accent);margin-bottom:10px;font-size:0.82rem;color:var(--muted);">
+      ⏳ Vor-Gefühl gespeichert – trage nach der Aktivität den Nachher-Wert ein.
     </div>
-    <!-- Bedürfnis-Reflexion (erscheint nach Speichern) -->
-    <div id="fm-needs-reflection" style="display:none;margin-top:14px;padding:14px;background:linear-gradient(135deg,#f0f4ff,#e8ecff);border-radius:12px;border:2px solid rgba(58,91,199,0.2);">
-      <div style="font-family:'DM Serif Display',serif;font-size:1rem;color:#3a5bc7;margin-bottom:6px;">💡 Was steckt dahinter?</div>
+    <div class="vitalis-slider-wrap">
+      <div class="vitalis-slider-value" id="feeling-after-val">5</div>
+      <div class="vitalis-slider-desc" id="feeling-after-desc">okay</div>
+      <input type="range" id="feeling-after-slider" min="1" max="10" value="5"
+        oninput="updateSlider('feeling-after', this.value)">
+      <div class="slider-labels"><span>😩 Miserabel</span><span>😄 Super</span></div>
     </div>
-    <div id="fm-hint" style="display:none;margin-top:8px;padding:8px 12px;background:#fff3cd;border-radius:10px;font-size:0.78rem;color:#856404;">
-      Maximal 5 Gefühle – tippe auf ein markiertes Wort, um es abzuwählen.
+    <div style="display:flex;gap:8px;">
+      <button class="log-btn secondary" onclick="logFeelingAfter()" style="flex:1;">
+        💾 Nach-Gefühl ergänzen
+      </button>
+      <button class="log-btn" onclick="logFeelingBoth()" style="flex:1;">
+        ✅ Beide speichern
+      </button>
     </div>
   </div>
 
-  <!-- VERLAUF -->
   <div class="card">
     <h2>Verlauf</h2>
     <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
@@ -1222,71 +1198,8 @@
       <button class="chip" id="ff-monat" onclick="setFeelingFilter('monat')">Monat</button>
       <button class="chip" id="ff-alles" onclick="setFeelingFilter('alles')">Alles</button>
     </div>
-    <div id="fm-quadrant-summary" style="display:none;margin-bottom:12px;"></div>
     <div class="feeling-history" id="feeling-history"></div>
     <p class="small-note" id="feeling-empty" style="display:none;">Noch keine Einträge.</p>
-  </div>
-
-  <!-- WISSEN -->
-  <div class="card">
-    <h2>Gefühle verstehen</h2>
-    <p class="small-note" style="margin-bottom:14px;line-height:1.5;">Wissen über Emotionen hilft, sie besser wahrzunehmen und einzuordnen.</p>
-
-    <div style="margin-bottom:8px;">
-      <div onclick="toggleWissen('w-circumplex')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1.1rem;">🎯</span>
-        <span style="flex:1;font-weight:500;font-size:0.9rem;">Die Gefühls-Matrix erklärt</span>
-        <span id="w-circumplex-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-      </div>
-      <div id="w-circumplex" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
-        Gefühle lassen sich auf zwei Achsen einordnen: <strong>Valenz</strong> (angenehm ↔ unangenehm) und <strong>Aktivierung</strong> (aktiviert ↔ ruhig). Das ergibt vier Bereiche – z.B. ist Wut unangenehm und aktiviert, Traurigkeit unangenehm und ruhig.
-        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Russell, J. A. (1980). A circumplex model of affect. Journal of Personality and Social Psychology, 39(6).</div>
-      </div>
-    </div>
-    <div style="margin-bottom:8px;">
-      <div onclick="toggleWissen('w-pseudo')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1.1rem;">🔍</span>
-        <span style="flex:1;font-weight:500;font-size:0.9rem;">Echte Gefühle vs. Pseudogefühle</span>
-        <span id="w-pseudo-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-      </div>
-      <div id="w-pseudo" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
-        „Ich fühle mich ignoriert" ist kein Gefühl, sondern eine Interpretation. Das echte Gefühl dahinter könnte sein: „Ich bin traurig" oder „Ich bin verunsichert". Echte Gefühle beginnen mit „Ich bin…" gefolgt von einem Empfindungswort.
-        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Rosenberg, M. B. (2003). Gewaltfreie Kommunikation. Junfermann Verlag.</div>
-      </div>
-    </div>
-    <div style="margin-bottom:8px;">
-      <div onclick="toggleWissen('w-mixed')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1.1rem;">🌈</span>
-        <span style="flex:1;font-weight:500;font-size:0.9rem;">Gemischte Gefühle sind normal</span>
-        <span id="w-mixed-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-      </div>
-      <div id="w-mixed" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
-        Menschen erleben oft gleichzeitig Gefühle aus verschiedenen Bereichen – z.B. dankbar <em>und</em> traurig. Diese Fähigkeit ist ein Zeichen emotionaler Reife.
-        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Larsen, J. T. et al. (2001). Journal of Personality and Social Psychology, 81(4).</div>
-      </div>
-    </div>
-    <div style="margin-bottom:8px;">
-      <div onclick="toggleWissen('w-granularity')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1.1rem;">🧠</span>
-        <span style="flex:1;font-weight:500;font-size:0.9rem;">Warum genaues Benennen hilft</span>
-        <span id="w-granularity-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-      </div>
-      <div id="w-granularity" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
-        Je differenzierter wir Emotionen benennen, desto besser können wir sie regulieren. Allein das Finden des richtigen Wortes hat bereits eine beruhigende Wirkung – das nennt man <strong>emotionale Granularität</strong>.
-        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Barrett, L. F. (2004). Journal of Personality and Social Psychology, 87(2).<br>Pennebaker, J. W. (1997). Psychological Science, 8(3).</div>
-      </div>
-    </div>
-    <div style="margin-bottom:8px;">
-      <div onclick="toggleWissen('w-needs')" style="cursor:pointer;padding:10px 12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1.1rem;">💡</span>
-        <span style="flex:1;font-weight:500;font-size:0.9rem;">Gefühle als Wegweiser zu Bedürfnissen</span>
-        <span id="w-needs-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-      </div>
-      <div id="w-needs" style="display:none;padding:12px;font-size:0.82rem;line-height:1.6;color:var(--ink);">
-        In der GFK ist jedes Gefühl ein Signal: Angenehme Gefühle zeigen, dass Bedürfnisse erfüllt sind. Unangenehme Gefühle zeigen, dass etwas fehlt. Der Schritt vom Gefühl zum Bedürfnis macht handlungsfähig – statt „ich bin wütend" wird „mir fehlt Respekt" daraus, und das lässt sich adressieren.
-        <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Rosenberg, M. B. (2003). Gewaltfreie Kommunikation.<br>CNVC – Center for Nonviolent Communication: Needs Inventory.</div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -1809,18 +1722,17 @@
     <button id="body-log-btn" class="log-btn secondary" style="margin-top:12px;opacity:0.4;cursor:not-allowed;" onclick="logBody()" disabled>Beobachtung notieren</button>
   </div>
 
-  <!-- BESCHWERDEN: KÖRPERSTELLE -->
-  <div class="card" id="symptom-card">
-    <h2>🩹 Beschwerden an einer Körperstelle</h2>
-    <p class="small-note" style="margin-bottom:12px;">Tippe auf die betroffene Stelle, wähle die Art und speichere. Du kannst mehrere Stellen nacheinander eintragen.</p>
+  <!-- BESCHWERDEN -->
+  <div class="card">
+    <h2>🩹 Beschwerden</h2>
+    <p class="small-note" style="margin-bottom:12px;">Tippe auf eine Körperstelle um Schmerzen oder Verspannungen einzutragen.</p>
 
     <div style="display:flex;gap:16px;justify-content:center;align-items:flex-start;margin-bottom:8px;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
         <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.5px;">VORNE</div>
         <svg id="sym-front" width="110" height="270" viewBox="0 0 110 270">
           <ellipse class="sym-zone" data-zone="Kopf" cx="55" cy="24" rx="20" ry="22" fill="#9FE1CB" onclick="symOpenZone(this)"/>
-          <ellipse class="sym-zone" data-zone="Kiefer/Mund" cx="55" cy="42" rx="12" ry="6" fill="#9FE1CB" onclick="symOpenZone(this)"/>
-          <rect class="sym-zone" data-zone="Hals" x="47" y="48" width="16" height="10" rx="3" fill="#9FE1CB" onclick="symOpenZone(this)"/>
+          <rect class="sym-zone" data-zone="Hals" x="47" y="46" width="16" height="12" rx="3" fill="#9FE1CB" onclick="symOpenZone(this)"/>
           <ellipse class="sym-zone" data-zone="Linke Schulter" cx="22" cy="70" rx="15" ry="10" fill="#9FE1CB" onclick="symOpenZone(this)"/>
           <ellipse class="sym-zone" data-zone="Rechte Schulter" cx="88" cy="70" rx="15" ry="10" fill="#9FE1CB" onclick="symOpenZone(this)"/>
           <rect class="sym-zone" data-zone="Brust" x="36" y="58" width="38" height="32" rx="5" fill="#9FE1CB" onclick="symOpenZone(this)"/>
@@ -1872,23 +1784,20 @@
 
     <p class="small-note" id="sym-hint" style="text-align:center;margin-top:4px;">Tippe auf eine Körperstelle</p>
 
-    <!-- Inline Panel für Körperstelle -->
+    <!-- Inline Panel -->
     <div id="sym-panel" style="display:none;margin-top:12px;background:var(--bg);border-radius:14px;padding:14px 16px;border:2px solid var(--border);">
       <div style="font-weight:700;font-size:0.95rem;color:var(--ink);margin-bottom:12px;" id="sym-zone-title"></div>
 
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;" id="sym-types">
-        <div style="display:flex;flex-wrap:wrap;gap:4px;">
-          <button class="chip active" onclick="symSetType(this,'Schmerz')">Schmerz</button>
-          <button class="chip" onclick="symSetType(this,'Verspannung')">Verspannung</button>
-          <button class="chip" onclick="symSetType(this,'Schwellung')">Schwellung</button>
-          <button class="chip" onclick="symSetType(this,'Muskelkater')">Muskelkater</button>
-          <button class="chip" onclick="symSetType(this,'Zerrung')">Zerrung</button>
-          <button class="chip" onclick="symSetType(this,'Kribbeln')">Kribbeln</button>
-          <button class="chip" onclick="symSetType(this,'Juckreiz')">Juckreiz</button>
-          <button class="chip" onclick="symSetType(this,'Anderes')">Anderes</button>
-        </div>
+      <!-- Typ -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;" id="sym-types">
+        <button class="chip active" onclick="symSetType(this,'Schmerz')">Schmerz</button>
+        <button class="chip" onclick="symSetType(this,'Verspannung')">Verspannung</button>
+        <button class="chip" onclick="symSetType(this,'Müdigkeit')">Müdigkeit</button>
+        <button class="chip" onclick="symSetType(this,'Kribbeln')">Kribbeln</button>
+        <button class="chip" onclick="symSetType(this,'Anderes')">Anderes</button>
       </div>
 
+      <!-- Intensität -->
       <div style="margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
           <span style="font-size:0.78rem;color:var(--muted);">Intensität</span>
@@ -1916,36 +1825,6 @@
     <p class="small-note" id="sym-log-empty" style="margin-top:8px;text-align:center;">Noch keine Beschwerden eingetragen.</p>
   </div>
 
-  <!-- ALLGEMEINE BESCHWERDEN (ohne Körperstelle) -->
-  <div class="card">
-    <h2>🌡 Allgemeine Beschwerden</h2>
-    <p class="small-note" style="margin-bottom:12px;">Erkältung, Infekte und andere Beschwerden die den ganzen Körper betreffen.</p>
-
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;" id="gen-sym-chips"></div>
-
-    <div id="gen-sym-panel" style="display:none;background:var(--bg);border-radius:14px;padding:14px 16px;border:2px solid var(--border);">
-      <div style="font-weight:700;font-size:0.95rem;color:var(--ink);margin-bottom:12px;" id="gen-sym-title"></div>
-      <div style="margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:0.78rem;color:var(--muted);">Intensität</span>
-          <span style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--ink);" id="gen-sym-int-val">5</span>
-        </div>
-        <input type="range" id="gen-sym-int-slider" min="1" max="10" value="5" step="1"
-          style="width:100%;accent-color:var(--accent);height:6px;cursor:pointer;"
-          oninput="genSymUpdateInt(this.value)">
-        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:4px;">
-          <span>😌 Kaum</span><span id="gen-sym-int-desc">deutlich</span><span>😣 Stark</span>
-        </div>
-      </div>
-      <textarea id="gen-sym-note" placeholder="Notiz (optional)…" rows="2"
-        style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;margin-bottom:10px;background:var(--card);color:var(--ink);box-sizing:border-box;"></textarea>
-      <div style="display:flex;gap:8px;">
-        <button class="log-btn" onclick="genSymSave()" style="flex:1;">💾 Speichern</button>
-        <button class="log-btn secondary" onclick="genSymCancel()">Abbrechen</button>
-      </div>
-    </div>
-  </div>
-
   <div class="card">
     <h2>Verlauf</h2>
     <div id="body-log-list" style="display:flex;flex-direction:column;gap:10px;"></div>
@@ -1971,133 +1850,73 @@
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:4px;grid-auto-rows:auto;" id="verlauf-kacheln"></div>
 
   <!-- Aktivitäten -->
-  <div class="card" id="vl-activity-card" style="padding:0;overflow:hidden;">
-    <div onclick="toggleVerlaufSection('vl-activity')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-      <h2 style="flex:1;margin:0;">🏃 Aktivitäten</h2>
-      <span id="vl-activity-count" style="font-size:0.78rem;color:var(--muted);"></span>
-      <span id="vl-activity-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-    </div>
-    <div id="vl-activity-body" style="display:none;padding:0 16px 14px;">
-      <div id="vl-activity-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-      <p class="small-note" id="vl-activity-empty">Keine Einträge im Zeitraum.</p>
-    </div>
+  <div class="card" id="vl-activity-card">
+    <h2>🏃 Aktivitäten</h2>
+    <div id="vl-activity-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-activity-empty">Keine Einträge im Zeitraum.</p>
   </div>
 
   <!-- Wasser -->
-  <div class="card" style="padding:0;overflow:hidden;">
-    <div onclick="toggleVerlaufSection('vl-water')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-      <h2 style="flex:1;margin:0;">💧 Wasser</h2>
-      <span id="vl-water-count" style="font-size:0.78rem;color:var(--muted);"></span>
-      <span id="vl-water-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-    </div>
-    <div id="vl-water-body" style="display:none;padding:0 16px 14px;">
-      <div id="vl-water-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-      <p class="small-note" id="vl-water-empty">Keine Einträge im Zeitraum.</p>
-    </div>
+  <div class="card">
+    <h2>💧 Wasser</h2>
+    <div id="vl-water-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-water-empty">Keine Einträge im Zeitraum.</p>
   </div>
 
   <!-- Gefühl -->
-  <div class="card" id="vl-feeling-card" style="padding:0;overflow:hidden;">
-    <div onclick="toggleVerlaufSection('vl-feeling')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-      <h2 style="flex:1;margin:0;">😊 Wie geht's?</h2>
-      <span id="vl-feeling-count" style="font-size:0.78rem;color:var(--muted);"></span>
-      <span id="vl-feeling-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-    </div>
-    <div id="vl-feeling-body" style="display:none;padding:0 16px 14px;">
-      <div id="vl-feeling-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-      <p class="small-note" id="vl-feeling-empty">Keine Einträge im Zeitraum.</p>
-    </div>
+  <div class="card" id="vl-feeling-card">
+    <h2>😊 Gefühl</h2>
+    <div id="vl-feeling-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-feeling-empty">Keine Einträge im Zeitraum.</p>
   </div>
 
   <!-- Süssigkeiten -->
-  <div class="card" id="vl-sweets-card" style="padding:0;overflow:hidden;">
-    <div onclick="toggleVerlaufSection('vl-sweets')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-      <h2 style="flex:1;margin:0;">🍬 Süssigkeiten</h2>
-      <span id="vl-sweets-count" style="font-size:0.78rem;color:var(--muted);"></span>
-      <span id="vl-sweets-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-    </div>
-    <div id="vl-sweets-body" style="display:none;padding:0 16px 14px;">
-      <div id="vl-sweets-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-      <p class="small-note" id="vl-sweets-empty">Keine Einträge im Zeitraum.</p>
-    </div>
+  <div class="card" id="vl-sweets-card">
+    <h2>🍬 Süssigkeiten</h2>
+    <div id="vl-sweets-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-sweets-empty">Keine Einträge im Zeitraum.</p>
   </div>
 
   <!-- Schlaf -->
-  <div class="card" style="padding:0;overflow:hidden;">
-    <div onclick="toggleVerlaufSection('vl-sleep')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-      <h2 style="flex:1;margin:0;">🌙 Schlaf</h2>
-      <span id="vl-sleep-count" style="font-size:0.78rem;color:var(--muted);"></span>
-      <span id="vl-sleep-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-    </div>
-    <div id="vl-sleep-body" style="display:none;padding:0 16px 14px;">
-      <div id="vl-sleep-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-      <p class="small-note" id="vl-sleep-empty">Keine Einträge im Zeitraum.</p>
-    </div>
+  <div class="card">
+    <h2>🌙 Schlaf</h2>
+    <div id="vl-sleep-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-sleep-empty">Keine Einträge im Zeitraum.</p>
   </div>
 
   <!-- Dankbarkeit -->
-  <div class="card" style="padding:0;overflow:hidden;">
-    <div onclick="toggleVerlaufSection('vl-gratitude')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-      <h2 style="flex:1;margin:0;">🌟 Dankbarkeit</h2>
-      <span id="vl-gratitude-count" style="font-size:0.78rem;color:var(--muted);"></span>
-      <span id="vl-gratitude-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-    </div>
-    <div id="vl-gratitude-body" style="display:none;padding:0 16px 14px;">
-      <div id="vl-gratitude-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-      <p class="small-note" id="vl-gratitude-empty">Keine Einträge im Zeitraum.</p>
-    </div>
+  <div class="card">
+    <h2>🌟 Dankbarkeit</h2>
+    <div id="vl-gratitude-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-gratitude-empty">Keine Einträge im Zeitraum.</p>
   </div>
 
   <!-- Körper -->
-  <div class="card" style="padding:0;overflow:hidden;">
-    <div onclick="toggleVerlaufSection('vl-body')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-      <h2 style="flex:1;margin:0;">🧘 Körpergefühl</h2>
-      <span id="vl-body-count" style="font-size:0.78rem;color:var(--muted);"></span>
-      <span id="vl-body-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-    </div>
-    <div id="vl-body-body" style="display:none;padding:0 16px 14px;">
-      <div id="vl-body-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-      <p class="small-note" id="vl-body-empty">Keine Einträge im Zeitraum.</p>
-    </div>
+  <div class="card">
+    <h2>🧘 Körper</h2>
+    <div id="vl-body-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-body-empty">Keine Einträge im Zeitraum.</p>
   </div>
 
   <!-- Achtsamkeit -->
-  <div class="card" style="padding:0;overflow:hidden;">
-    <div onclick="toggleVerlaufSection('vl-mind')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-      <h2 style="flex:1;margin:0;">🪷 Achtsamkeit</h2>
-      <span id="vl-mind-count" style="font-size:0.78rem;color:var(--muted);"></span>
-      <span id="vl-mind-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-    </div>
-    <div id="vl-mind-body" style="display:none;padding:0 16px 14px;">
-      <div id="vl-mind-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-      <p class="small-note" id="vl-mind-empty">Keine Einträge im Zeitraum.</p>
-    </div>
+  <div class="card">
+    <h2>🪷 Achtsamkeit</h2>
+    <div id="vl-mind-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-mind-empty">Keine Einträge im Zeitraum.</p>
   </div>
 
   <!-- Kontakte -->
-  <div class="card" style="padding:0;overflow:hidden;">
-    <div onclick="toggleVerlaufSection('vl-social')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-      <h2 style="flex:1;margin:0;">❤️ Kontakte</h2>
-      <span id="vl-social-count" style="font-size:0.78rem;color:var(--muted);"></span>
-      <span id="vl-social-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-    </div>
-    <div id="vl-social-body" style="display:none;padding:0 16px 14px;">
-      <div id="vl-social-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-      <p class="small-note" id="vl-social-empty">Keine Einträge im Zeitraum.</p>
-    </div>
+  <div class="card">
+    <h2>❤️ Kontakte</h2>
+    <div id="vl-social-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-social-empty">Keine Einträge im Zeitraum.</p>
   </div>
 
   <!-- Beschwerden -->
-  <div class="card" style="padding:0;overflow:hidden;">
-    <div onclick="toggleVerlaufSection('vl-symptom')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-      <h2 style="flex:1;margin:0;">🩹 Beschwerden</h2>
-      <span id="vl-symptom-count" style="font-size:0.78rem;color:var(--muted);"></span>
-      <span id="vl-symptom-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
-    </div>
-    <div id="vl-symptom-body" style="display:none;padding:0 16px 14px;">
-      <div id="vl-symptom-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-      <p class="small-note" id="vl-symptom-empty">Keine Einträge im Zeitraum.</p>
-    </div>
+  <div class="card">
+    <h2>🩹 Beschwerden</h2>
+    <div id="vl-symptom-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <p class="small-note" id="vl-symptom-empty">Keine Einträge im Zeitraum.</p>
   </div>
 
 </div>
@@ -2213,22 +2032,6 @@
       <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:#3a5bc7;margin-bottom:4px;" id="habit-name-display"></div>
       <div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;" id="habit-date-display"></div>
 
-      <!-- Habit Loop (swap only) -->
-      <div id="habit-loop-visual" style="display:none;margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,0.7);border-radius:10px;">
-        <div style="font-size:0.7rem;color:var(--muted);font-weight:600;margin-bottom:6px;">DEIN HABIT LOOP</div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:0.78rem;">
-          <span id="habit-loop-cue" style="padding:4px 10px;background:#faeeda;color:#633806;border-radius:8px;font-weight:600;"></span>
-          <span style="color:var(--muted);">→</span>
-          <span id="habit-loop-old" style="padding:4px 10px;background:#fcebeb;color:#791f1f;border-radius:8px;text-decoration:line-through;opacity:0.6;"></span>
-          <span id="habit-loop-new" style="padding:4px 10px;background:#eaf3de;color:#27500a;border-radius:8px;font-weight:600;"></span>
-          <span style="color:var(--muted);">→</span>
-          <span id="habit-loop-reward" style="padding:4px 10px;background:#e6f1fb;color:#0c447c;border-radius:8px;"></span>
-        </div>
-      </div>
-
-      <!-- Wenn-Dann (swap only) -->
-      <div id="habit-woop-display" style="display:none;margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,0.7);border-radius:10px;font-size:0.82rem;line-height:1.5;"></div>
-
       <!-- Fortschritt -->
       <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--muted);margin-bottom:4px;">
         <span id="habit-days-label">Tag 0 von 90</span>
@@ -2238,8 +2041,10 @@
         <div id="habit-progress-bar" style="height:100%;background:linear-gradient(90deg,#3a5bc7,#6b8dd6);border-radius:20px;width:0%;transition:width 0.5s;"></div>
       </div>
 
+      <!-- Milestone -->
       <div id="habit-milestone" style="display:none;padding:8px 12px;background:rgba(58,91,199,0.1);border-radius:10px;font-size:0.82rem;color:#3a5bc7;margin-bottom:12px;"></div>
 
+      <!-- Heute abhaken -->
       <div style="display:flex;gap:8px;margin-bottom:12px;">
         <button onclick="logHabitDay(true)" id="habit-yes-btn"
           style="flex:1;padding:11px;border-radius:12px;border:2px solid rgba(58,91,199,0.3);background:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.15s;">
@@ -2251,80 +2056,26 @@
         </button>
       </div>
 
+      <!-- Letzte 7 Tage -->
       <div style="display:flex;gap:5px;margin-bottom:12px;" id="habit-dots"></div>
-
-      <!-- Tauschquote (swap only) -->
-      <div id="habit-swap-stats" style="display:none;margin-bottom:14px;">
-        <div style="display:flex;gap:8px;text-align:center;">
-          <div style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border-radius:10px;">
-            <div style="font-size:1.2rem;font-weight:700;color:#3a5bc7;" id="habit-swap-done">0</div>
-            <div style="font-size:0.68rem;color:var(--muted);">Getauscht</div>
-          </div>
-          <div style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border-radius:10px;">
-            <div style="font-size:1.2rem;font-weight:700;color:var(--muted);" id="habit-swap-missed">0</div>
-            <div style="font-size:0.68rem;color:var(--muted);">Nicht getauscht</div>
-          </div>
-          <div style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border-radius:10px;">
-            <div style="font-size:1.2rem;font-weight:700;color:#1d9e75;" id="habit-swap-pct">0%</div>
-            <div style="font-size:0.68rem;color:var(--muted);">Tauschquote</div>
-          </div>
-        </div>
-      </div>
 
       <button onclick="stopHabit()" class="alc-reset">Gewohnheit beenden</button>
     </div>
 
     <div id="habit-setup-card">
-      <div style="display:flex;gap:0;margin-bottom:14px;">
-        <button id="habit-mode-build" onclick="setHabitMode('build')" style="flex:1;padding:10px;border-radius:12px 0 0 12px;border:2px solid rgba(58,91,199,0.3);background:#3a5bc7;color:white;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">🌱 Aufbauen</button>
-        <button id="habit-mode-swap" onclick="setHabitMode('swap')" style="flex:1;padding:10px;border-radius:0 12px 12px 0;border:2px solid rgba(58,91,199,0.3);border-left:none;background:white;color:#3a5bc7;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">🔄 Tauschen</button>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Meine Gewohnheit</label>
+        <input type="text" id="habit-name-input" placeholder="z.B. Täglich 30 Min bewegen"
+          style="width:100%;padding:10px 14px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;">
       </div>
-
-      <div id="habit-build-fields">
-        <div style="margin-bottom:10px;">
-          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Meine Gewohnheit</label>
-          <input type="text" id="habit-name-input" placeholder="z.B. Täglich 30 Min bewegen" style="width:100%;padding:10px 14px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;">
-        </div>
-      </div>
-
-      <div id="habit-swap-fields" style="display:none;">
-        <div style="background:#fcebeb;border-radius:12px;padding:12px;margin-bottom:4px;">
-          <label style="font-size:0.75rem;color:#791f1f;display:block;margin-bottom:4px;font-weight:600;">Alte Gewohnheit (loslassen)</label>
-          <input type="text" id="habit-old-input" placeholder="z.B. Feierabendbier" style="width:100%;padding:10px 14px;border:2px solid #f09595;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;background:white;">
-        </div>
-        <div style="text-align:center;margin:-2px 0;position:relative;z-index:1;"><span style="display:inline-block;width:32px;height:32px;line-height:32px;border-radius:50%;background:white;border:2px solid rgba(58,91,199,0.2);font-size:0.9rem;">⇅</span></div>
-        <div style="background:#eaf3de;border-radius:12px;padding:12px;margin-bottom:12px;">
-          <label style="font-size:0.75rem;color:#27500a;display:block;margin-bottom:4px;font-weight:600;">Neue Gewohnheit (aufbauen)</label>
-          <input type="text" id="habit-new-input" placeholder="z.B. Rooibos-Tee aufbrühen" style="width:100%;padding:10px 14px;border:2px solid #97c459;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;background:white;">
-        </div>
-        <div style="margin-bottom:12px;">
-          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:6px;font-weight:600;">Mein Auslöser</label>
-          <div id="habit-cue-chips" style="margin-bottom:6px;"></div>
-          <input type="text" id="habit-cue-custom" placeholder="Oder eigener Auslöser..." style="width:100%;padding:8px 12px;border:2px solid rgba(58,91,199,0.15);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
-        </div>
-        <div style="margin-bottom:12px;">
-          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Welche Belohnung suche ich eigentlich?</label>
-          <div style="font-size:0.78rem;color:var(--muted);line-height:1.4;margin-bottom:6px;padding:8px 10px;background:rgba(58,91,199,0.05);border-radius:8px;">Was genau gibt mir die alte Gewohnheit? Entspannung? Ein Ritual? Ein Signal?</div>
-          <textarea id="habit-reward-input" rows="2" placeholder="z.B. Runterkommen, Übergang Arbeit → Freizeit" style="width:100%;padding:10px 12px;border:2px solid rgba(58,91,199,0.15);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;"></textarea>
-        </div>
-        <div style="margin-bottom:12px;">
-          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Wenn-Dann-Plan</label>
-          <div style="display:flex;gap:4px;align-items:start;"><span style="font-size:0.82rem;color:var(--muted);padding-top:10px;white-space:nowrap;">Wenn</span><input type="text" id="habit-woop-obstacle" placeholder="ich zum Kühlschrank gehen will" style="flex:1;padding:8px 10px;border:2px solid rgba(58,91,199,0.15);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;"></div>
-          <div style="display:flex;gap:4px;align-items:start;margin-top:4px;"><span style="font-size:0.82rem;color:var(--muted);padding-top:10px;white-space:nowrap;">dann</span><input type="text" id="habit-woop-plan" placeholder="stelle ich den Wasserkocher an" style="flex:1;padding:8px 10px;border:2px solid rgba(58,91,199,0.15);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;"></div>
-        </div>
-        <div style="margin-bottom:12px;">
-          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:6px;font-weight:600;">An welchen Tagen tauschen?</label>
-          <div id="habit-day-chips" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">An Ruhetagen wirst du nicht gefragt, kannst aber freiwillig tauschen.</div>
-        </div>
-      </div>
-
       <div style="margin-bottom:14px;">
         <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Startdatum</label>
-        <input type="date" id="habit-start-input" style="width:100%;padding:10px 12px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;">
+        <input type="date" id="habit-start-input"
+          style="width:100%;padding:10px 12px;border:2px solid rgba(58,91,199,0.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;">
       </div>
-      <button onclick="startHabit()" class="log-btn" style="width:100%;background:#3a5bc7;border-color:#3a5bc7;" id="habit-start-btn">🌱 90-Tage-Commitment starten</button>
-      <div style="font-size:0.7rem;color:var(--muted);text-align:center;margin-top:8px;line-height:1.4;font-style:italic;" id="habit-science-note">Lally et al. (2010): Ø 66 Tage bis Automatizität.</div>
+      <button onclick="startHabit()" class="log-btn" style="width:100%;background:#3a5bc7;border-color:#3a5bc7;">
+        🌱 90-Tage-Commitment starten
+      </button>
     </div>
   </div>
 </div>
@@ -2679,9 +2430,9 @@
         <div style="font-size:0.7rem;color:var(--accent);margin-top:4px;font-style:italic;">Tribole & Resch (1995) · Schaefer & Magnuson (2014)</div>
       </div>
       <div style="border-left:3px solid #457b9d;padding-left:12px;">
-        <div style="font-weight:600;font-size:0.85rem;margin-bottom:3px;">Gewohnheitsbildung & -substitution</div>
-        <p style="font-size:0.8rem;line-height:1.6;color:var(--muted);">Im Schnitt 66 Tage bis Automatizität. Gewohnheiten werden nicht gelöscht, sondern durch neue Routinen im gleichen Kontext ersetzt. Substitution erfordert gleichzeitigen Aufbau der neuen und Abbau der alten Gewohnheit.</p>
-        <div style="font-size:0.7rem;color:#457b9d;margin-top:4px;font-style:italic;">Lally et al. (2010) · Duhigg (2012) · Gardner et al. (2021) · Di Maio et al. (2025)</div>
+        <div style="font-weight:600;font-size:0.85rem;margin-bottom:3px;">Gewohnheitsbildung</div>
+        <p style="font-size:0.8rem;line-height:1.6;color:var(--muted);">Im Schnitt 66 Tage. Ein ausgelassener Tag hat keinen messbaren Einfluss.</p>
+        <div style="font-size:0.7rem;color:#457b9d;margin-top:4px;font-style:italic;">Lally et al. (2010) · UCL</div>
       </div>
       <div style="border-left:3px solid var(--accent2);padding-left:12px;">
         <div style="font-weight:600;font-size:0.85rem;margin-bottom:3px;">Bewegung & Stimmung</div>
@@ -2893,14 +2644,6 @@
     <button onclick="resetAllData()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--accent2);background:transparent;color:var(--accent2);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;">🗑 Alle Daten zurücksetzen (Test)</button>
     <button onclick="restartOnboarding()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;margin-top:8px;">🌿 Startschuss-Intro nochmal anzeigen</button>
     <hr class="divider">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div>
-        <div style="font-size:0.85rem;font-weight:600;">✨ Kachel-Animation</div>
-        <div style="font-size:0.72rem;color:var(--muted);">Sanftes Leuchten bei beschwerdefreien Tagen</div>
-      </div>
-      <button id="pulse-toggle-btn" onclick="toggleTilePulse()" style="width:52px;height:28px;border-radius:14px;border:none;cursor:pointer;position:relative;transition:background 0.2s;"></button>
-    </div>
-    <hr class="divider">
     <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">🛠 Test-Modus</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button onclick="setTimeOverride('morning')" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">☀️ Morgens</button>
@@ -2943,13 +2686,6 @@
       <button class="chip active" id="mchip-heute"     onclick="selectMindfulnessDate('heute')">📅 Heute</button>
       <button class="chip"        id="mchip-gestern"   onclick="selectMindfulnessDate('gestern')">Gestern</button>
       <button class="chip"        id="mchip-vorgestern" onclick="selectMindfulnessDate('vorgestern')">Vorgestern</button>
-    </div>
-    <div style="margin-bottom:12px;">
-      <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;">Wie lange? (Minuten)</label>
-      <input type="number" id="mindfulness-manual-min" min="1" max="120" value=""
-        placeholder="z.B. 13"
-        style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;"
-        oninput="updateMindfulnessPreview()">
     </div>
     <div style="font-size:0.78rem;color:var(--muted);margin:8px 0 12px;padding:8px 12px;background:var(--bg);border-radius:8px;" id="mindfulness-time-preview">
       Bitte Übung und Zeitpunkt wählen.
@@ -3018,7 +2754,8 @@
   <div style="color:white;text-align:center;width:100%;max-width:360px;">
     <!-- Header -->
     <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:4px;" id="breath-title">Atemübung</div>
-    <div style="font-size:0.78rem;opacity:0.6;margin-bottom:40px;" id="breath-subtitle"></div>
+    <div style="font-size:0.78rem;opacity:0.6;margin-bottom:6px;" id="breath-subtitle"></div>
+    <div style="font-size:0.78rem;opacity:0.85;margin-bottom:34px;background:rgba(255,255,255,0.08);border-radius:10px;padding:6px 12px;" id="breath-effect"></div>
 
     <!-- Animated circle -->
     <div style="position:relative;width:220px;height:220px;margin:0 auto 40px;" id="breath-circle-wrap">
@@ -3154,7 +2891,7 @@ function loadState() {
     activeDaysLog: [], // [{date}] all days with any activity
     activitiesLogged: 0,
     pointsLog: [],
-    habit90: null, // { name, mode:'build'|'swap', startDate, log:[{date,done,skip?,bonus?,note?,feeling?}], completed, oldHabit?, newHabit?, cues?[], reward?, activeDays?[], woop?{obstacle,plan} }
+    habit90: null, // { name, startDate, log: [{date, done}], completed }
     feelingLog: [],
     activityLog: [],
     activities: DEFAULT_ACTIVITIES,
@@ -3193,7 +2930,6 @@ function loadState() {
     mindfulnessLog: [],
     selectedMindfulness: null,
     selectedActivity: null,
-    tileOrder: null, // null = default order
   };
   if (!raw) return defaults;
   try {
@@ -3202,7 +2938,7 @@ function loadState() {
     const arrays = ['activityLog','feelingLog','weightLog','bodyLog','sleepLog',
       'gratitudeLog','socialContacts','mindfulnessLog','breathingLog','bugReports',
       'alcDaysLog','sweetsDaysLog','sweetsLog','pointsLog',
-      'waterLog','activeDaysLog','symptomLog','masterContacts','mealFeelingLog','alcAftermathLog','symptomFreeLog','sickDayLog'];
+      'waterLog','activeDaysLog','symptomLog','masterContacts','mealFeelingLog','alcAftermathLog'];
     arrays.forEach(k => { if (!Array.isArray(saved[k])) saved[k] = []; });
     return saved;
   }
@@ -3283,7 +3019,7 @@ function showSection(id) {
   if (id === 'verlauf') renderVerlauf();
   if (id === 'social') renderSocial();
   if (id === 'mindfulness') renderMindfulness();
-  if (id === 'body') { renderBody(); renderSymptoms(); renderGenSymChips(); }
+  if (id === 'body') { renderBody(); renderSymptoms(); }
   if (id === 'gratitude') renderGratitudeSection();
   if (id === 'rewards') renderRewards();
   if (id === 'settings') renderSettings();
@@ -3329,6 +3065,14 @@ function renderHome() {
   if (greetEl) greetEl.textContent = greeting;
   const dateEl = document.getElementById('home-date');
   if (dateEl) dateEl.textContent = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
+
+  // Sleep check-in
+  const checkinCard = document.getElementById('sleep-checkin-card');
+  const sleepLoggedToday = state.sleepLog.length > 0 && new Date(state.sleepLog[0].ts).toDateString() === todayStr;
+  const sleepSkipped = state.sleepCheckinSkipped === todayStr;
+  if (hour >= 5 && hour < 12 && !sleepLoggedToday && !sleepSkipped) {
+    checkinCard.style.display = ''; renderSleepCheckinGrid();
+  } else { checkinCard.style.display = 'none'; }
 
   // Goal subtitle
   const goal = state.profile?.mainGoal;
@@ -3440,27 +3184,10 @@ function renderHome() {
     },
     {
       icon: '🧘', label: 'Körper', section: 'body',
-      color: (() => {
-        const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        if (sick) return '#993C1D';
-        return (!s.length && free) ? '#c9a84c' : '#6b8f71';
-      })(),
-      bg: (() => {
-        const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        if (sick) return 'linear-gradient(135deg,#fef3ee,#f9e4dd)';
-        return (!s.length && free) ? 'linear-gradient(135deg,#fdf6e3,#f5eacc)' : 'linear-gradient(135deg,#f0f5f0,#dceadc)';
-      })(),
+      color: '#6b8f71', bg: 'linear-gradient(135deg,#f0f5f0,#dceadc)',
       value: (() => {
         const b = state.bodyLog.length > 0 && new Date(state.bodyLog[0].ts).toDateString() === todayStr ? state.bodyLog[0] : null;
         const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        if (sick) return '🛏 Gute Besserung';
-        if (!s.length && free) return 'Danke 🙏';
         if (!b && !s.length) return '—';
         const parts = [];
         if (b?.feeling) parts.push(b.feeling + '/10');
@@ -3469,33 +3196,7 @@ function renderHome() {
       })(),
       sub: (() => {
         const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        if (sick) return 'Krankheitstag – Streak pausiert';
-        if (!s.length && free) return 'ohne Beschwerden';
         return s.length ? s.map(e=>e.zone).join(', ').slice(0,28) : 'Wohlbefinden & Beschwerden';
-      })(),
-      bar: null,
-      _symptomFree: (() => {
-        const s = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-        const free = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        const sick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-        return !sick && !s.length && !!free;
-      })()
-    },
-    {
-      icon: '😊', label: "Wie geht's?", section: 'feeling',
-      color: '#d85a30', bg: 'linear-gradient(135deg,#fef3ee,#f9e4dd)',
-      value: (() => {
-        const tf = state.feelingLog.filter(e => new Date(e.ts).toDateString() === todayStr);
-        if (!tf.length) return '—';
-        const last = tf[0];
-        if (last.feelings && Array.isArray(last.feelings)) return last.feelings.map(f=>f.label).slice(0,2).join(', ')+(last.feelings.length>2?'…':'');
-        return last.before !== null ? last.before + '/10' : '—';
-      })(),
-      sub: (() => {
-        const tf = state.feelingLog.filter(e => new Date(e.ts).toDateString() === todayStr);
-        return tf.length ? tf.length + '× heute' : 'Wie geht es dir?';
       })(),
       bar: null
     },
@@ -3543,113 +3244,13 @@ function renderHome() {
     },
   ];
 
-  // Habit tile – always visible
-  (() => {
-    const h = state.habit90, hasActive = h && !h.completed;
-    let tileIcon, tileColor, tileValue, tileSub, tileBar;
-    if (hasActive) {
-      const isSwap = h.mode === 'swap';
-      const dp = Math.max(0, Math.floor((now - new Date(h.startDate)) / 86400000) + 1);
-      const te = h.log.find(e => new Date(e.date).toDateString() === todayStr);
-      tileBar = Math.min(100, Math.round(dp / 90 * 100));
-      if (isSwap) {
-        tileIcon = '🔄'; tileColor = '#534AB7';
-        const isd = habitIsSwapDay(now), dc = h.log.filter(e=>e.done).length, tl = h.log.filter(e=>e.done!==undefined).length;
-        const sp = tl > 0 ? Math.round(dc/tl*100) : 0;
-        if (te?.done===true) { tileValue='🔄 Getauscht'; tileSub='Tag '+Math.min(dp,90)+' · '+sp+'%'; }
-        else if (te?.done===false) { tileValue='○ Nicht heute'; tileSub='Tag '+Math.min(dp,90)+' · '+sp+'%'; }
-        else if (!isd) { tileValue='☀️ Ruhetag'; tileSub='Tag '+Math.min(dp,90)+' · kein Tauschtag'; }
-        else { tileValue='Offen'; tileSub='Tag '+Math.min(dp,90)+' von 90'; }
-      } else {
-        tileIcon='🌱'; tileColor='#3a5bc7';
-        if(te?.done===true) tileValue='✅ Geschafft'; else if(te?.done===false) tileValue='○ Nicht heute'; else tileValue='Offen';
-        tileSub='Tag '+Math.min(dp,90)+' von 90';
-      }
-    } else if (h && h.completed) {
-      tileIcon='🏆'; tileColor='#c9a84c'; tileValue='Geschafft!'; tileSub='Neues Commitment starten?'; tileBar=100;
-    } else {
-      tileIcon='🌱'; tileColor='#3a5bc7'; tileValue='—'; tileSub='90-Tage starten'; tileBar=null;
-    }
-    TILES.push({ icon:tileIcon, label:hasActive&&h.mode==='swap'?'Tausch':'Gewohnheit', section:'rewards',
-      color:tileColor, bg:'linear-gradient(135deg,#f0f4ff,#e0e8ff)', value:tileValue, sub:tileSub, bar:tileBar, barColor:tileColor });
-  })();
-
-  // Gedanke des Tages – wechselt bei jedem Laden
-  (() => {
-    const QUOTES = [
-      'Zwischen Reiz und Reaktion liegt ein Raum. In ihm liegt unsere Freiheit. — Viktor Frankl',
-      'Du kannst die Wellen nicht stoppen, aber du kannst lernen zu surfen. — Jon Kabat-Zinn',
-      'Wer seine Gefühle benennen kann, nimmt ihnen die Macht. — Lisa Feldman Barrett',
-      'Echte Veränderung kommt aus Mitgefühl, nicht aus Disziplin. — Kristin Neff',
-      'Der Weg ist das Ziel – aber nur, wenn du ihn bewusst gehst.',
-      'Ein guter Tag beginnt mit der Frage: Was brauche ich? — Marshall Rosenberg',
-      'Dankbarkeit verwandelt, was wir haben, in genug. — Melody Beattie',
-      'Gewohnheiten sind die unsichtbare Architektur deines Alltags. — Charles Duhigg',
-      'Nicht die Dinge beunruhigen uns, sondern unsere Sicht auf die Dinge. — Epiktet',
-      'Jeder Atemzug ist eine neue Chance, ganz da zu sein.',
-      'Was du heute tust, entscheidet, wer du morgen bist.',
-      'Bewusstsein schlägt Kontrolle. Immer.',
-      'Kontinuität schlägt Perfektion. Ein ausgelassener Tag ändert nichts. — Lally et al.',
-      'Der beste Zeitpunkt anzufangen war gestern. Der zweitbeste ist jetzt.',
-      'Emotionen sind keine Störungen – sie sind Wegweiser. — Rosenberg',
-      'Freundlichkeit dir selbst gegenüber ist keine Schwäche, sondern Stärke. — Neff',
-      'Was wir regelmässig tun, formt unser Gehirn. Was wir beobachten, können wir verändern.',
-      'Der Körper spricht, bevor der Kopf es merkt. Hör ihm zu.',
-      'Schlaf ist die beste Meditation. — Dalai Lama',
-      'Wenn Plan A nicht funktioniert: Das Alphabet hat noch 25 weitere Buchstaben.',
-    ];
-    const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-    const parts = q.split(' — ');
-    const quoteCard = document.getElementById('home-quote-fullwidth');
-    if (quoteCard) {
-      quoteCard.innerHTML = `
-        <div style="font-size:0.85rem;font-style:italic;color:var(--ink);line-height:1.5;">${parts[0]}</div>
-        ${parts[1] ? `<div style="font-size:0.72rem;color:var(--muted);margin-top:4px;text-align:right;">— ${parts[1]}</div>` : ''}
-      `;
-    }
-  })();
-
-  // Sort tiles by saved order
-  if (state.tileOrder && Array.isArray(state.tileOrder)) {
-    // Migrate: add new sections if missing
-    ['rewards','quote'].forEach(s => { if (!state.tileOrder.includes(s)) state.tileOrder.push(s); });
-    TILES.sort((a, b) => {
-      const ia = state.tileOrder.indexOf(a.section);
-      const ib = state.tileOrder.indexOf(b.section);
-      return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-    });
-  }
-
-  // Reorder button
-  const reorderBtn = document.createElement('div');
-  reorderBtn.id = 'tile-reorder-btn';
-  reorderBtn.style.cssText = 'text-align:right;margin-bottom:8px;';
-  reorderBtn.innerHTML = tiles.classList.contains('tile-reorder-mode')
-    ? '<button onclick="finishTileReorder()" style="background:var(--accent);color:white;border:none;border-radius:12px;padding:7px 16px;font-size:0.78rem;font-family:DM Sans,sans-serif;font-weight:600;cursor:pointer;">✓ Fertig</button>'
-    : '<button onclick="startTileReorder()" style="background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:12px;padding:7px 16px;font-size:0.78rem;font-family:DM Sans,sans-serif;font-weight:500;cursor:pointer;">↕ Anordnen</button>';
-  tiles.appendChild(reorderBtn);
-  reorderBtn.style.gridColumn = 'span 2';
-
-  const isReordering = tiles.classList.contains('tile-reorder-mode');
-
-  TILES.forEach((t, idx) => {
+  TILES.forEach(t => {
     const tile = document.createElement('div');
     tile.className = 'home-tile';
-    if (t._symptomFree && state.tilePulseEnabled !== false) tile.classList.add('tile-pulse');
     tile.style.background = t.bg;
     tile.style.borderColor = 'transparent';
-    tile.dataset.section = t.section || '';
-    tile.dataset.idx = idx;
-    if (!isReordering && t.section && t.section !== 'quote') {
-      tile.onclick = () => showSection(t.section);
-    }
-    const reorderBtns = isReordering ? `<div style="position:absolute;top:6px;right:6px;display:flex;flex-direction:column;gap:2px;z-index:10;">
-      <button onclick="event.stopPropagation();moveTile(${idx},-1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--ink);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;${idx<2?'opacity:0.3;pointer-events:none;':''}">▲</button>
-      <button onclick="event.stopPropagation();moveTile(${idx},1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--ink);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;${idx>=TILES.length-2?'opacity:0.3;pointer-events:none;':''}">▼</button>
-    </div>` : '';
-    tile.style.position = 'relative';
+    tile.onclick = () => showSection(t.section);
     tile.innerHTML =
-      reorderBtns +
       '<div>' +
         '<div class="tile-icon">' + t.icon + '</div>' +
         '<div class="tile-label">' + t.label + '</div>' +
@@ -3660,61 +3261,14 @@ function renderHome() {
     tiles.appendChild(tile);
   });
 
-  // Gratitude entry – under the quote card
-  const quoteCard = document.getElementById('home-quote-fullwidth');
-  if (gratEntry && quoteCard) {
-    const existing = document.getElementById('home-gratitude-display');
-    if (existing) existing.remove();
+  // Gratitude entry
+  if (gratEntry) {
     const gt = document.createElement('div');
-    gt.id = 'home-gratitude-display';
-    gt.style.cssText = 'padding:12px 18px;background:linear-gradient(135deg,rgba(45,27,78,0.07),rgba(74,32,96,0.07));border-radius:0 0 16px 16px;margin-top:-12px;margin-bottom:12px;border:1.5px solid rgba(155,89,182,0.2);border-top:1px solid rgba(155,89,182,0.15);';
+    gt.style.cssText = 'grid-column:span 2;padding:14px 16px;background:linear-gradient(135deg,rgba(45,27,78,0.07),rgba(74,32,96,0.07));border-radius:20px;border:1.5px solid rgba(155,89,182,0.2);cursor:pointer;margin-top:0;';
     gt.innerHTML = '<div style="font-size:0.7rem;color:#9b59b6;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🌟 Heute dankbar für</div><div style="font-size:0.88rem;color:var(--ink);font-style:italic;">&ldquo;' + gratEntry.text + '&rdquo;</div>';
-    quoteCard.after(gt);
+    tiles.appendChild(gt);
   }
 }
-
-
-// =====================
-// TILE REORDER (Arrow Buttons)
-// =====================
-function startTileReorder() {
-  const tiles = document.getElementById('home-tiles');
-  tiles.classList.add('tile-reorder-mode');
-  renderHome();
-  showToast('Kacheln verschieben – Pfeile nutzen');
-}
-
-function finishTileReorder() {
-  const tiles = document.getElementById('home-tiles');
-  tiles.classList.remove('tile-reorder-mode');
-  const order = [];
-  tiles.querySelectorAll('.home-tile[data-section]').forEach(t => order.push(t.dataset.section));
-  if (order.length) { state.tileOrder = order; saveState(); }
-  renderHome();
-}
-
-function moveTile(fromIdx, direction) {
-  const step = 2;
-  const toIdx = fromIdx + (direction * step);
-  if (!state.tileOrder) {
-    state.tileOrder = ['water','activity','nutrition','sleep','weight','body','feeling','social','mindfulness','gratitude','rewards','quote'];
-  }
-  // Migrate: add new sections if missing from old saved order
-  ['rewards','quote'].forEach(s => { if (!state.tileOrder.includes(s)) state.tileOrder.push(s); });
-  if (toIdx < 0 || toIdx >= state.tileOrder.length) return;
-  const temp = state.tileOrder[fromIdx];
-  state.tileOrder[fromIdx] = state.tileOrder[toIdx];
-  state.tileOrder[toIdx] = temp;
-  saveState();
-  renderHome();
-}
-
-function toggleTilePulse() {
-  state.tilePulseEnabled = state.tilePulseEnabled === false ? true : false;
-  saveState();
-  renderSettings();
-}
-
 
 
 // =====================
@@ -3745,305 +3299,164 @@ function initSlider(id, val) {
 }
 
 // =====================
-// FEELING – MATRIX-BASED (Circumplex + GFK)
+// FEELING
 // =====================
-const FEELING_MATRIX = {
-  kern: {
-    ua: [{label:'wütend',desc:'Ärger, der sich aufbaut'},{label:'ängstlich',desc:'Sorge, innere Anspannung'},{label:'gestresst',desc:'Überlastet, unter Druck'},{label:'frustriert',desc:'Klappt nicht wie gewollt'},{label:'genervt',desc:'Gereizt durch Kleinigkeiten'},{label:'panisch',desc:'Starke Angst, Kontrollverlust'}],
-    aa: [{label:'begeistert',desc:'Voller Vorfreude und Energie'},{label:'fröhlich',desc:'Gute Laune, beschwingt'},{label:'energiegeladen',desc:'Tatendrang, wach und bereit'},{label:'inspiriert',desc:'Kreative Ideen, Motivation'},{label:'aufgeregt',desc:'Positive Spannung, Erwartung'},{label:'stolz',desc:'Zufrieden mit einer Leistung'}],
-    ur: [{label:'traurig',desc:'Niedergeschlagen, bedrückt'},{label:'erschöpft',desc:'Ausgelaugt, keine Energie'},{label:'einsam',desc:'Mangel an Verbundenheit'},{label:'lustlos',desc:'Kein Antrieb, gleichgültig'},{label:'hoffnungslos',desc:'Sehe keinen Ausweg'},{label:'gelangweilt',desc:'Nichts reizt mich gerade'}],
-    ar: [{label:'zufrieden',desc:'Im Reinen mit mir und der Welt'},{label:'gelassen',desc:'Nichts bringt mich aus der Fassung'},{label:'dankbar',desc:'Wertschätzung für das, was ist'},{label:'entspannt',desc:'Körper und Geist lassen los'},{label:'geborgen',desc:'Sicher und aufgehoben'},{label:'friedlich',desc:'Innerer Frieden, Harmonie'}]
-  },
-  erweitert: {
-    ua: [{label:'wütend',desc:'Ärger, der sich aufbaut'},{label:'ängstlich',desc:'Sorge, innere Anspannung'},{label:'gestresst',desc:'Überlastet, unter Druck'},{label:'frustriert',desc:'Klappt nicht wie gewollt'},{label:'genervt',desc:'Gereizt durch Kleinigkeiten'},{label:'panisch',desc:'Starke Angst, Kontrollverlust'},
-      {label:'zornig',desc:'Intensiver, gerichteter Ärger',gfk:true},{label:'erbost',desc:'Aufgebracht über Ungerechtigkeit',gfk:true},{label:'aufgewühlt',desc:'Innerlich durcheinander',gfk:true},{label:'fassungslos',desc:'Kann nicht glauben, was passiert',gfk:true},{label:'angespannt',desc:'Unter Spannung',gfk:true},{label:'unruhig',desc:'Innerlich getrieben',gfk:true},{label:'verunsichert',desc:'Boden verloren',gfk:true},{label:'besorgt',desc:'Gedanken kreisen',gfk:true},{label:'erschrocken',desc:'Plötzlicher Schock',gfk:true},{label:'widerwillig',desc:'Innerer Widerstand',gfk:true},{label:'enttäuscht',desc:'Erwartung nicht erfüllt',gfk:true},{label:'verzweifelt',desc:'Tiefe Not',gfk:true}],
-    aa: [{label:'begeistert',desc:'Voller Vorfreude und Energie'},{label:'fröhlich',desc:'Gute Laune, beschwingt'},{label:'energiegeladen',desc:'Tatendrang, wach und bereit'},{label:'inspiriert',desc:'Kreative Ideen, Motivation'},{label:'aufgeregt',desc:'Positive Spannung, Erwartung'},{label:'stolz',desc:'Zufrieden mit einer Leistung'},
-      {label:'leidenschaftlich',desc:'Brennt für etwas, voll dabei',gfk:true},{label:'überschwänglich',desc:'Freude schwappt über',gfk:true},{label:'entzückt',desc:'Positiv überrascht, bezaubert',gfk:true},{label:'mutig',desc:'Bereit, etwas zu wagen',gfk:true},{label:'neugierig',desc:'Will entdecken oder verstehen',gfk:true},{label:'erwartungsvoll',desc:'Gespannt auf das, was kommt',gfk:true},{label:'erstaunt',desc:'Positiv überrascht',gfk:true},{label:'bewegt',desc:'Innerlich berührt',gfk:true},{label:'lebendig',desc:'Spüre das Leben intensiv',gfk:true},{label:'heiter',desc:'Unbeschwert und leicht',gfk:true}],
-    ur: [{label:'traurig',desc:'Niedergeschlagen, bedrückt'},{label:'erschöpft',desc:'Ausgelaugt, keine Energie'},{label:'einsam',desc:'Mangel an Verbundenheit'},{label:'lustlos',desc:'Kein Antrieb, gleichgültig'},{label:'hoffnungslos',desc:'Sehe keinen Ausweg'},{label:'gelangweilt',desc:'Nichts reizt mich gerade'},
-      {label:'melancholisch',desc:'Stille Schwere, wehmütig',gfk:true},{label:'niedergeschlagen',desc:'Gedrückte Stimmung',gfk:true},{label:'entmutigt',desc:'Glaube nicht an Erfolg',gfk:true},{label:'hilflos',desc:'Weiss nicht weiter',gfk:true},{label:'müde',desc:'Körperlich erschlafft',gfk:true},{label:'apathisch',desc:'Fühle gar nichts',gfk:true},{label:'beschämt',desc:'Möchte mich verstecken',gfk:true},{label:'verletzt',desc:'Seelischer Schmerz',gfk:true},{label:'isoliert',desc:'Abgeschnitten von anderen',gfk:true},{label:'schwermütig',desc:'Anhaltende innere Schwere',gfk:true}],
-    ar: [{label:'zufrieden',desc:'Im Reinen mit mir und der Welt'},{label:'gelassen',desc:'Nichts bringt mich aus der Fassung'},{label:'dankbar',desc:'Wertschätzung für das, was ist'},{label:'entspannt',desc:'Körper und Geist lassen los'},{label:'geborgen',desc:'Sicher und aufgehoben'},{label:'friedlich',desc:'Innerer Frieden, Harmonie'},
-      {label:'erleichtert',desc:'Last fällt ab',gfk:true},{label:'ausgeglichen',desc:'In der Mitte, harmonisch',gfk:true},{label:'beruhigt',desc:'Aufregung hat sich gelegt',gfk:true},{label:'sicher',desc:'Vertrauen in mich',gfk:true},{label:'liebevoll',desc:'Voller Zuneigung und Wärme',gfk:true},{label:'mitfühlend',desc:'Anteilnahme am Erleben anderer',gfk:true},{label:'offen',desc:'Bereit für Neues',gfk:true},{label:'erfüllt',desc:'Tiefe innere Sättigung',gfk:true},{label:'vertrauensvoll',desc:'Zuversicht, es wird gut',gfk:true},{label:'sanft',desc:'Weich, achtsam mit mir',gfk:true}]
-  },
-  neutral: [{label:'okay',desc:'Weder gut noch schlecht'},{label:'gemischt',desc:'Verschiedene Gefühle gleichzeitig'},{label:'neutral',desc:'Keine starke Empfindung'}]
-};
-const FM_COLORS = {
-  ua:{bg:'#f0997b',selBg:'#d85a30',selText:'#fff',gfkBg:'#f5c4b3',text:'#4a1b0c'},
-  aa:{bg:'#85b7eb',selBg:'#378add',selText:'#fff',gfkBg:'#b5d4f4',text:'#042c53'},
-  ur:{bg:'#afa9ec',selBg:'#7f77dd',selText:'#fff',gfkBg:'#cecbf6',text:'#26215c'},
-  ar:{bg:'#5dcaa5',selBg:'#1d9e75',selText:'#fff',gfkBg:'#9fe1cb',text:'#04342c'},
-  neutral:{bg:'var(--border)',selBg:'var(--ink)',selText:'var(--card)',gfkBg:'var(--border)',text:'var(--ink)'}
-};
-const QUADRANT_NAMES = {ua:'unangenehm + aktiviert',aa:'angenehm + aktiviert',ur:'unangenehm + ruhig',ar:'angenehm + ruhig'};
-let fmMode = 'kern';
-let fmSelected = [];
-
-function setFeelingMatrixMode(mode) {
-  fmMode = mode;
-  document.getElementById('fm-tab-kern').classList.toggle('active', mode==='kern');
-  document.getElementById('fm-tab-erweitert').classList.toggle('active', mode==='erweitert');
-  renderFeelingMatrix();
-}
-
-function renderFeelingMatrix() {
-  const data = FEELING_MATRIX[fmMode] || FEELING_MATRIX.kern;
-  ['ua','aa','ur','ar'].forEach(q => {
-    const el = document.getElementById('fm-q-'+q);
-    if(!el) return; el.innerHTML = '';
-    data[q].forEach(f => el.appendChild(makeFeelingChip(f, q)));
-  });
-  updateFeelingSelection();
-}
-
-function makeFeelingChip(f, quadrant) {
-  const col = FM_COLORS[quadrant];
-  const isSelected = fmSelected.some(s => s.label === f.label);
-  const btn = document.createElement('button');
-  btn.textContent = f.label;
-  btn.style.cssText = `padding:5px 9px;border-radius:16px;font-size:${f.gfk?'0.72rem':'0.78rem'};font-weight:${isSelected?'600':'400'};font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;line-height:1.2;border:1.5px solid ${isSelected?col.selBg:'transparent'};`;
-  if(isSelected) { btn.style.background=col.selBg; btn.style.color=col.selText; btn.style.transform='scale(1.05)'; }
-  else { btn.style.background=f.gfk?col.gfkBg:col.bg; btn.style.color=col.text; }
-  btn.onclick = () => toggleFeelingWord(f, quadrant);
-  return btn;
-}
-
-function toggleFeelingWord(f, quadrant) {
-  const idx = fmSelected.findIndex(s => s.label === f.label);
-  if(idx >= 0) { fmSelected.splice(idx, 1); }
-  else {
-    if(fmSelected.length >= 5) { document.getElementById('fm-hint').style.display=''; setTimeout(()=>{document.getElementById('fm-hint').style.display='none';},3000); return; }
-    fmSelected.push({label:f.label, quadrant, desc:f.desc, gfk:!!f.gfk});
-  }
-  renderFeelingMatrix();
-}
-
-function updateFeelingSelection() {
-  const selDiv = document.getElementById('fm-selection');
-  const tagsDiv = document.getElementById('fm-selected-tags');
-  const countEl = document.getElementById('fm-count');
-  if(!fmSelected.length) { selDiv.style.display='none'; return; }
-  selDiv.style.display=''; countEl.textContent=fmSelected.length;
-  tagsDiv.innerHTML='';
-  fmSelected.forEach((s,i) => {
-    const col = FM_COLORS[s.quadrant];
-    const tag = document.createElement('div');
-    tag.style.cssText = `display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:14px;font-size:0.8rem;font-weight:500;background:${col.selBg};color:${col.selText};`;
-    tag.innerHTML = `<span>${s.label}</span><span onclick="removeFeelingWord(${i})" style="cursor:pointer;opacity:0.7;font-size:0.9rem;margin-left:2px;">✕</span>`;
-    tag.title = s.desc;
-    tagsDiv.appendChild(tag);
-  });
-}
-
-function removeFeelingWord(idx) { fmSelected.splice(idx,1); renderFeelingMatrix(); }
-
-// Bedürfnisse nach CNVC, gemappt auf Circumplex-Quadranten
-// Bedürfnisse pro Gefühl (CNVC-basiert, Rosenberg 2003)
-const FEELING_NEEDS = {
-  // ua – unangenehm + aktiviert
-  'wütend':['Respekt','Fairness','Autonomie'], 'ängstlich':['Sicherheit','Schutz','Klarheit'],
-  'gestresst':['Ruhe','Entlastung','Unterstützung'], 'frustriert':['Wirksamkeit','Fortschritt','Klarheit'],
-  'genervt':['Ruhe','Respekt','Rückzug'], 'panisch':['Sicherheit','Kontrolle','Schutz'],
-  'zornig':['Respekt','Integrität','Fairness'], 'erbost':['Gerechtigkeit','Fairness'],
-  'aufgewühlt':['Klarheit','Ruhe','Ordnung'], 'fassungslos':['Verstehen','Sinn'],
-  'angespannt':['Entlastung','Ruhe'], 'unruhig':['Sicherheit','Stabilität'],
-  'verunsichert':['Sicherheit','Orientierung'], 'besorgt':['Sicherheit','Kontrolle'],
-  'erschrocken':['Schutz','Sicherheit'], 'widerwillig':['Autonomie','Wahlfreiheit'],
-  'enttäuscht':['Verlässlichkeit','Vertrauen'], 'verzweifelt':['Hoffnung','Unterstützung'],
-  // aa – angenehm + aktiviert
-  'begeistert':['Lebendigkeit','Inspiration'], 'fröhlich':['Freude','Leichtigkeit'],
-  'energiegeladen':['Vitalität','Bewegung'], 'inspiriert':['Kreativität','Wachstum'],
-  'aufgeregt':['Abenteuer','Neues'], 'stolz':['Wirksamkeit','Anerkennung'],
-  'leidenschaftlich':['Hingabe','Sinn'], 'überschwänglich':['Ausdruck','Freude'],
-  'entzückt':['Schönheit','Staunen'], 'mutig':['Autonomie','Wachstum'],
-  'neugierig':['Verstehen','Entdeckung'], 'erwartungsvoll':['Hoffnung','Vorfreude'],
-  'erstaunt':['Staunen','Offenheit'], 'bewegt':['Verbindung','Tiefe'],
-  'lebendig':['Lebendigkeit','Präsenz'], 'heiter':['Leichtigkeit','Freude'],
-  // ur – unangenehm + ruhig
-  'traurig':['Trost','Verbindung','Empathie'], 'erschöpft':['Erholung','Ruhe','Selbstfürsorge'],
-  'einsam':['Verbindung','Zugehörigkeit','Nähe'], 'lustlos':['Sinn','Inspiration','Vitalität'],
-  'hoffnungslos':['Hoffnung','Unterstützung','Sinn'], 'gelangweilt':['Anregung','Sinn','Abwechslung'],
-  'melancholisch':['Trost','Ausdruck'], 'niedergeschlagen':['Ermutigung','Hoffnung'],
-  'entmutigt':['Ermutigung','Vertrauen'], 'hilflos':['Unterstützung','Handlungsfähigkeit'],
-  'müde':['Erholung','Ruhe','Selbstfürsorge'], 'apathisch':['Sinn','Lebendigkeit'],
-  'beschämt':['Akzeptanz','Mitgefühl'], 'verletzt':['Empathie','Heilung'],
-  'isoliert':['Zugehörigkeit','Verbindung'], 'schwermütig':['Trost','Leichtigkeit'],
-  // ar – angenehm + ruhig
-  'zufrieden':['Frieden','Genügsamkeit'], 'gelassen':['Frieden','Sicherheit','Vertrauen'],
-  'dankbar':['Fülle','Wertschätzung'], 'entspannt':['Ruhe','Wohlbefinden'],
-  'geborgen':['Sicherheit','Zugehörigkeit','Nähe'], 'friedlich':['Harmonie','Frieden'],
-  'erleichtert':['Freiheit','Entlastung'], 'ausgeglichen':['Harmonie','Balance'],
-  'beruhigt':['Sicherheit','Stabilität'], 'sicher':['Vertrauen','Stabilität'],
-  'liebevoll':['Nähe','Verbindung'], 'mitfühlend':['Empathie','Verbindung'],
-  'offen':['Freiheit','Neugier'], 'erfüllt':['Sinn','Ganzheit'],
-  'vertrauensvoll':['Vertrauen','Sicherheit'], 'sanft':['Selbstfürsorge','Mitgefühl']
-};
-
-function saveFeelingMatrix() {
-  if(!fmSelected.length) { showToast('Bitte mindestens ein Gefühl wählen.'); return; }
-  const context = document.getElementById('fm-context').value.trim();
-  const entry = { ts:new Date().toISOString(), feelings:fmSelected.map(s=>({label:s.label,quadrant:s.quadrant})), context:context||null, before:null, after:null, needs:null };
-  state.feelingLog.unshift(entry);
-  if(state.feelingLog.length > 200) state.feelingLog.pop();
-  saveState();
-  showNeedsReflection(entry, 0);
-}
-
-function showNeedsReflection(entry, logIndex) {
-  const isAllPositive = entry.feelings.every(f => f.quadrant === 'aa' || f.quadrant === 'ar');
-  const subtitle = isAllPositive
-    ? 'Welche Bedürfnisse sind gerade genährt?'
-    : 'Was könnte dahinterstecken?';
-  const sel = document.getElementById('fm-selection');
-  if(sel) sel.style.display = 'none';
-  const needsDiv = document.getElementById('fm-needs-reflection');
-  if(!needsDiv) return;
-  needsDiv.style.display = '';
-  let html = `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;line-height:1.4;">${subtitle}</div>`;
-  entry.feelings.forEach(f => {
-    const col = FM_COLORS[f.quadrant] || FM_COLORS.neutral;
-    const needs = FEELING_NEEDS[f.label] || [];
-    html += `<div style="margin-bottom:10px;">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-        <span style="padding:3px 10px;border-radius:10px;font-size:0.78rem;font-weight:600;background:${col.selBg};color:${col.selText};">${f.label}</span>
-        <span style="font-size:0.75rem;color:var(--muted);">→</span>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px;padding-left:4px;">
-        ${needs.map(n => `<span onclick="toggleNeedChip(this)" data-need="${n}" data-feeling="${f.label}" style="display:inline-block;padding:5px 11px;border-radius:16px;font-size:0.78rem;cursor:pointer;border:1.5px solid rgba(58,91,199,0.25);background:rgba(58,91,199,0.06);color:#3a5bc7;font-family:'DM Sans',sans-serif;transition:all 0.15s;">${n}</span>`).join('')}
-      </div>
-    </div>`;
-  });
-  html += `<textarea id="fm-needs-note" placeholder="Eigener Gedanke... (optional)" rows="1"
-    style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.82rem;resize:none;background:var(--card);color:var(--ink);margin-bottom:8px;"></textarea>
-    <div style="display:flex;gap:8px;">
-      <button class="log-btn" onclick="saveNeedsReflection(${logIndex})" style="flex:1;">💡 Speichern</button>
-      <button class="log-btn secondary" onclick="skipNeedsReflection()" style="flex:1;">Überspringen</button>
-    </div>`;
-  needsDiv.innerHTML = html;
-}
-
-function toggleNeedChip(el) {
-  const active = el.dataset.active === '1';
-  el.dataset.active = active ? '0' : '1';
-  el.style.background = active ? 'rgba(58,91,199,0.06)' : 'rgba(58,91,199,0.18)';
-  el.style.borderColor = active ? 'rgba(58,91,199,0.25)' : '#3a5bc7';
-  el.style.fontWeight = active ? '400' : '600';
-}
-
-function saveNeedsReflection(logIndex) {
-  const chips = document.querySelectorAll('#fm-needs-reflection span[data-need]');
-  const selected = [];
-  chips.forEach(c => { if(c.dataset.active === '1') selected.push(c.dataset.need); });
-  const note = (document.getElementById('fm-needs-note')?.value || '').trim();
-  if(selected.length || note) {
-    const entry = state.feelingLog[logIndex];
-    if(entry) {
-      entry.needs = selected.length ? [...new Set(selected)] : null;
-      if(note) entry.needsNote = note;
-      saveState();
-    }
-  }
-  finishNeedsReflection();
-  const unique = [...new Set(selected)];
-  showToast(unique.length ? '💡 ' + unique.join(', ') : '😊 Gespeichert!');
-}
-
-function skipNeedsReflection() {
-  finishNeedsReflection();
-  showToast('😊 Gefühle gespeichert!');
-}
-
-function finishNeedsReflection() {
-  const needsDiv = document.getElementById('fm-needs-reflection');
-  if(needsDiv) needsDiv.style.display = 'none';
-  fmSelected = [];
-  document.getElementById('fm-context').value = '';
-  renderFeelingMatrix();
+function renderFeeling() {
+  initSlider('feeling-before', 5);
+  initSlider('feeling-after', 5);
+  // Show pending hint if there's an open before-entry today
+  const todayStr = new Date().toDateString();
+  const pending = state.feelingLog.find(e =>
+    new Date(e.ts).toDateString() === todayStr && e.before !== null && e.after === null
+  );
+  const hint = document.getElementById('feeling-after-pending');
+  if (hint) hint.style.display = pending ? '' : 'none';
   renderFeelingHistory();
 }
 
-
-function renderFeeling() { renderFeelingMatrix(); renderFeelingHistory(); }
-
-function toggleWissen(id) {
-  const el=document.getElementById(id); const icon=document.getElementById(id+'-icon');
-  if(!el) return; const open=el.style.display!=='none';
-  el.style.display=open?'none':''; if(icon) icon.textContent=open?'▼':'▲';
+function logFeelingBefore() {
+  const before = parseInt(document.getElementById('feeling-before-slider')?.value || 5);
+  const entry = { ts: new Date().toISOString(), before, after: null };
+  state.feelingLog.unshift(entry);
+  if (state.feelingLog.length > 200) state.feelingLog.pop();
+  saveState();
+  initSlider('feeling-before', 5);
+  renderFeelingHistory();
+  const hint = document.getElementById('feeling-after-pending');
+  if (hint) hint.style.display = '';
+  showToast('😊 Vor-Gefühl gespeichert!');
 }
 
-function logFeelingBefore() {}
-function logFeelingAfter() {}
-function logFeelingBoth() {}
-function logFeeling() {}
+function logFeelingAfter() {
+  const after = parseInt(document.getElementById('feeling-after-slider')?.value || 5);
+  // Find most recent entry without after value today
+  const todayStr = new Date().toDateString();
+  const pending = state.feelingLog.find(e =>
+    new Date(e.ts).toDateString() === todayStr && e.before !== null && e.after === null
+  );
+  if (pending) {
+    pending.after = after;
+    saveState();
+    renderFeelingHistory();
+    initSlider('feeling-after', 5);
+    const hint = document.getElementById('feeling-after-pending');
+    if (hint) hint.style.display = 'none';
+    showToast('😊 Nach-Gefühl ergänzt!');
+  } else {
+    // No pending entry – save as standalone after-only entry
+    state.feelingLog.unshift({ ts: new Date().toISOString(), before: null, after });
+    if (state.feelingLog.length > 200) state.feelingLog.pop();
+    saveState();
+    initSlider('feeling-after', 5);
+    renderFeelingHistory();
+    showToast('😊 Nach-Gefühl gespeichert!');
+  }
+}
+
+function logFeelingBoth() {
+  const before = parseInt(document.getElementById('feeling-before-slider')?.value || 5);
+  const after  = parseInt(document.getElementById('feeling-after-slider')?.value  || 5);
+  state.feelingLog.unshift({ ts: new Date().toISOString(), before, after });
+  if (state.feelingLog.length > 200) state.feelingLog.pop();
+  saveState();
+  initSlider('feeling-before', 5);
+  initSlider('feeling-after', 5);
+  renderFeelingHistory();
+  const hint = document.getElementById('feeling-after-pending');
+  if (hint) hint.style.display = 'none';
+  showToast('✅ Beide Gefühle gespeichert!');
+}
+
+// Keep old logFeeling as alias for both
+function logFeeling() { logFeelingBoth(); }
 
 function renderFeelingHistory() {
-  const list=document.getElementById('feeling-history');
-  const empty=document.getElementById('feeling-empty');
-  const summaryDiv=document.getElementById('fm-quadrant-summary');
-  list.innerHTML='';
+  const list = document.getElementById('feeling-history');
+  const empty = document.getElementById('feeling-empty');
+  list.innerHTML = '';
   const filtered = filterByDate(state.feelingLog, feelingFilter);
-  if(!filtered.length) { empty.style.display=''; if(summaryDiv) summaryDiv.style.display='none'; return; }
-  empty.style.display='none';
+  if (!filtered.length) { empty.style.display=''; return; }
+  empty.style.display = 'none';
+  filtered.slice(0,20).forEach((e) => {
+    const i = state.feelingLog.indexOf(e);
+    const d = new Date(e.ts);
+    const time = feelingFilter === 'heute'
+      ? d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})
+      : d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const before = e.before !== null ? e.before : '—';
+    const after  = e.after  !== null ? e.after  : '—';
+    const color  = (v) => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
+    const isOpen = e.after === null && e.before !== null;
+    const uid = 'fe-' + i;
 
-  if(summaryDiv && filtered.length >= 3) {
-    const qCount={ua:0,aa:0,ur:0,ar:0,neutral:0};
-    filtered.forEach(e => { if(e.feelings) e.feelings.forEach(f => { if(qCount[f.quadrant]!==undefined) qCount[f.quadrant]++; }); });
-    const total=Object.values(qCount).reduce((a,b)=>a+b,0);
-    if(total > 0) {
-      summaryDiv.style.display='';
-      summaryDiv.innerHTML = `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;">Quadranten-Verteilung:</div>
-        <div style="display:flex;gap:4px;height:8px;border-radius:4px;overflow:hidden;">
-          ${qCount.ua?`<div style="flex:${qCount.ua};background:#d85a30;"></div>`:''}
-          ${qCount.aa?`<div style="flex:${qCount.aa};background:#378add;"></div>`:''}
-          ${qCount.ur?`<div style="flex:${qCount.ur};background:#7f77dd;"></div>`:''}
-          ${qCount.ar?`<div style="flex:${qCount.ar};background:#1d9e75;"></div>`:''}
-          ${qCount.neutral?`<div style="flex:${qCount.neutral};background:var(--muted);"></div>`:''}
+    const outer = document.createElement('div');
+    outer.style.cssText = `border:2px solid ${isOpen ? 'var(--accent)' : 'var(--border)'};border-radius:12px;overflow:hidden;margin-bottom:2px;`;
+
+    const summary = document.createElement('div');
+    summary.className = 'feeling-entry';
+    summary.style.cssText = 'cursor:pointer;padding:10px 12px;margin:0;border-radius:0;';
+    summary.innerHTML = `
+      <span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(before)};">${before}</span>
+      <span class="arrow">→</span>
+      <span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(after)};">${after}</span>
+      ${isOpen ? '<span style="font-size:0.7rem;color:var(--accent);margin-left:4px;">⏳</span>' : ''}
+      <span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${time}</span>
+      <span id="${uid}-icon" style="color:var(--muted);font-size:0.8rem;margin-left:6px;">▼</span>
+    `;
+
+    const detail = document.createElement('div');
+    detail.id = uid;
+    detail.style.cssText = 'display:none;padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);';
+    detail.innerHTML = `
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;">VOR Aktivität</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="range" min="1" max="10" value="${e.before||5}"
+            style="-webkit-appearance:none;flex:1;height:5px;border-radius:10px;background:var(--border);outline:none;"
+            oninput="editFeelingEntry(${i},'before',this.value);this.previousElementSibling && (this.previousElementSibling.textContent=this.value)"
+            onchange="editFeelingEntry(${i},'before',this.value)">
+          <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${color(before)};min-width:20px;">${before}</span>
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;font-size:0.7rem;color:var(--muted);">
-          ${qCount.ua?`<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#d85a30;"></span> ${qCount.ua}× unang.+akt.</span>`:''}
-          ${qCount.aa?`<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#378add;"></span> ${qCount.aa}× ang.+akt.</span>`:''}
-          ${qCount.ur?`<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#7f77dd;"></span> ${qCount.ur}× unang.+ruhig</span>`:''}
-          ${qCount.ar?`<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1d9e75;"></span> ${qCount.ar}× ang.+ruhig</span>`:''}
-        </div>`;
-    } else { summaryDiv.style.display='none'; }
-  }
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;">NACH Aktivität</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="range" min="1" max="10" value="${e.after||5}"
+            style="-webkit-appearance:none;flex:1;height:5px;border-radius:10px;background:var(--border);outline:none;"
+            oninput="editFeelingEntry(${i},'after',this.value)"
+            onchange="editFeelingEntry(${i},'after',this.value)">
+          <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${color(after)};min-width:20px;">${after}</span>
+        </div>
+      </div>
+      <button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;">🗑 Löschen</button>
+    `;
 
-  filtered.slice(0,20).forEach(e => {
-    const i=state.feelingLog.indexOf(e);
-    const d=new Date(e.ts);
-    const time=d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
-    const outer=document.createElement('div');
-    outer.style.cssText='border:2px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2px;';
-    const summary=document.createElement('div');
-    summary.className='feeling-entry';
-    summary.style.cssText='cursor:pointer;padding:10px 12px;margin:0;border-radius:0;flex-wrap:wrap;';
+    summary.onclick = () => {
+      const open = detail.style.display !== 'none';
+      detail.style.display = open ? 'none' : '';
+      document.getElementById(uid+'-icon').textContent = open ? '▼' : '▲';
+    };
 
-    if(e.feelings && Array.isArray(e.feelings)) {
-      const chips=e.feelings.map(f => { const col=FM_COLORS[f.quadrant]||FM_COLORS.neutral; return `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:500;background:${col.selBg};color:${col.selText};line-height:1.4;">${f.label}</span>`; }).join(' ');
-      summary.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:3px;flex:1;">${chips}</div><span style="font-size:0.72rem;color:var(--muted);white-space:nowrap;margin-left:8px;">${time}</span><span id="fe-${i}-icon" style="color:var(--muted);font-size:0.8rem;margin-left:6px;">▼</span>`;
-    } else {
-      const before=e.before!==null?e.before:'—'; const after=e.after!==null?e.after:'—';
-      const color=v=>typeof v==='number'?(v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)'):'var(--muted)';
-      summary.innerHTML = `<span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(before)};">${before}</span><span class="arrow">→</span><span style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:${color(after)};">${after}</span><span style="flex:1;text-align:right;font-size:0.72rem;color:var(--muted);">${time}</span><span id="fe-${i}-icon" style="color:var(--muted);font-size:0.8rem;margin-left:6px;">▼</span>`;
-    }
-
-    const detail=document.createElement('div'); detail.id='fe-'+i;
-    detail.style.cssText='display:none;padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);';
-    if(e.feelings && Array.isArray(e.feelings)) {
-      const descList=e.feelings.map(f => { const col=FM_COLORS[f.quadrant]||FM_COLORS.neutral; return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:500;background:${col.selBg};color:${col.selText};">${f.label}</span><span style="font-size:0.72rem;color:var(--muted);">${QUADRANT_NAMES[f.quadrant]||''}</span></div>`; }).join('');
-      const ctxHtml=e.context?`<div style="margin-top:8px;padding:8px 10px;background:var(--card);border-radius:8px;font-size:0.8rem;color:var(--ink);border-left:3px solid var(--accent);">${e.context}</div>`:'';
-      const needsHtml=e.needs&&e.needs.length?`<div style="margin-top:8px;padding:8px 10px;background:rgba(58,91,199,0.05);border-radius:8px;border-left:3px solid #3a5bc7;"><div style="font-size:0.68rem;color:#3a5bc7;font-weight:600;margin-bottom:4px;">BEDÜRFNISSE</div><div style="font-size:0.78rem;color:var(--ink);">${e.needs.join(', ')}${e.needsNote?' · '+e.needsNote:''}</div></div>`:'';
-      detail.innerHTML=`${descList}${ctxHtml}${needsHtml}<button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;margin-top:10px;">🗑 Löschen</button>`;
-    } else {
-      detail.innerHTML=`<div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;">Alter Eintrag (Schieber)</div><div>Vorher: <strong>${e.before!==null?e.before:'–'}</strong> · Nachher: <strong>${e.after!==null?e.after:'–'}</strong></div><button onclick="deleteFeelingEntry(${i})" class="log-btn danger" style="width:100%;padding:8px;margin-top:10px;">🗑 Löschen</button>`;
-    }
-    summary.onclick=()=>{ const open=detail.style.display!=='none'; detail.style.display=open?'none':''; const ic=document.getElementById('fe-'+i+'-icon'); if(ic) ic.textContent=open?'▼':'▲'; };
-    outer.appendChild(summary); outer.appendChild(detail); list.appendChild(outer);
+    outer.appendChild(summary);
+    outer.appendChild(detail);
+    list.appendChild(outer);
   });
 }
 
-function editFeelingEntry(i, field, val) { if(state.feelingLog[i]) { state.feelingLog[i][field]=parseInt(val); saveState(); } }
+function editFeelingEntry(i, field, val) {
+  if (state.feelingLog[i]) {
+    state.feelingLog[i][field] = parseInt(val);
+    saveState();
+  }
+}
 
 function deleteFeelingEntry(i) {
-  showConfirm('Eintrag löschen?','Diesen Gefühls-Eintrag wirklich entfernen?',()=>{ state.feelingLog.splice(i,1); saveState(); renderFeelingHistory(); showToast('Eintrag gelöscht.'); });
+  showConfirm('Eintrag löschen?', 'Diesen Gefühls-Eintrag wirklich entfernen?', () => {
+    state.feelingLog.splice(i, 1);
+    saveState();
+    renderFeelingHistory();
+    showToast('Eintrag gelöscht.');
+  });
 }
 
 // =====================
@@ -4139,55 +3552,45 @@ function renderActivities() {
     const stepsVal = a.stepsDefault || 5000;
     const totalPts = isSteps ? Math.round(stepsVal / 1000) * 10 : a.min * ppm;
     const isActive = state.activeActivity?.idx === i;
-    const isSelected = state.selectedActivity === i;
-    const uid = 'act-card-' + i;
 
     const div = document.createElement('div');
-    div.style.cssText = `background:${isActive ? 'linear-gradient(135deg,#1a3a2a,#2d5a3d)' : isSelected ? '#eef6f1' : 'var(--card)'};border:2px solid ${isActive ? 'transparent' : isSelected ? 'var(--accent)' : 'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:10px;`;
+    div.style.cssText = `background:${isActive ? 'linear-gradient(135deg,#1a3a2a,#2d5a3d)' : 'var(--bg)'};border:2px solid ${isActive ? 'transparent' : 'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:10px;`;
 
     div.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <span style="font-size:1.5rem;">${a.icon||'🏃'}</span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:1.8rem;">${a.icon||'🏃'}</span>
         <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:0.95rem;color:${isActive?'white':'var(--ink)'};">${a.name}</div>
-          <div style="font-size:0.75rem;color:${isActive?'rgba(255,255,255,0.6)':'var(--muted)'};margin-top:1px;">
-            ${isSteps ? stepsVal.toLocaleString('de-DE')+' Schritte' : a.min+' Min · +'+totalPts+' Pkt'}
+          <div style="font-weight:700;font-size:1rem;color:${isActive?'white':'var(--ink)'};">${a.name}</div>
+          <div style="font-size:0.78rem;color:${isActive?'rgba(255,255,255,0.7)':'var(--muted)'};margin-top:2px;">
+            ${isSteps ? stepsVal.toLocaleString('de-DE')+' Schritte' : a.min+' Min'} · <span style="color:${isActive?'#f4c261':'var(--gold)'};">+${totalPts} Pkt</span>
+            ${isActive ? `<span id="act-timer-${i}" style="margin-left:8px;font-weight:700;color:white;"></span>` : ''}
           </div>
         </div>
-        <button onclick="event.stopPropagation();const d=document.getElementById('${uid}');d.style.display=d.style.display==='none'?'':'none'" style="background:none;border:none;color:${isActive?'rgba(255,255,255,0.4)':'var(--muted)'};cursor:pointer;font-size:0.8rem;padding:4px;">⚙️</button>
+        ${isActive
+          ? `<button onclick="stopActivity()" style="padding:10px 18px;border-radius:12px;border:2px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.15);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;white-space:nowrap;">⏹ Stopp</button>`
+          : `<button onclick="startActivity(event,${i})" style="padding:10px 18px;border-radius:12px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;white-space:nowrap;">▶ Start</button>`
+        }
+        <button onclick="deleteActivity(event,${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:0;flex-shrink:0;">✕</button>
       </div>
-      ${isActive
-        ? `<div style="display:flex;align-items:center;gap:12px;">
-            <div id="act-timer-${i}" style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:white;flex:1;"></div>
-            <button onclick="stopActivity()" style="padding:10px 24px;border-radius:12px;border:2px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">⏹ Stopp</button>
-          </div>`
-        : `<button onclick="startActivity(event,${i})" style="width:100%;padding:11px;border-radius:12px;border:none;background:var(--accent);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">▶ Start · ${isSteps ? stepsVal.toLocaleString('de-DE')+' Schritte' : a.min+' Min'}</button>`
-      }
-      ${a.link ? `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" style="display:block;font-size:0.72rem;color:var(--accent);text-decoration:none;margin-top:6px;">🔗 Link öffnen</a>` : ''}
-      ${!isActive ? `<button onclick="event.stopPropagation();selectActivity(${i})" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.78rem;cursor:pointer;margin-top:6px;">📝 Nachtragen</button>` : ''}
-      <div id="${uid}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid ${isActive?'rgba(255,255,255,0.15)':'var(--border)'};">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-          ${isSteps ? `
-            <input type="number" value="${stepsVal}" min="100" max="100000" step="500"
-              style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
-              onclick="event.stopPropagation()" onchange="updateActivitySteps(event,${i})">
-            <span style="font-size:0.78rem;color:var(--muted);">Schritte</span>
-          ` : `
-            <input type="number" value="${a.min}" min="1" max="300"
-              style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
-              onclick="event.stopPropagation()" onchange="updateActivityDuration(event,${i})">
-            <span style="font-size:0.78rem;color:var(--muted);">Min</span>
-            <input type="number" value="${ppm}" min="1" max="20"
-              style="width:50px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
-              onclick="event.stopPropagation()" onchange="updateActivityPts(event,${i})">
-            <span style="font-size:0.78rem;color:var(--muted);">Pkt/Min</span>
-          `}
-        </div>
-        <div style="display:flex;gap:6px;align-items:center;">
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        ${isSteps ? `
+          <input type="number" value="${stepsVal}" min="100" max="100000" step="500"
+            style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
+            onclick="event.stopPropagation()" onchange="updateActivitySteps(event,${i})">
+          <span style="font-size:0.78rem;color:var(--muted);">Schritte</span>
+        ` : `
+          <input type="number" value="${a.min}" min="1" max="300"
+            style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
+            onclick="event.stopPropagation()" onchange="updateActivityDuration(event,${i})">
+          <span style="font-size:0.78rem;color:var(--muted);">Min</span>
+          <input type="number" value="${ppm}" min="1" max="20"
+            style="width:50px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
+            onclick="event.stopPropagation()" onchange="updateActivityPts(event,${i})">
+          <span style="font-size:0.78rem;color:var(--muted);">Pkt/Min</span>
+        `}
+        <div style="display:flex;gap:4px;margin-left:auto;">
           <button onclick="moveActivity(event,${i},-1)" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:0.7rem;padding:3px 7px;" ${i===0?'disabled':''}>▲</button>
           <button onclick="moveActivity(event,${i},1)" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:0.7rem;padding:3px 7px;" ${i===state.activities.length-1?'disabled':''}>▼</button>
-          <span style="flex:1;"></span>
-          <button onclick="deleteActivity(event,${i})" style="background:none;border:1px solid #e0a0a0;border-radius:6px;color:#c0392b;cursor:pointer;font-size:0.72rem;padding:3px 10px;font-family:'DM Sans',sans-serif;">Löschen</button>
         </div>
       </div>
     `;
@@ -4221,9 +3624,19 @@ function moveActivity(e, i, dir) {
 function updateActivityDuration(event, i) {
   const val = parseInt(event.target.value);
   if (!isNaN(val) && val >= 1 && val <= 300) {
-    state.activities[i].min = val;
-    saveState();
-    renderActivities();
+    showConfirm(
+      'Dauer ändern?',
+      'Wenn du die Dauer änderst, wird dein Streak zurückgesetzt.',
+      () => {
+        state.activities[i].min = val;
+        state.streak = 0;
+        state.lastActiveDate = null;
+        document.getElementById('streak-header-num').textContent = 0;
+        saveState();
+        renderActivities();
+        showToast('Dauer geändert – Streak zurückgesetzt.');
+      }
+    );
   }
 }
 
@@ -6481,15 +5894,6 @@ function filterByDate(log, filter) {
   });
 }
 
-function toggleVerlaufSection(id) {
-  const body = document.getElementById(id + '-body');
-  const icon = document.getElementById(id + '-icon');
-  if (!body) return;
-  const open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : '';
-  if (icon) icon.textContent = open ? '▼' : '▲';
-}
-
 function toggleKachel(id) {
   const el = document.getElementById(id);
   const icon = document.getElementById(id + '-icon');
@@ -6540,12 +5944,10 @@ function renderVerlauf() {
   document.getElementById('verlauf-zeitraum').textContent = label;
 
   const acts    = filterByDate(state.activityLog, verlaufFilter);
-  const mindEntries = filterByDate(state.mindfulnessLog||[], verlaufFilter);
   const feels   = filterByDate(state.feelingLog,  verlaufFilter);
-  const sweets  = filterByDate(state.sweetsDaysLog||[], verlaufFilter);
+  const sweets  = filterByDate(state.sweetsLog,   verlaufFilter);
   const bodies  = filterByDate(state.bodyLog,     verlaufFilter);
-  const allActs = [...acts, ...mindEntries];
-  const totalMin = allActs.reduce((t,e) => t+(e.min||0), 0);
+  const totalMin = acts.reduce((t,e) => t+(e.min||0), 0);
   const totalKcal = sweets.reduce((t,e) => t+(e.kcal||0), 0);
 
   // Kacheln
@@ -6554,18 +5956,18 @@ function renderVerlauf() {
     <div class="card" style="margin:0;text-align:center;cursor:pointer;grid-column:span 2;" onclick="toggleKachel('kachel-acts')">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
         <div style="display:flex;align-items:baseline;gap:8px;">
-          <span style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent);">${allActs.length}</span>
+          <span style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent);">${acts.length}</span>
           <span style="font-size:0.72rem;color:var(--muted);">Aktivitäten · ${totalMin} Min</span>
         </div>
         <span id="kachel-acts-icon" style="color:var(--muted);font-size:0.8rem;">▼</span>
       </div>
       <div id="kachel-acts" style="display:none;text-align:left;margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">
-        ${allActs.length === 0 ? '<p style="font-size:0.82rem;color:var(--muted);">Keine Einträge.</p>' :
-          allActs.sort((a,b)=>new Date(b.ts)-new Date(a.ts)).map(e => {
+        ${acts.length === 0 ? '<p style="font-size:0.82rem;color:var(--muted);">Keine Einträge.</p>' :
+          acts.map(e => {
             const d = new Date(e.ts);
             const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
             return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
-              <span style="font-size:0.85rem;">${e.icon||'🏃'} ${e.name} · ${e.min} Min</span>
+              <span style="font-size:0.85rem;">${e.icon||'🏃'} ${e.name} · ${e.label||e.min+' min'}</span>
               <span style="font-size:0.75rem;color:var(--muted);">${ds}</span>
               <span style="font-size:0.78rem;color:var(--gold);font-weight:600;">+${e.pts}</span>
             </div>`;
@@ -6577,12 +5979,13 @@ function renderVerlauf() {
       <div style="font-size:0.72rem;color:var(--muted);">Tagesziele Wasser</div>
     </div>
     <div class="card" style="margin:0;text-align:center;">
-      <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent2);">${sweets.filter(e=>e.had).length}<span style="font-size:1rem;color:var(--muted);">/${sweets.length}</span></div>
-      <div style="font-size:0.72rem;color:var(--muted);">Tage mit Süssem</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent2);">${sweets.length}</div>
+      <div style="font-size:0.72rem;color:var(--muted);">Süssigkeiten</div>
+      <div style="font-size:0.78rem;color:var(--muted);">${totalKcal ? totalKcal+' kcal' : ''}</div>
     </div>
     <div class="card" style="margin:0;text-align:center;">
       <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--gold);">${feels.length}</div>
-      <div style="font-size:0.72rem;color:var(--muted);">Wie geht's?</div>
+      <div style="font-size:0.72rem;color:var(--muted);">Gefühls-Checks</div>
     </div>
   `;
 
@@ -6630,34 +6033,35 @@ function renderVerlauf() {
     }
   }
 
-  // Gefühl – nur aus feelingLog (Matrix-Einträge)
-  const feelsManual = filterByDate(state.feelingLog, verlaufFilter)
-    .filter(e => e.before != null || e.after != null || (e.feelings && e.feelings.length > 0));
+  // Gefühl – aus feelingLog UND aus activityLog/mindfulnessLog
+  const feelsManual = filterByDate(state.feelingLog, verlaufFilter);
+  const feelsFromActs = filterByDate(state.activityLog, verlaufFilter)
+    .filter(e => e.feeling?.before != null || e.feeling?.after != null)
+    .map(e => ({ ts: e.ts, source: e.icon + ' ' + e.name, before: e.feeling?.before ?? null, after: e.feeling?.after ?? null }));
+  const feelsFromMind = filterByDate(state.mindfulnessLog||[], verlaufFilter)
+    .filter(e => e.feeling?.before != null || e.feeling?.after != null)
+    .map(e => ({ ts: e.ts, source: e.icon + ' ' + e.name, before: e.feeling?.before ?? null, after: e.feeling?.after ?? null }));
+  const allFeels = [...feelsManual.map(e => ({...e, source: null})), ...feelsFromActs, ...feelsFromMind]
+    .sort((a,b) => new Date(b.ts) - new Date(a.ts));
 
-  renderVerlaufList('vl-feeling-list', 'vl-feeling-empty', feelsManual, e => {
+  renderVerlaufList('vl-feeling-list', 'vl-feeling-empty', allFeels, e => {
     const d = new Date(e.ts);
-    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
-    if (e.feelings && Array.isArray(e.feelings)) {
-      const chips = e.feelings.map(f => { const col=(typeof FM_COLORS!=='undefined'&&FM_COLORS[f.quadrant])?FM_COLORS[f.quadrant]:{selBg:'var(--accent)',selText:'white'}; return `<span style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:0.7rem;font-weight:500;background:${col.selBg};color:${col.selText};">${f.label}</span>`; }).join(' ');
-      const fidx = e.source ? -1 : state.feelingLog.indexOf(e);
-      const fdel = fidx >= 0 ? `<button onclick="deleteFeelingEntry(${fidx});renderVerlauf()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>` : '';
-      return `<div style="display:flex;flex-wrap:wrap;gap:2px;flex:1;">${chips}</div><span style="font-size:0.72rem;color:var(--muted);white-space:nowrap;margin-left:6px;">${ds}</span>${fdel}`;
-    }
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const sc = v => typeof v === 'number' ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
     const before = e.before !== null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${sc(e.before)};">${e.before}</span>` : '<span style="color:var(--muted);">–</span>';
     const after  = e.after  !== null ? `<span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${sc(e.after)};">${e.after}</span>` : '<span style="color:var(--muted);">⏳</span>';
     const src = e.source ? `<span style="font-size:0.72rem;color:var(--muted);margin-left:4px;">${e.source}</span>` : '';
     const fidx = e.source ? -1 : state.feelingLog.indexOf(e);
     const fdel = fidx >= 0 ? `<button onclick="deleteFeelingEntry(${fidx});renderVerlauf()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>` : '';
-    return `${before}<span class="arrow" style="color:var(--accent);font-weight:600;">→</span>${after}${src}<span style="flex:1;text-align:right;font-size:0.72rem;color:var(--muted);">${ds}</span>${fdel}`;
+    return `${before}<span class="arrow" style="color:var(--accent);font-weight:600;">→</span>${after}${src}<span style="flex:1;text-align:right;font-size:0.78rem;color:var(--muted);">${ds}</span>${fdel}`;
   });
 
   // Süssigkeiten
   renderVerlaufList('vl-sweets-list', 'vl-sweets-empty', sweets, e => {
-    const d = new Date(e.date);
+    const d = new Date(e.ts);
     const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
-    const sidx = (state.sweetsDaysLog||[]).indexOf(e);
-    return `<span style="flex:1;">${e.had ? '🍬 Süssigkeiten' : '✅ Ohne Süsses'}</span><span style="color:var(--muted);font-size:0.78rem;">${ds}</span><button onclick="(state.sweetsDaysLog||[]).splice(${sidx},1);saveState();renderVerlauf()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
+    const sidx = state.sweetsLog.indexOf(e);
+    return `<span style="flex:1;">${e.icon||'🍬'} ${e.name}</span><span style="color:var(--muted);font-size:0.78rem;">${e.kcal?e.kcal+' kcal':''}</span><span style="color:var(--muted);font-size:0.78rem;">${ds}</span><button onclick="state.sweetsLog.splice(${sidx},1);saveState();renderVerlauf()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
 
   // Schlaf
@@ -6667,7 +6071,7 @@ function renderVerlauf() {
     : null;
   renderVerlaufList('vl-sleep-list', 'vl-sleep-empty', sleeps, e => {
     const d = new Date(e.ts);
-    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const q = e.score !== null ? SLEEP_QUALITY.find(q=>q.score<=e.score)?.emoji||'😐' : '';
     const sli = state.sleepLog.indexOf(e);
     return `<span style="flex:1;">${q} ${e.score!==null?e.score+'/10':''} ${e.hours?e.hours+'h':''}</span><span style="font-size:0.78rem;color:var(--muted);">${ds}</span><button onclick="deleteSleepEntry(${sli})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
@@ -6685,7 +6089,7 @@ function renderVerlauf() {
   const gratitudes = filterByDate(state.gratitudeLog, verlaufFilter);
   renderVerlaufList('vl-gratitude-list', 'vl-gratitude-empty', gratitudes, e => {
     const d = new Date(e.ts);
-    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const gi = state.gratitudeLog.indexOf(e);
     return `<span style="font-style:italic;flex:1;">"${e.text}"</span><span style="font-size:0.75rem;color:var(--muted);white-space:nowrap;margin-left:8px;">${ds}</span><button onclick="deleteGratitudeEntry(${gi})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
@@ -6693,7 +6097,7 @@ function renderVerlauf() {
   // Körper
   renderVerlaufList('vl-body-list', 'vl-body-empty', bodies, e => {
     const d = new Date(e.ts);
-    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const sc = v => v != null ? (v<=3?'var(--accent2)':v<=6?'var(--gold)':'var(--accent)') : 'var(--muted)';
     const h = e.hunger  != null ? `<span style="color:${sc(e.hunger)};font-size:0.82rem;">Hunger ${e.hunger}</span>` : '';
     const f = e.feeling != null ? `<span style="color:${sc(e.feeling)};font-size:0.82rem;">Wohl ${e.feeling}</span>` : '';
@@ -6703,7 +6107,8 @@ function renderVerlauf() {
   });
 
   // Achtsamkeit
-  renderVerlaufList('vl-mind-list', 'vl-mind-empty', mindEntries, e => {
+  const minds = filterByDate(state.mindfulnessLog||[], verlaufFilter);
+  renderVerlaufList('vl-mind-list', 'vl-mind-empty', minds, e => {
     const d = new Date(e.ts);
     const ds = d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
     const ts = d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
@@ -6711,7 +6116,7 @@ function renderVerlauf() {
     const feelBefore = e.feeling?.before != null ? `<span style="font-size:0.75rem;color:${sc(e.feeling.before)};margin-left:4px;">😊${e.feeling.before}</span>` : '';
     const feelAfter  = e.feeling?.after  != null ? `<span style="font-size:0.75rem;color:${sc(e.feeling.after)};margin-left:2px;">→${e.feeling.after}</span>` : '';
     const mi = state.mindfulnessLog.indexOf(e);
-    return `<span style="flex:1;">${e.icon||'🪷'} ${e.name} · ${e.min} Min${feelBefore}${feelAfter}</span><span style="color:var(--muted);font-size:0.78rem;">${ds} ${ts}</span><span class="pts">+${e.pts}</span><button onclick="deleteMindfulnessLog(${mi})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
+    return `<span style="flex:1;">${e.icon||'🪷'} ${e.name} · ${e.min} Min${feelBefore}${feelAfter}</span><span style="color:var(--muted);font-size:0.78rem;">${ds}</span><span class="pts">+${e.pts}</span><button onclick="deleteMindfulnessLog(${mi})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px;flex-shrink:0;">✕</button>`;
   });
 
   // Kontakte – zeige erledigte Kontakte der Woche
@@ -6748,9 +6153,6 @@ function renderVerlaufList(listId, emptyId, entries, rowFn) {
   const list  = document.getElementById(listId);
   const empty = document.getElementById(emptyId);
   list.innerHTML = '';
-  // Update count badge
-  const countEl = document.getElementById(listId.replace('-list', '-count'));
-  if (countEl) countEl.textContent = entries.length > 0 ? entries.length + '×' : '';
   if (!entries.length) { empty.style.display=''; return; }
   empty.style.display = 'none';
   entries.slice(0,50).forEach(e => {
@@ -6800,12 +6202,9 @@ function updateMindfulnessPreview() {
     return;
   }
   const e = ex[i];
-  const manualMin = parseInt(document.getElementById('mindfulness-manual-min')?.value);
-  const min = (manualMin && manualMin > 0) ? manualMin : e.min;
-  const pts = min * (e.ptsPerMin || 3);
   const dateLabel = selectedMindfulnessDate === new Date().toDateString() ? 'Heute'
     : selectedMindfulnessDate === (() => { const d=new Date(); d.setDate(d.getDate()-1); return d.toDateString(); })() ? 'Gestern' : 'Vorgestern';
-  if (preview) preview.innerHTML = `⏱ <strong>${dateLabel}</strong> · ${e.name} · ${min} Min · +${pts} Punkte`;
+  if (preview) preview.innerHTML = `⏱ <strong>${dateLabel}</strong> · ${e.name} · ${e.min} Min · +${e.min * e.ptsPerMin} Punkte`;
   const btn = document.getElementById('mindfulness-log-btn');
   if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
 }
@@ -6819,47 +6218,38 @@ function renderMindfulness() {
   ex.forEach((a, i) => {
     const pts = a.min * (a.ptsPerMin || 3);
     const isActive = state.activeMindfulness?.idx === i;
-    const isSelected = state.selectedMindfulness === i;
     const div = document.createElement('div');
-    div.style.cssText = `background:${isActive ? 'linear-gradient(135deg,#1a1a3e,#2d3561)' : isSelected ? '#eef2f8' : 'var(--bg)'};border:2px solid ${isActive ? 'transparent' : isSelected ? '#5b7fa6' : 'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:10px;`;
+    div.style.cssText = `background:${isActive ? 'linear-gradient(135deg,#1a1a3e,#2d3561)' : 'var(--bg)'};border:2px solid ${isActive ? 'transparent' : 'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:10px;`;
 
-    const muid = 'mind-card-' + i;
     div.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <span style="font-size:1.5rem;">${a.icon||'🪷'}</span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:1.8rem;">${a.icon||'🪷'}</span>
         <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:0.95rem;color:${isActive?'white':'var(--ink)'};">${a.name}</div>
-          <div style="font-size:0.75rem;color:${isActive?'rgba(255,255,255,0.6)':'var(--muted)'};margin-top:1px;">
-            ${a.min} Min · +${pts} Pkt
+          <div style="font-weight:700;font-size:1rem;color:${isActive?'white':'var(--ink)'};">${a.name}</div>
+          <div style="font-size:0.78rem;color:${isActive?'rgba(255,255,255,0.7)':'var(--muted)'};margin-top:2px;">
+            ${a.min} Min · <span style="color:${isActive?'#f4c261':'var(--gold)'};">+${pts} Pkt</span>
+            ${isActive ? `<span id="mind-timer-${i}" style="margin-left:8px;font-weight:700;color:white;"></span>` : ''}
           </div>
         </div>
+        ${isActive
+          ? `<button onclick="stopMindfulness()" style="padding:10px 18px;border-radius:12px;border:2px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.15);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;white-space:nowrap;">⏹ Stopp</button>`
+          : `<button onclick="startMindfulness(event,${i})" style="padding:10px 18px;border-radius:12px;border:2px solid #5b7fa6;background:transparent;color:#5b7fa6;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;white-space:nowrap;">▶ Start</button>`
+        }
         ${a.custom ? `<button onclick="deleteMindfulnessEx(event,${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:0;flex-shrink:0;">✕</button>` : ''}
-        <button onclick="event.stopPropagation();const d=document.getElementById('${muid}');d.style.display=d.style.display==='none'?'':'none'" style="background:none;border:none;color:${isActive?'rgba(255,255,255,0.4)':'var(--muted)'};cursor:pointer;font-size:0.8rem;padding:4px;">⚙️</button>
       </div>
-      ${isActive
-        ? `<div style="display:flex;align-items:center;gap:12px;">
-            <div id="mind-timer-${i}" style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:white;flex:1;"></div>
-            <button onclick="stopMindfulness()" style="padding:10px 24px;border-radius:12px;border:2px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">⏹ Stopp</button>
-          </div>`
-        : `<button onclick="startMindfulness(event,${i})" style="width:100%;padding:11px;border-radius:12px;border:none;background:#5b7fa6;color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">▶ Start · ${a.min} Min</button>`
-      }
-      ${a.link ? `<a href="${a.link}" target="_blank" onclick="event.stopPropagation()" style="display:block;font-size:0.72rem;color:#5b7fa6;text-decoration:none;margin-top:6px;">🔗 Link öffnen</a>` : ''}
-      ${!isActive ? `<button onclick="event.stopPropagation();selectMindfulnessEx(${i})" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.78rem;cursor:pointer;margin-top:6px;">📝 Nachtragen</button>` : ''}
-      <div id="${muid}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid ${isActive?'rgba(255,255,255,0.15)':'var(--border)'};">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-          <input type="number" value="${a.min}" min="1" max="120"
-            style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
-            onclick="event.stopPropagation()" onchange="updateMindfulnessDur(event,${i})">
-          <span style="font-size:0.78rem;color:var(--muted);">Min</span>
-          <input type="number" value="${a.ptsPerMin||3}" min="1" max="20"
-            style="width:50px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
-            onclick="event.stopPropagation()" onchange="updateMindfulnessPts(event,${i})">
-          <span style="font-size:0.78rem;color:var(--muted);">Pkt/Min</span>
-        </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <input type="number" value="${a.min}" min="1" max="120"
+          style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
+          onclick="event.stopPropagation()" onchange="updateMindfulnessDur(event,${i})">
+        <span style="font-size:0.78rem;color:var(--muted);">Min</span>
+        <input type="number" value="${a.ptsPerMin||3}" min="1" max="20"
+          style="width:50px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;background:var(--bg);color:var(--ink);"
+          onclick="event.stopPropagation()" onchange="updateMindfulnessPts(event,${i})">
+        <span style="font-size:0.78rem;color:var(--muted);">Pkt/Min</span>
+        ${a.link ? `<a href="${a.link}" target="_blank" style="font-size:0.78rem;color:#457b9d;text-decoration:none;">🔗 Link</a>` : ''}
         <input type="url" value="${a.link||''}" placeholder="🔗 Link (optional)"
-          style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--muted);background:var(--bg);"
+          style="flex:1;min-width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:1rem;color:var(--muted);background:var(--bg);"
           onchange="updateMindfulnessLink(${i}, this.value)" onclick="event.stopPropagation()">
-        ${!['box','478','424','coherent'].includes(a.id) ? `<button onclick="deleteMindfulnessEx(event,${i})" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid #e0a0a0;background:transparent;color:#c0392b;font-family:'DM Sans',sans-serif;font-size:0.78rem;cursor:pointer;margin-top:8px;">Löschen</button>` : ''}
       </div>
     `;
     list.appendChild(div);
@@ -6938,23 +6328,18 @@ function logMindfulness() {
   const ex = getMindfulnessExercises();
   if (i === null || i === undefined || !ex[i]) { showToast('Bitte Übung wählen.'); return; }
   const a = ex[i];
-  const manualMin = parseInt(document.getElementById('mindfulness-manual-min')?.value);
-  const min = (manualMin && manualMin > 0) ? manualMin : a.min;
-  const pts = min * (a.ptsPerMin || 3);
+  const pts = a.min * (a.ptsPerMin || 3);
   const d = getDateFromKey(
     document.getElementById('mchip-gestern')?.classList.contains('active') ? 'gestern' :
     document.getElementById('mchip-vorgestern')?.classList.contains('active') ? 'vorgestern' : 'heute'
   );
   d.setHours(new Date().getHours(), new Date().getMinutes(), 0, 0);
   if (!state.mindfulnessLog) state.mindfulnessLog = [];
-  state.mindfulnessLog.unshift({ name: a.name, icon: a.icon||'🧘', min, pts, ts: d.toISOString(), ptsPerMin: a.ptsPerMin||3, feeling: {} });
+  state.mindfulnessLog.unshift({ name: a.name, icon: a.icon||'🧘', min: a.min, pts, ts: d.toISOString(), feeling: {} });
   addPoints(pts, a.icon + ' ' + a.name);
   saveState();
-  // Reset manual min input
-  const minInput = document.getElementById('mindfulness-manual-min');
-  if (minInput) minInput.value = '';
   renderMindfulness();
-  showToast('✅ ' + a.name + ' · ' + min + ' Min geloggt! +' + pts + ' Punkte');
+  showToast('✅ ' + a.name + ' geloggt! +' + pts + ' Punkte');
   setTimeout(() => showFeelingOverlay({ type: 'mindfulness', logIndex: 0, phase: 'before' }), 400);
 }
 
@@ -7030,166 +6415,117 @@ function deleteMindfulnessLog(i) {
 // 90-TAGE-GEWOHNHEIT
 // =====================
 const HABIT_MILESTONES = [
-  { day: 7, text: '🌱 1 Woche! Der erste Schritt ist getan.' },
+  { day: 7,  text: '🌱 1 Woche! Der erste Schritt ist getan.' },
   { day: 21, text: '⭐ 21 Tage! Die erste Phase ist geschafft.' },
   { day: 42, text: '🔥 42 Tage! Du bist über die Hälfte.' },
   { day: 66, text: '🧠 66 Tage! Wissenschaftlich gesehen ist die Gewohnheit jetzt verankert.' },
   { day: 90, text: '🏆 90 Tage! Du hast es geschafft. Das ist außergewöhnlich.' },
 ];
-const HABIT_SWAP_MILESTONES = [
-  { day: 7, text: '🌱 1 Woche! Dein Gehirn lernt die neue Route.' },
-  { day: 21, text: '⭐ 21 Tage! Die alte Gewohnheit verliert an Kraft.' },
-  { day: 42, text: '🔥 42 Tage! Die neue Routine fühlt sich vertrauter an.' },
-  { day: 66, text: '🧠 66 Tage! Der Tausch ist neuronal verankert (Lally et al. 2010).' },
-  { day: 90, text: '🏆 90 Tage! Der Gewohnheitentausch ist abgeschlossen.' },
-];
-const HABIT_CUE_OPTIONS = ['Feierabend / Heimkommen','Stress / Anspannung','Langeweile','Geselligkeit','Belohnung nach Arbeit','Bestimmte Uhrzeit','Wochenende'];
-let habitSetupMode = 'build';
-
-function setHabitMode(mode) {
-  habitSetupMode = mode;
-  const bb = document.getElementById('habit-mode-build'), sb = document.getElementById('habit-mode-swap');
-  bb.style.background = mode==='build'?'#3a5bc7':'white'; bb.style.color = mode==='build'?'white':'#3a5bc7';
-  sb.style.background = mode==='swap'?'#3a5bc7':'white'; sb.style.color = mode==='swap'?'white':'#3a5bc7';
-  document.getElementById('habit-build-fields').style.display = mode==='build'?'':'none';
-  document.getElementById('habit-swap-fields').style.display = mode==='swap'?'':'none';
-  document.getElementById('habit-start-btn').textContent = mode==='swap'?'🔄 90-Tage-Tausch starten':'🌱 90-Tage-Commitment starten';
-  document.getElementById('habit-science-note').textContent = mode==='swap'
-    ? 'Duhigg (2012): Cue behalten, Routine ersetzen. Lally et al. (2010): Ø 66 Tage. Gardner et al. (2021): Substitution = Aufbau + Abbau.'
-    : 'Lally et al. (2010): Ø 66 Tage bis Automatizität.';
-  if (mode==='swap') { renderHabitCueChips(); renderHabitDayChips(); }
-}
-function renderHabitCueChips() {
-  const c = document.getElementById('habit-cue-chips'); if(!c) return;
-  c.innerHTML = HABIT_CUE_OPTIONS.map(cue => `<span onclick="this.dataset.active=this.dataset.active==='1'?'0':'1';this.style.background=this.dataset.active==='1'?'rgba(58,91,199,0.1)':'white';this.style.color=this.dataset.active==='1'?'#3a5bc7':'var(--muted)';this.style.borderColor=this.dataset.active==='1'?'rgba(58,91,199,0.5)':'rgba(58,91,199,0.2)'" data-active="0" style="display:inline-block;padding:6px 12px;border-radius:20px;font-size:0.78rem;cursor:pointer;border:1.5px solid rgba(58,91,199,0.2);background:white;color:var(--muted);margin:0 5px 5px 0;font-family:'DM Sans',sans-serif;">${cue}</span>`).join('');
-}
-function renderHabitDayChips() {
-  const c = document.getElementById('habit-day-chips'); if(!c) return;
-  const dn = ['So','Mo','Di','Mi','Do','Fr','Sa'], def = [1,2,3,4,5];
-  c.innerHTML = dn.map((n,i) => { const a = def.includes(i);
-    return `<span onclick="const x=this.dataset.active==='1';this.dataset.active=x?'0':'1';this.style.background=x?'white':'rgba(58,91,199,0.1)';this.style.color=x?'var(--muted)':'#3a5bc7';this.style.borderColor=x?'rgba(58,91,199,0.15)':'rgba(58,91,199,0.5)';this.style.fontWeight=x?'400':'600'" data-day="${i}" data-active="${a?'1':'0'}" style="display:inline-block;width:36px;height:36px;line-height:36px;text-align:center;border-radius:50%;font-size:0.78rem;cursor:pointer;border:1.5px solid ${a?'rgba(58,91,199,0.5)':'rgba(58,91,199,0.15)'};background:${a?'rgba(58,91,199,0.1)':'white'};color:${a?'#3a5bc7':'var(--muted)'};font-weight:${a?'600':'400'};font-family:'DM Sans',sans-serif;">${n}</span>`;
-  }).join('');
-}
-function getSelectedCues() {
-  const s=[]; document.querySelectorAll('#habit-cue-chips span').forEach(c=>{if(c.dataset.active==='1')s.push(c.textContent);});
-  const cu=(document.getElementById('habit-cue-custom')?.value||'').trim(); if(cu)s.push(cu); return s;
-}
-function getSelectedHabitDays() {
-  const d=[]; document.querySelectorAll('#habit-day-chips span').forEach(c=>{if(c.dataset.active==='1')d.push(parseInt(c.dataset.day));});
-  return d.length?d:[1,2,3,4,5];
-}
-function habitIsSwapDay(date) {
-  if(!state.habit90||state.habit90.mode!=='swap') return false;
-  return (state.habit90.activeDays||[1,2,3,4,5]).includes(date.getDay());
-}
-function habitGetWeekSkips() {
-  if(!state.habit90) return 0;
-  const now=new Date(), ws=new Date(now); ws.setDate(now.getDate()-now.getDay()+(now.getDay()===0?-6:1)); ws.setHours(0,0,0,0);
-  return (state.habit90.log||[]).filter(e=>{const d=new Date(e.date);return d>=ws&&!e.done&&!e.skip&&!e.bonus;}).length;
-}
 
 function startHabit() {
-  const dateVal=document.getElementById('habit-start-input').value;
-  if(!dateVal){showToast('Bitte Startdatum wählen.');return;}
-  if(habitSetupMode==='swap'){
-    const oldH=(document.getElementById('habit-old-input')?.value||'').trim();
-    const newH=(document.getElementById('habit-new-input')?.value||'').trim();
-    if(!oldH){showToast('Bitte alte Gewohnheit benennen.');return;}
-    if(!newH){showToast('Bitte neue Gewohnheit benennen.');return;}
-    const [y,m,d]=dateVal.split('-').map(Number); const startDate=new Date(y,m-1,d,12,0,0);
-    const cues=getSelectedCues(), reward=(document.getElementById('habit-reward-input')?.value||'').trim();
-    const woO=(document.getElementById('habit-woop-obstacle')?.value||'').trim();
-    const woP=(document.getElementById('habit-woop-plan')?.value||'').trim();
-    showConfirm('🔄 Tausch starten?','90 Tage: „'+oldH+'" durch „'+newH+'" ersetzen. Bereit?',()=>{
-      state.habit90={name:oldH+' → '+newH,mode:'swap',oldHabit:oldH,newHabit:newH,cues,reward,activeDays:getSelectedHabitDays(),
-        woop:(woO||woP)?{obstacle:woO,plan:woP}:null,startDate:startDate.toISOString(),log:[],completed:false};
-      saveState();renderHabit90();showToast('🔄 Los geht\'s! 90-Tage-Tausch startet.');
-    });
-  } else {
-    const name=document.getElementById('habit-name-input').value.trim();
-    if(!name){showToast('Bitte Gewohnheit benennen.');return;}
-    const [y,m,d]=dateVal.split('-').map(Number); const startDate=new Date(y,m-1,d,12,0,0);
-    showConfirm('🌱 Commitment starten?','90 Tage „'+name+'". Kein Druck – aber Bewusstsein. Bereit?',()=>{
-      state.habit90={name,mode:'build',startDate:startDate.toISOString(),log:[],completed:false};
-      saveState();renderHabit90();showToast('🌱 Los geht\'s! 90 Tage starten jetzt.');
-    });
-  }
+  const name = document.getElementById('habit-name-input').value.trim();
+  const dateVal = document.getElementById('habit-start-input').value;
+  if (!name) { showToast('Bitte Gewohnheit benennen.'); return; }
+  if (!dateVal) { showToast('Bitte Startdatum wählen.'); return; }
+  const [y, m, d] = dateVal.split('-').map(Number);
+  const startDate = new Date(y, m-1, d, 12, 0, 0);
+  showConfirm(
+    '🌱 Commitment starten?',
+    '90 Tage „' + name + '". Kein Druck – aber Bewusstsein. Bereit?',
+    () => {
+      state.habit90 = { name, startDate: startDate.toISOString(), log: [], completed: false };
+      saveState();
+      renderHabit90();
+      showToast('🌱 Los geht\'s! 90 Tage starten jetzt.');
+    }
+  );
 }
 
 function logHabitDay(done) {
-  if(!state.habit90) return;
-  const todayStr=new Date().toDateString();
-  const existing=state.habit90.log.find(e=>new Date(e.date).toDateString()===todayStr);
-  if(existing){existing.done=done;}else{state.habit90.log.push({date:new Date().toISOString(),done});}
-  const daysPassed=Math.floor((new Date()-new Date(state.habit90.startDate))/86400000)+1;
-  if(daysPassed>=90&&!state.habit90.completed){
-    state.habit90.completed=true;
-    const lbl=state.habit90.mode==='swap'?'🔄 90-Tage-Tausch abgeschlossen: ':'🌱 90-Tage-Gewohnheit abgeschlossen: ';
-    addPoints(500,lbl+state.habit90.name);showToast('🏆 90 Tage geschafft! +500 Punkte!');
+  if (!state.habit90) return;
+  const todayStr = new Date().toDateString();
+  const existing = state.habit90.log.find(e => new Date(e.date).toDateString() === todayStr);
+  if (existing) { existing.done = done; }
+  else { state.habit90.log.push({ date: new Date().toISOString(), done }); }
+  // Check completion
+  const daysPassed = Math.floor((new Date() - new Date(state.habit90.startDate)) / 86400000) + 1;
+  if (daysPassed >= 90) {
+    state.habit90.completed = true;
+    addPoints(500, '🌱 90-Tage-Gewohnheit abgeschlossen: ' + state.habit90.name);
+    showToast('🏆 90 Tage geschafft! +500 Punkte!');
   }
-  saveState();renderHabit90();
-  if(!state.habit90.completed){const isSwap=state.habit90.mode==='swap';showToast(done?(isSwap?'🔄 Getauscht!':'✅ Heute abgehakt!'):'○ Notiert – morgen wieder.');}
+  saveState();
+  renderHabit90();
+  if (!state.habit90.completed) showToast(done ? '✅ Heute abgehakt!' : '○ Notiert – morgen wieder.');
 }
 
 function stopHabit() {
-  const lbl=state.habit90?.mode==='swap'?'Gewohnheitentausch beenden?':'Gewohnheit beenden?';
-  showConfirm(lbl,'Den 90-Tage-Tracker stoppen?',()=>{state.habit90=null;saveState();renderHabit90();});
+  showConfirm('Gewohnheit beenden?', 'Den 90-Tage-Tracker stoppen?', () => {
+    state.habit90 = null;
+    saveState();
+    renderHabit90();
+  });
 }
 
 function renderHabit90() {
-  const active=document.getElementById('habit-active-card'),setup=document.getElementById('habit-setup-card');
-  if(!active||!setup) return;
-  if(!state.habit90){active.style.display='none';setup.style.display='';
-    const today=new Date().toISOString().split('T')[0];document.getElementById('habit-start-input').value=today;
-    setHabitMode('build');return;}
-  active.style.display='';setup.style.display='none';
-  const h=state.habit90, isSwap=h.mode==='swap', start=new Date(h.startDate), today=new Date();
-  const daysPassed=Math.max(0,Math.floor((today-start)/86400000)+1), pct=Math.min(100,Math.round(daysPassed/90*100));
-  document.getElementById('habit-name-display').textContent=(isSwap?'🔄 ':'🌱 ')+h.name;
-  document.getElementById('habit-date-display').textContent='Gestartet am '+start.toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'});
-  document.getElementById('habit-days-label').textContent='Tag '+Math.min(daysPassed,90)+' von 90';
-  document.getElementById('habit-pct-label').textContent=pct+'%';
-  document.getElementById('habit-progress-bar').style.width=pct+'%';
-  const yesBtn=document.getElementById('habit-yes-btn'),noBtn=document.getElementById('habit-no-btn');
-  yesBtn.textContent=isSwap?'🔄 Getauscht':'✅ Heute geschafft'; noBtn.textContent='○ Nicht heute';
-  // Loop visual
-  const lv=document.getElementById('habit-loop-visual');
-  if(isSwap&&lv){lv.style.display='';
-    document.getElementById('habit-loop-cue').textContent=(h.cues&&h.cues.length)?h.cues[0]:'Auslöser';
-    document.getElementById('habit-loop-old').textContent=h.oldHabit||'';
-    document.getElementById('habit-loop-new').textContent=h.newHabit||'';
-    document.getElementById('habit-loop-reward').textContent=h.reward||'Belohnung';
-  } else if(lv) lv.style.display='none';
-  // WOOP
-  const wd=document.getElementById('habit-woop-display');
-  if(isSwap&&h.woop&&(h.woop.obstacle||h.woop.plan)&&wd){wd.style.display='';
-    wd.innerHTML='<div style="font-size:0.7rem;color:var(--muted);font-weight:600;margin-bottom:4px;">WENN-DANN-PLAN</div><span style="color:var(--muted);">Wenn</span> '+(h.woop.obstacle||'...')+' <span style="color:var(--muted);">→ dann</span> '+(h.woop.plan||'...');
-  } else if(wd) wd.style.display='none';
-  // Milestones
-  const ms=(isSwap?HABIT_SWAP_MILESTONES:HABIT_MILESTONES).slice().reverse().find(m=>daysPassed>=m.day);
-  const me=document.getElementById('habit-milestone');
-  if(ms){me.style.display='';me.textContent=ms.text;}else me.style.display='none';
+  const active = document.getElementById('habit-active-card');
+  const setup  = document.getElementById('habit-setup-card');
+  if (!active || !setup) return;
+
+  if (!state.habit90) {
+    active.style.display = 'none';
+    setup.style.display  = '';
+    // Set default start date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('habit-start-input').value = today;
+    return;
+  }
+
+  active.style.display = '';
+  setup.style.display  = 'none';
+
+  const h = state.habit90;
+  const start = new Date(h.startDate);
+  const today = new Date();
+  const daysPassed = Math.max(0, Math.floor((today - start) / 86400000) + 1);
+  const daysTotal  = 90;
+  const pct = Math.min(100, Math.round(daysPassed / daysTotal * 100));
+
+  document.getElementById('habit-name-display').textContent = '🌱 ' + h.name;
+  document.getElementById('habit-date-display').textContent = 'Gestartet am ' + start.toLocaleDateString('de-DE', {day:'2-digit', month:'long', year:'numeric'});
+  document.getElementById('habit-days-label').textContent = 'Tag ' + Math.min(daysPassed, 90) + ' von 90';
+  document.getElementById('habit-pct-label').textContent = pct + '%';
+  document.getElementById('habit-progress-bar').style.width = pct + '%';
+
+  // Milestone
+  const milestone = HABIT_MILESTONES.slice().reverse().find(m => daysPassed >= m.day);
+  const milestoneEl = document.getElementById('habit-milestone');
+  if (milestone) { milestoneEl.style.display = ''; milestoneEl.textContent = milestone.text; }
+  else { milestoneEl.style.display = 'none'; }
+
   // Today buttons
-  const todayStr=today.toDateString(), te=h.log.find(e=>new Date(e.date).toDateString()===todayStr);
-  yesBtn.style.background=te?.done?'#3a5bc7':'white';yesBtn.style.color=te?.done?'white':'';
-  yesBtn.style.borderColor=te?.done?'#3a5bc7':'rgba(58,91,199,0.3)';
-  noBtn.style.background=(te&&!te.done)?'#eee':'white';
-  // Dots
-  const dots=document.getElementById('habit-dots');dots.innerHTML='';
-  for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(today.getDate()-i);
-    const entry=h.log.find(e=>new Date(e.date).toDateString()===d.toDateString());
-    const dot=document.createElement('div');
-    const color=d>today?'var(--border)':!entry?'var(--border)':entry.done?'#3a5bc7':'#ddd';
-    dot.style.cssText=`width:30px;height:30px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:white;font-weight:600;`;
-    dot.textContent=['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()];dots.appendChild(dot);}
-  // Swap stats
-  const ss=document.getElementById('habit-swap-stats');
-  if(isSwap&&ss){ss.style.display='';
-    const dc=h.log.filter(e=>e.done).length,mc=h.log.filter(e=>!e.done).length,t=dc+mc;
-    document.getElementById('habit-swap-done').textContent=dc;
-    document.getElementById('habit-swap-missed').textContent=mc;
-    document.getElementById('habit-swap-pct').textContent=(t>0?Math.round(dc/t*100):0)+'%';
-  } else if(ss) ss.style.display='none';
+  const todayStr = today.toDateString();
+  const todayEntry = h.log.find(e => new Date(e.date).toDateString() === todayStr);
+  const yesBtn = document.getElementById('habit-yes-btn');
+  const noBtn  = document.getElementById('habit-no-btn');
+  yesBtn.style.background = todayEntry?.done ? '#3a5bc7' : 'white';
+  yesBtn.style.color      = todayEntry?.done ? 'white' : '';
+  yesBtn.style.borderColor= todayEntry?.done ? '#3a5bc7' : 'rgba(58,91,199,0.3)';
+  noBtn.style.background  = (todayEntry && !todayEntry.done) ? '#eee' : 'white';
+
+  // Last 7 days dots
+  const dots = document.getElementById('habit-dots');
+  dots.innerHTML = '';
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const entry = h.log.find(e => new Date(e.date).toDateString() === d.toDateString());
+    const isFuture = d > today;
+    const dot = document.createElement('div');
+    const color = isFuture ? 'var(--border)' : !entry ? 'var(--border)' : entry.done ? '#3a5bc7' : '#ddd';
+    dot.style.cssText = `width:30px;height:30px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:white;font-weight:600;`;
+    dot.textContent = ['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()];
+    dots.appendChild(dot);
+  }
 }
 
 function logGratitudeSection() {
@@ -7520,7 +6856,7 @@ function closeNap() {
   document.getElementById('nap-overlay-btn').onclick = abortNap;
 }
 
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.0.0';
 
 // =====================
 // BUG REPORT
@@ -7595,11 +6931,7 @@ function updateQuickBtn() {
   const btn = document.getElementById('quick-checkin-btn');
   if (!btn) return;
   const tod = getTimeOfDay();
-  const todayStr = new Date().toDateString();
   if (tod === 'morning') {
-    // Hide if check-in already done today
-    const checkinDone = state.profile?.morningPlanned?.date === todayStr;
-    if (checkinDone) { btn.style.display = 'none'; return; }
     btn.style.display = '';
     btn.textContent = '⚡ 30-Sekunden Check-in';
     btn.style.background = 'linear-gradient(135deg,#1a3a2a,#2d5a3d)';
@@ -7620,10 +6952,7 @@ function updateQuickBtn() {
 let coStep = 0;
 let coAlc = null;
 let coSw = null;
-let coSym = null;
 let coSelectedActivity = null;
-let coHabitSwap = null;
-let coHasHabitStep = false;
 
 let coCompletedContacts = [];
 
@@ -7638,36 +6967,7 @@ function coToggleContact(idx, btn) {
 }
 
 function startCheckout() {
-  coStep = 0; coAlc = null; coSw = null; coSym = null; coSelectedActivity = null; coCompletedContacts = [];
-  coHabitSwap = null;
-  coHasHabitStep = state.habit90 && state.habit90.mode === 'swap' && !state.habit90.completed;
-
-  // Show/hide dot 5
-  const dot5 = document.getElementById('co-dot-5');
-  if (dot5) dot5.style.display = coHasHabitStep ? '' : 'none';
-
-  // Init habit step content
-  if (coHasHabitStep) {
-    const h = state.habit90, todayStr = new Date().toDateString();
-    const isSwapDay = habitIsSwapDay(new Date());
-    const todayEntry = h.log.find(e => new Date(e.date).toDateString() === todayStr);
-    const content = document.getElementById('co-habit-content');
-    const subtitle = document.getElementById('co-habit-subtitle');
-    const title = document.getElementById('co-habit-title');
-    if (todayEntry) {
-      title.textContent = todayEntry.done ? '🔄 Bereits getauscht' : '○ Bereits eingetragen';
-      subtitle.textContent = ''; content.innerHTML = '<div style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-top:12px;">Du kannst das im Rewards-Tab ändern.</div>';
-    } else if (!isSwapDay) {
-      title.textContent = 'Heute ist Ruhetag';
-      subtitle.textContent = (h.oldHabit||'')+' → '+(h.newHabit||'');
-      content.innerHTML = '<div style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:20px;">Kein Tauschtag – geniess den Abend.</div><button onclick="coHabitSet(\'bonus\')" id="co-habit-bonus" style="padding:14px 24px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:\'DM Sans\',sans-serif;font-size:0.9rem;cursor:pointer;">🔄 Trotzdem getauscht (Bonus!)</button>';
-    } else {
-      title.textContent = h.oldHabit+' → '+h.newHabit+'?';
-      subtitle.textContent = '';
-      const weekSkips = habitGetWeekSkips();
-      content.innerHTML = '<div style="display:flex;gap:10px;justify-content:center;margin-bottom:16px;"><button onclick="coHabitSet(\'yes\')" id="co-habit-yes" style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:\'DM Sans\',sans-serif;font-size:0.95rem;cursor:pointer;">🔄 Getauscht</button><button onclick="coHabitSet(\'no\')" id="co-habit-no" style="flex:1;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:\'DM Sans\',sans-serif;font-size:0.95rem;cursor:pointer;">○ Nicht heute</button></div><div id="co-habit-reflect" style="display:none;"></div>';
-    }
-  }
+  coStep = 0; coAlc = null; coSw = null; coSelectedActivity = null; coCompletedContacts = [];
 
   // Init water
   const slider = document.getElementById('co-water-slider');
@@ -7676,7 +6976,7 @@ function startCheckout() {
   document.getElementById('co-water-goal').textContent = state.waterGoal || 2000;
 
   // Init nutrition buttons
-  ['co-alc-yes','co-alc-no','co-sw-yes','co-sw-no','co-sym-yes','co-sym-no','co-sym-sick'].forEach(id => {
+  ['co-alc-yes','co-alc-no','co-sw-yes','co-sw-no'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(255,255,255,0.2)'; }
   });
@@ -7684,6 +6984,7 @@ function startCheckout() {
   // Check if activities were planned this morning
   const planned = state.profile?.morningPlanned;
   const plannedDiv = document.getElementById('co-act-planned');
+  const unplannedDiv = document.getElementById('co-act-unplanned');
   const todayStr = new Date().toDateString();
 
   const indices = planned?.date === todayStr
@@ -7704,46 +7005,34 @@ function startCheckout() {
 
     acts.forEach((a, j) => {
       const idx = indices[j];
-      const alreadyLogged = state.activityLog.find(e =>
-        new Date(e.ts).toDateString() === todayStr && e.name === a.name
-      );
-      if (alreadyLogged) {
-        html += `
-          <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;">
-            <span style="font-size:1.3rem;">${a.icon||'🏃'}</span>
-            <span style="flex:1;font-weight:700;font-size:1rem;color:white;">${a.name}</span>
-            <span style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ ${alreadyLogged.min} Min</span>
-          </div>`;
-      } else {
-        html += `
-          <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;">
-            <span style="font-size:1.3rem;">${a.icon||'🏃'}</span>
-            <span style="flex:1;font-weight:700;font-size:1rem;color:white;">${a.name}</span>
-            <span style="font-size:1rem;color:rgba(255,255,255,0.3);">○</span>
-          </div>`;
-      }
+      html += `
+        <div style="margin-bottom:16px;">
+          <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🏃'} ${a.name} – ${a.min} Min geplant</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-dur-val-${idx}">0 Min</div>
+          <input type="range" id="co-dur-slider-${idx}" min="0" max="${Math.max(a.min,120)}" step="5" value="0"
+            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
+            oninput="document.getElementById('co-dur-val-${idx}').textContent=this.value+' Min'">
+          <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
+            <span>Nicht gemacht</span><span>${a.min} Min</span>
+          </div>
+        </div>`;
     });
 
     minds.forEach((a, j) => {
       const idx = (planned.mindIndices||[])[j];
-      const alreadyLogged = (state.mindfulnessLog||[]).find(e =>
-        new Date(e.ts).toDateString() === todayStr && e.name === a.name
-      );
-      if (alreadyLogged) {
-        html += `
-          <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;">
-            <span style="font-size:1.3rem;">${a.icon||'🪷'}</span>
-            <span style="flex:1;font-weight:700;font-size:1rem;color:white;">${a.name}</span>
-            <span style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ ${alreadyLogged.min} Min</span>
-          </div>`;
-      } else {
-        html += `
-          <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;">
-            <span style="font-size:1.3rem;">${a.icon||'🪷'}</span>
-            <span style="flex:1;font-weight:700;font-size:1rem;color:white;">${a.name}</span>
-            <span style="font-size:1rem;color:rgba(255,255,255,0.3);">○</span>
-          </div>`;
-      }
+      html += `
+        <div style="margin-bottom:16px;">
+          <div style="font-weight:700;font-size:1rem;color:white;margin-bottom:8px;">${a.icon||'🪷'} ${a.name} – ${a.min} Min geplant</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">Wie viel hast du gemacht?</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:white;margin-bottom:4px;" id="co-mind-val-${idx}">0 Min</div>
+          <input type="range" id="co-mind-slider-${idx}" min="0" max="${Math.max(a.min,60)}" step="5" value="0"
+            style="-webkit-appearance:none;width:100%;height:8px;border-radius:10px;background:rgba(255,255,255,0.2);outline:none;cursor:pointer;margin-bottom:4px;"
+            oninput="document.getElementById('co-mind-val-${idx}').textContent=this.value+' Min'">
+          <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.4);">
+            <span>Nicht gemacht</span><span>${a.min} Min</span>
+          </div>
+        </div>`;
     });
 
     contacts.forEach((c, j) => {
@@ -7761,85 +7050,27 @@ function startCheckout() {
     const total = acts.length + minds.length + contacts.length;
     document.getElementById('co-act-planned').innerHTML = html;
     document.getElementById('co-act-icon').textContent = total > 1 ? '📋' : (acts[0]?.icon || minds[0]?.icon || '❤️');
-    document.getElementById('co-act-title').textContent = 'Dein Tag';
-    document.getElementById('co-act-subtitle').textContent = 'Was du geplant hast – und was passiert ist.';
+    document.getElementById('co-act-title').textContent = 'Wie war dein Tag?';
+    document.getElementById('co-act-subtitle').textContent = '';
     plannedDiv.style.display = '';
-
+    unplannedDiv.style.display = 'none';
   } else {
-    // Nothing planned – just show a simple summary
-    document.getElementById('co-act-icon').textContent = '📋';
-    const todayActs = state.activityLog.filter(e => new Date(e.ts).toDateString() === todayStr);
-    const todayMind = (state.mindfulnessLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-    if (todayActs.length || todayMind.length) {
-      document.getElementById('co-act-title').textContent = 'Heute gemacht';
-      document.getElementById('co-act-subtitle').textContent = todayActs.map(e=>e.name).concat(todayMind.map(e=>e.name)).join(', ');
-    } else {
-      document.getElementById('co-act-title').textContent = 'Heute keine Aktivität';
-      document.getElementById('co-act-subtitle').textContent = 'Morgen ist ein neuer Tag.';
-    }
+    document.getElementById('co-act-icon').textContent = '🏃';
+    document.getElementById('co-act-title').textContent = 'Warst du aktiv?';
+    document.getElementById('co-act-subtitle').textContent = 'Spontan oder vergessen einzutragen?';
     plannedDiv.style.display = 'none';
-
+    unplannedDiv.style.display = '';
+    // Build activity list
+    const list = document.getElementById('co-act-list');
+    list.innerHTML = (state.activities||[]).map((a,i) => `
+      <button class="tm-activity-btn" onclick="coSelectActivity(${i},this)">
+        <span style="font-size:1.2rem;">${a.icon||'🏃'}</span>
+        <span style="flex:1;margin-left:10px;">${a.name}</span>
+        <span style="font-size:0.8rem;opacity:0.6;">${a.min} Min</span>
+      </button>`).join('');
   }
 
   document.getElementById('co-note').value = '';
-
-  // Init Beschwerden step - check if already logged today
-  const todaySymptoms = (state.symptomLog||[]).filter(e => new Date(e.ts).toDateString() === todayStr);
-  const todayFree = (state.symptomFreeLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-  const todaySick = (state.sickDayLog||[]).find(e => new Date(e.date).toDateString() === todayStr);
-  const symStepContent = document.getElementById('co-step-3');
-  if (symStepContent) {
-    if (todaySick) {
-      symStepContent.innerHTML = `
-        <div style="font-size:3rem;margin-bottom:12px;">🛏</div>
-        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Krankheitstag</div>
-        <div style="font-size:0.85rem;color:rgba(168,216,234,0.9);margin-bottom:12px;">✅ Bereits als Krankheitstag eingetragen</div>
-        ${todaySymptoms.length ? '<div style="font-size:0.82rem;color:rgba(255,255,255,0.6);margin-bottom:8px;">' + todaySymptoms.map(s => s.type + (s.zone !== 'Allgemein' ? ' (' + s.zone + ')' : '') + ' · ' + s.intensity + '/10').join('<br>') + '</div>' : ''}
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-top:12px;">Gute Besserung! 💛</div>`;
-      coSym = 'sick';
-    } else if (todaySymptoms.length > 0) {
-      symStepContent.innerHTML = `
-        <div style="font-size:3rem;margin-bottom:12px;">🩹</div>
-        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Beschwerden heute</div>
-        <div style="font-size:0.82rem;color:rgba(168,216,234,0.9);margin-bottom:16px;">✅ Bereits eingetragen:</div>
-        <div style="text-align:left;margin-bottom:16px;">
-          ${todaySymptoms.map(s => `<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:0.85rem;color:rgba(255,255,255,0.8);">
-            ${s.zone !== 'Allgemein' ? s.zone + ' – ' : ''}${s.type} · ${s.intensity}/10${s.note ? ' · ' + s.note : ''}
-          </div>`).join('')}
-        </div>
-        <button onclick="closeCheckout();showSection('body');setTimeout(()=>{const el=document.getElementById('symptom-card');if(el)el.scrollIntoView({behavior:'smooth'})},300)"
-          style="width:100%;padding:14px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">
-          🩹 Weitere Beschwerde eintragen →
-        </button>`;
-      coSym = 'yes';
-    } else if (todayFree) {
-      symStepContent.innerHTML = `
-        <div style="font-size:3rem;margin-bottom:12px;">🙏</div>
-        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Beschwerdefrei</div>
-        <div style="font-size:0.85rem;color:rgba(168,216,234,0.9);">✅ Bereits als beschwerdefrei eingetragen</div>`;
-      coSym = 'no';
-    } else {
-      symStepContent.innerHTML = `
-        <div style="font-size:3rem;margin-bottom:12px;">🩹</div>
-        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;margin-bottom:8px;">Körperliche Beschwerden?</div>
-        <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:28px;">Hattest du heute Beschwerden?</div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <button id="co-sym-no" onclick="coToggle('sym','no')"
-            style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-            🙏 Nein, beschwerdefrei
-          </button>
-          <button id="co-sym-yes" onclick="coToggle('sym','yes')"
-            style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-            🩹 Ja, Beschwerden eintragen →
-          </button>
-          <button id="co-sym-sick" onclick="coToggle('sym','sick')"
-            style="width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.95rem;cursor:pointer;">
-            🛏 Krank / bettlägerig
-          </button>
-        </div>`;
-    }
-  }
-
   coGoStep(0);
   document.getElementById('checkout-overlay').style.display = 'flex';
 }
@@ -7860,21 +7091,6 @@ function coToggle(type, val) {
     document.getElementById('co-alc-yes').style.borderColor = val==='yes' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
     document.getElementById('co-alc-no').style.background  = val==='no'  ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
     document.getElementById('co-alc-no').style.borderColor  = val==='no'  ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
-  } else if (type === 'sym') {
-    coSym = val;
-    ['co-sym-no','co-sym-yes','co-sym-sick'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(255,255,255,0.2)'; }
-    });
-    const activeId = val==='no' ? 'co-sym-no' : val==='yes' ? 'co-sym-yes' : 'co-sym-sick';
-    const activeEl = document.getElementById(activeId);
-    if (activeEl) { activeEl.style.background = 'rgba(255,255,255,0.3)'; activeEl.style.borderColor = 'rgba(255,255,255,0.7)'; }
-    const nextBtn = document.getElementById('co-next-btn');
-    if (nextBtn && coStep === 3) {
-      if (val === 'yes') nextBtn.textContent = '🩹 Eintragen →';
-      else if (val === 'sick') nextBtn.textContent = '🛏 Weiter →';
-      else nextBtn.textContent = 'Weiter →';
-    }
   } else {
     coSw = val;
     document.getElementById('co-sw-yes').style.background = val==='yes' ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
@@ -7901,98 +7117,89 @@ function coSelectActivity(i, el) {
 }
 
 function coGoStep(step) {
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 4; i++) {
     const s = document.getElementById('co-step-' + i);
     const d = document.getElementById('co-dot-' + i);
     if (s) s.style.display = i === step ? '' : 'none';
     if (d) d.classList.toggle('active', i === step);
   }
   coStep = step;
-  const lastStep = coHasHabitStep ? 5 : 4;
   const backBtn = document.getElementById('co-back-btn');
   const nextBtn = document.getElementById('co-next-btn');
   if (backBtn) backBtn.style.display = step === 0 ? 'none' : '';
-  if (nextBtn) nextBtn.textContent = step === lastStep ? '✅ Gute Nacht!' : 'Weiter →';
+  if (nextBtn) nextBtn.textContent = step === 3 ? '✅ Gute Nacht!' : 'Weiter →';
+  // Step 0: show skip if nothing planned
   if (step === 0) {
     const planned = state.profile?.morningPlanned;
     const todayStr = new Date().toDateString();
-    const hasPlanned = planned?.date === todayStr && (planned.actIndices?.length > 0 || planned.actIdx != null);
+    const hasPlanned = planned?.date === todayStr &&
+      (planned.actIndices?.length > 0 || planned.actIdx != null);
     if (!hasPlanned && !coSelectedActivity && nextBtn) nextBtn.textContent = 'Überspringen →';
   }
-  if (step === 2 && nextBtn) { if (coAlc === null && coSw === null) nextBtn.textContent = 'Überspringen →'; }
-  if (step === 3 && nextBtn) { if (coSym === null) nextBtn.textContent = 'Überspringen →'; }
-  if (step === 5 && nextBtn) { if (coHabitSwap === null) nextBtn.textContent = 'Überspringen →'; }
+  // Step 2: show skip if nothing selected yet
+  if (step === 2 && nextBtn) {
+    if (coAlc === null && coSw === null) nextBtn.textContent = 'Überspringen →';
+  }
 }
 
 function coNext() {
-  if (coStep === 3 && (coSym === 'yes' || coSym === 'sick')) {
-    if (coSym === 'sick') {
-      const todayStr = new Date().toDateString();
-      if (!state.sickDayLog) state.sickDayLog = [];
-      const alreadyLogged = state.sickDayLog.find(e => new Date(e.date).toDateString() === todayStr);
-      if (!alreadyLogged) state.sickDayLog.push({ date: new Date().toISOString(), sick: true });
-      if (typeof applyStreakJoker === 'function') applyStreakJoker();
-      saveState();
-    }
-    closeCheckout();
-    showSection('body');
-    setTimeout(() => { const el = document.getElementById('symptom-card'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 300);
-    if (coSym === 'sick') showToast('🛏 Krankheitstag eingetragen – gute Besserung!');
-    return;
-  }
-  const lastStep = coHasHabitStep ? 5 : 4;
-  if (coStep === lastStep) { coSave(); return; }
-  let next = coStep + 1;
-  // Skip habit step 5 if not active
-  if (next === 5 && !coHasHabitStep) { coSave(); return; }
-  coGoStep(next);
+  if (coStep === 3) { coSave(); return; }
+  coGoStep(coStep + 1);
 }
 
 function coBack() {
-  let prev = coStep - 1;
-  // Skip habit step if not active
-  if (prev === 5 && !coHasHabitStep) prev = 4;
-  if (prev >= 0) coGoStep(prev);
-}
-
-function coHabitSet(val) {
-  coHabitSwap = val;
-  ['co-habit-yes','co-habit-no','co-habit-bonus'].forEach(id => {
-    const el = document.getElementById(id); if(!el) return;
-    const sel = (id==='co-habit-yes'&&val==='yes')||(id==='co-habit-no'&&val==='no')||(id==='co-habit-bonus'&&val==='bonus');
-    el.style.background = sel?'rgba(255,255,255,0.3)':'rgba(255,255,255,0.08)';
-    el.style.borderColor = sel?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.2)';
-  });
-  const r = document.getElementById('co-habit-reflect'); if(!r) return;
-  if(val==='no') {
-    const ws = habitGetWeekSkips();
-    if(ws >= 1) {
-      r.style.display='';
-      r.innerHTML = `<div style="margin-top:16px;padding:14px;background:rgba(255,255,255,0.08);border-radius:12px;text-align:left;">
-        <div style="font-size:0.82rem;color:rgba(255,255,255,0.8);margin-bottom:10px;font-weight:600;">Kurz innehalten – das ist die ${ws+1}. Ausnahme diese Woche</div>
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:8px;">Was war der Auslöser?</div>
-        <textarea id="co-habit-note" rows="2" placeholder="z.B. Kollege hat eingeladen..." style="width:100%;padding:10px;border:none;border-radius:10px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:none;outline:none;box-sizing:border-box;"></textarea>
-        ${ws>=2?`<div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:10px;margin-bottom:6px;">Willst du deinen Wenn-Dann-Plan anpassen?</div>
-        <button onclick="document.getElementById('co-habit-woop-edit').style.display=''" style="padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:white;font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">✏️ Plan anpassen</button>
-        <div id="co-habit-woop-edit" style="display:none;margin-top:10px;">
-          <div style="display:flex;gap:4px;align-items:center;margin-bottom:4px;"><span style="font-size:0.78rem;color:rgba(255,255,255,0.5);white-space:nowrap;">Wenn</span><input type="text" id="co-habit-woop-obs" value="${state.habit90?.woop?.obstacle||''}" style="flex:1;padding:8px;border:none;border-radius:8px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;"></div>
-          <div style="display:flex;gap:4px;align-items:center;"><span style="font-size:0.78rem;color:rgba(255,255,255,0.5);white-space:nowrap;">dann</span><input type="text" id="co-habit-woop-pln" value="${state.habit90?.woop?.plan||''}" style="flex:1;padding:8px;border:none;border-radius:8px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;"></div>
-        </div>`:''}
-      </div>`;
-    } else {
-      r.style.display='';
-      r.innerHTML = '<div style="margin-top:12px;"><div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:6px;">Was war der Auslöser? (optional)</div><textarea id="co-habit-note" rows="1" placeholder="z.B. Stress, Geselligkeit..." style="width:100%;padding:8px 10px;border:none;border-radius:10px;background:rgba(255,255,255,0.1);color:white;font-family:\'DM Sans\',sans-serif;font-size:0.82rem;resize:none;outline:none;box-sizing:border-box;"></textarea></div>';
-    }
-  } else { r.style.display='none'; }
+  if (coStep > 0) coGoStep(coStep - 1);
 }
 
 function coSave() {
   const todayStr = new Date().toDateString();
 
-  // 1. Aktivitäten & Achtsamkeit – werden über Timer geloggt, nicht im Checkout
+  // 1. Aktivitäten
+  const planned = state.profile?.morningPlanned;
+  if (planned && planned.date === todayStr) {
+    const indices = planned.actIndices || (planned.actIdx != null ? [planned.actIdx] : []);
+    indices.forEach(idx => {
+      const durMin = parseInt(document.getElementById(`co-dur-slider-${idx}`)?.value || 0);
+      if (durMin > 0) {
+        const a = state.activities[idx];
+        if (a) {
+          const pts = durMin * (a.ptsPerMin||1);
+          state.activityLog.unshift({ name:a.name, icon:a.icon||'🏃', min:durMin, pts, label:durMin+' min', ts:new Date().toISOString(), ptsPerMin:a.ptsPerMin||1, steps:false, feeling:{} });
+          if (state.activityLog.length > 200) state.activityLog.pop();
+          addPoints(pts, (a.icon||'🏃') + ' ' + a.name);
+          checkStreak();
+        }
+      }
+    });
+  } else if (coSelectedActivity !== null) {
+    const durMin = parseInt(document.getElementById('co-dur-slider2')?.value || 30);
+    const a = state.activities[coSelectedActivity];
+    if (a && durMin > 0) {
+      const pts = durMin * (a.ptsPerMin||1);
+      state.activityLog.unshift({ name:a.name, icon:a.icon||'🏃', min:durMin, pts, label:durMin+' min', ts:new Date().toISOString(), ptsPerMin:a.ptsPerMin||1, steps:false, feeling:{} });
+      if (state.activityLog.length > 200) state.activityLog.pop();
+      addPoints(pts, (a.icon||'🏃') + ' ' + a.name);
+      checkStreak();
+    }
+  }
+
+  // 1b. Achtsamkeit
+  const plannedMinds = planned?.mindIndices || [];
+  plannedMinds.forEach(idx => {
+    const durMin = parseInt(document.getElementById(`co-mind-slider-${idx}`)?.value || 0);
+    if (durMin > 0) {
+      const exs = getMindfulnessExercises ? getMindfulnessExercises() : [];
+      const a = exs[idx];
+      if (a) {
+        const pts = durMin * (a.ptsPerMin||3);
+        if (!state.mindfulnessLog) state.mindfulnessLog = [];
+        state.mindfulnessLog.unshift({ name:a.name, icon:a.icon||'🪷', min:durMin, pts, ts:new Date().toISOString(), ptsPerMin:a.ptsPerMin||3, feeling:{} });
+        addPoints(pts, (a.icon||'🪷') + ' ' + a.name);
+      }
+    }
+  });
 
   // 1c. Kontakte
-  const planned = state.profile?.morningPlanned;
   const week = getCurrentWeekKey ? getCurrentWeekKey() : '';
   const contactPlans = planned?.contactPlans || [];
   coCompletedContacts.forEach(j => {
@@ -8024,38 +7231,11 @@ function coSave() {
     else { if (!state.sweetsDaysLog) state.sweetsDaysLog=[]; state.sweetsDaysLog.push({ date: new Date().toISOString(), had: coSw === 'yes' }); }
   }
 
-  // 5. Beschwerdefrei
-  if (coSym === 'no') {
-    if (!state.symptomFreeLog) state.symptomFreeLog = [];
-    const alreadyLogged = state.symptomFreeLog.find(e => new Date(e.date).toDateString() === todayStr);
-    if (!alreadyLogged) state.symptomFreeLog.push({ date: new Date().toISOString(), free: true });
-  }
-
-  // 6. Dankbarkeit
+  // 5. Dankbarkeit
   const note = document.getElementById('co-note').value.trim();
   if (note) {
     state.gratitudeLog.unshift({ ts: new Date().toISOString(), text: note });
     if (state.gratitudeLog.length > 200) state.gratitudeLog.pop();
-  }
-
-  // 7. Gewohnheitentausch
-  if (coHabitSwap && state.habit90 && state.habit90.mode === 'swap') {
-    const existing = state.habit90.log.find(e => new Date(e.date).toDateString() === todayStr);
-    const logEntry = { date: new Date().toISOString(), done: coHabitSwap==='yes'||coHabitSwap==='bonus',
-      skip: false, bonus: coHabitSwap==='bonus', note: document.getElementById('co-habit-note')?.value?.trim()||null, feeling: null };
-    if (existing) Object.assign(existing, logEntry); else state.habit90.log.push(logEntry);
-    // Update WOOP if edited
-    const woO = document.getElementById('co-habit-woop-obs')?.value?.trim();
-    const woP = document.getElementById('co-habit-woop-pln')?.value?.trim();
-    if (woO !== undefined && woP !== undefined && (woO||woP)) {
-      if (!state.habit90.woop) state.habit90.woop = {};
-      state.habit90.woop.obstacle = woO; state.habit90.woop.plan = woP;
-    }
-    const daysPassed = Math.floor((new Date()-new Date(state.habit90.startDate))/86400000)+1;
-    if (daysPassed >= 90 && !state.habit90.completed) {
-      state.habit90.completed = true;
-      addPoints(500, '🔄 90-Tage-Tausch abgeschlossen: '+state.habit90.name);
-    }
   }
 
   // Clear morning plan
@@ -8122,6 +7302,7 @@ function startTwoMin() {
     <button class="tm-activity-btn" onclick="tmSelectActivity(${i},this)">
       <span style="font-size:1.2rem;">${a.icon||'🏃'}</span>
       <span style="flex:1;margin-left:8px;">${a.name}</span>
+      <span style="font-size:0.78rem;opacity:0.6;">${a.steps ? (a.stepsDefault||5000)+' Schr.' : a.min+' Min'}</span>
     </button>`).join('');
 
   // Build mindfulness list
@@ -8132,6 +7313,7 @@ function startTwoMin() {
       <button class="tm-activity-btn" onclick="tmSelectMindfulness(${i},this)">
         <span style="font-size:1.2rem;">${a.icon||'🪷'}</span>
         <span style="flex:1;margin-left:8px;">${a.name}</span>
+        <span style="font-size:0.78rem;opacity:0.6;">${a.min} Min</span>
       </button>`).join('');
   }
 
@@ -8158,7 +7340,7 @@ function startTwoMin() {
     }
   }
   // Show overlay
-  tmGoStep(tmStepSequence[0]);
+  tmGoStep(0);
   document.getElementById('twomin-overlay').style.display = 'flex';
 }
 
@@ -8214,7 +7396,7 @@ function tmUpdateFeel(v) {
 }
 
 // Steps: 'sleep'=Schlaf (optional morgens), 0=Wasser, 1=Planung, 'woop'=WOOP (optional), 2=Gefühl, 3=Dankbarkeit
-let tmStepSequence = [1, 2, 3]; // rebuilt in startTwoMin
+let tmStepSequence = [0, 1, 2, 3]; // rebuilt in startTwoMin
 let tmSleepSkipped = false;
 
 function tmBuildSequence() {
@@ -8227,7 +7409,7 @@ function tmBuildSequence() {
   const hasPlanned = tmSelectedActivities.length + tmSelectedMindfulnesses.length + tmSelectedContactPlans.length > 0;
   const steps = [];
   if (needSleep) steps.push('sleep');
-  steps.push(1);
+  steps.push(0, 1);
   if (state.woopEnabled && hasPlanned) steps.push('woop');
   steps.push(2, 3);
   tmStepSequence = steps;
@@ -8641,17 +7823,6 @@ function renderPlannedActivity() {
   document.getElementById('planned-act-icon').textContent = all.length === 1 ? (acts[0]?.icon || minds[0]?.icon || '📋') : '📋';
   document.getElementById('planned-act-name').textContent = all.join(' · ');
   card.style.display = '';
-
-  // WOOP plans inline
-  const woops = planned.woops;
-  const woopDiv = document.getElementById('planned-woop');
-  if (woopDiv && state.woopEnabled && woops?.length > 0) {
-    const content = woops.filter(w => w.obstacle || w.plan).map(w =>
-      `<div style="font-size:0.8rem;margin-bottom:4px;">${w.obstacle ? '🚧 ' + w.obstacle : ''}${w.plan ? ' → ' + w.plan : ''}</div>`
-    ).join('');
-    if (content) { woopDiv.innerHTML = content; woopDiv.style.display = ''; }
-    else woopDiv.style.display = 'none';
-  } else if (woopDiv) { woopDiv.style.display = 'none'; }
 }
 
 function renderDailyCheck() {
@@ -8664,7 +7835,27 @@ function renderDailyCheck() {
 }
 
 function renderIntention() {
-  // WOOP plans are now shown in planned-activity-card
+  const card = document.getElementById('intention-card');
+  const text = document.getElementById('intention-text');
+  if (!card || !text) return;
+
+  const woops = state.profile?.morningPlanned?.woops;
+  const todayPlan = state.profile?.morningPlanned?.date === new Date().toDateString();
+
+  if (state.woopEnabled && todayPlan && woops?.length > 0) {
+    const content = woops.map(w => {
+      if (!w.obstacle && !w.plan) return '';
+      return `<div style="margin-bottom:6px;">
+        <span style="font-weight:600;font-size:0.85rem;">${w.name}</span><br>
+        ${w.obstacle ? `<span style="color:var(--muted);font-size:0.8rem;">🚧 ${w.obstacle}</span><br>` : ''}
+        ${w.plan ? `<span style="font-size:0.8rem;">→ ${w.plan}</span>` : ''}
+      </div>`;
+    }).filter(Boolean).join('');
+    if (content) { text.innerHTML = content; card.style.display = ''; }
+    else card.style.display = 'none';
+  } else {
+    card.style.display = 'none';
+  }
 }
 // =====================
 let obSelectedGoal = null;
@@ -8742,26 +7933,10 @@ function startMindfulness(event, i) {
   if (state.activeMindfulness) { showToast('Erst die laufende Übung stoppen.'); return; }
   const ex = getMindfulnessExercises();
   const a = ex[i];
-
-  // Map mindfulness IDs to breathing technique keys
-  const breathMap = { 'box':'box', '478':'4-7-8', '424':'4-2-4', 'coherent':'coherent' };
-  const techKey = breathMap[a.id];
-
-  if (techKey && typeof TECHNIQUES !== 'undefined' && TECHNIQUES[techKey]) {
-    // Breathing exercise → open animated overlay
-    state.breathingTechnique = techKey;
-    state.breathingDuration = a.min;
-    state.activeMindfulness = { idx: i, name: a.name, icon: a.icon||'🪷', startTs: new Date().toISOString() };
-    saveState();
-    renderMindfulness();
-    showBreathingOverlay();
-    return;
-  }
-
-  // Regular mindfulness (meditation etc.) → timer
   state.activeMindfulness = { idx: i, name: a.name, icon: a.icon||'🪷', startTs: new Date().toISOString() };
   saveState();
   renderMindfulness();
+  // Start inline timer
   if (mindfulnessTimerInterval) clearInterval(mindfulnessTimerInterval);
   mindfulnessTimerInterval = setInterval(() => {
     const el = document.getElementById('mind-timer-' + i);
@@ -8905,10 +8080,10 @@ function closeFeelingOverlay() {
 }
 // =====================
 const TECHNIQUES = {
-  'box':      { name: 'Box Breathing',      desc: '4s ein · 4s halten · 4s aus · 4s halten', phases: [{l:'Einatmen',d:4},{l:'Halten',d:4},{l:'Ausatmen',d:4},{l:'Halten',d:4}] },
-  '4-7-8':    { name: '4-7-8 Atmung',       desc: '4s ein · 7s halten · 8s ausatmen',         phases: [{l:'Einatmen',d:4},{l:'Halten',d:7},{l:'Ausatmen',d:8}] },
-  '4-2-4':    { name: 'Sama Vritti (4-2-4)', desc: '4s ein · 2s halten · 4s aus',              phases: [{l:'Einatmen',d:4},{l:'Halten',d:2},{l:'Ausatmen',d:4}] },
-  'coherent': { name: 'Kohärente Atmung',   desc: '5s ein · 5s aus',                           phases: [{l:'Einatmen',d:5},{l:'Ausatmen',d:5}] },
+  'box':      { name: 'Box Breathing',      desc: '4s ein · 4s halten · 4s aus · 4s halten', effect: 'Stabilisiert · gut bei Stress und Aufgewühltheit',         phases: [{l:'Einatmen',d:4},{l:'Halten',d:4},{l:'Ausatmen',d:4},{l:'Halten',d:4}] },
+  '4-7-8':    { name: '4-7-8 Atmung',       desc: '4s ein · 7s halten · 8s ausatmen',         effect: 'Beruhigt stark · gut zum Einschlafen oder bei Angst',       phases: [{l:'Einatmen',d:4},{l:'Halten',d:7},{l:'Ausatmen',d:8}] },
+  '4-2-4':    { name: 'Sama Vritti (4-2-4)', desc: '4s ein · 2s halten · 4s aus',              effect: 'Sanfte Pause · gut als Einstieg oder zwischendurch',        phases: [{l:'Einatmen',d:4},{l:'Halten',d:2},{l:'Ausatmen',d:4}] },
+  'coherent': { name: 'Kohärente Atmung',   desc: '5s ein · 5s aus',                           effect: 'Maximiert HRV · gut für Konzentration und emotionale Balance', phases: [{l:'Einatmen',d:5},{l:'Ausatmen',d:5}] },
 };
 
 let breathTimer = null;
@@ -8946,14 +8121,6 @@ function renderSettings() {
   const woopKnob   = document.getElementById('woop-knob');
   if (woopToggle) woopToggle.style.background = state.woopEnabled ? '#8b6ba8' : 'var(--border)';
   if (woopKnob)   woopKnob.style.left = state.woopEnabled ? '25px' : '3px';
-
-  // Pulse toggle state
-  const pulseBtn = document.getElementById('pulse-toggle-btn');
-  if (pulseBtn) {
-    const on = state.tilePulseEnabled !== false;
-    pulseBtn.style.background = on ? 'var(--gold)' : 'var(--border)';
-    pulseBtn.innerHTML = `<div style="width:22px;height:22px;border-radius:50%;background:white;position:absolute;top:3px;left:${on?'27px':'3px'};transition:left 0.2s;"></div>`;
-  }
 
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -9050,7 +8217,7 @@ function symSaveZone(){
   const intensity=parseInt(document.getElementById('sym-int-slider').value);
   const note=document.getElementById('sym-note').value.trim();
   const color=symIntColor(intensity);
-  if(symActiveEl) symActiveEl.setAttribute('fill',color);
+  symActiveEl.setAttribute('fill',color);
   if(!state.symptomLog)state.symptomLog=[];
   state.symptomLog.unshift({zone:symActiveZone,type:symActiveType,intensity,note,color,ts:new Date().toISOString()});
   if(state.symptomLog.length>200)state.symptomLog.pop();
@@ -9058,7 +8225,7 @@ function symSaveZone(){
   document.getElementById('sym-panel').style.display='none';
   document.getElementById('sym-hint').style.display='';
   saveState(); renderSymptoms(); renderHome();
-  showToast('🩹 Gespeichert – weitere Stelle?');
+  showToast('🩹 Symptom gespeichert.');
 }
 
 function symCancelZone(){
@@ -9066,76 +8233,6 @@ function symCancelZone(){
   symActiveEl=null; symActiveZone=null;
   document.getElementById('sym-panel').style.display='none';
   document.getElementById('sym-hint').style.display='';
-}
-
-// =====================
-// GENERAL SYMPTOMS (without body zone)
-// =====================
-const GEN_SYM_TYPES = [
-  {type:'Fieber', icon:'🌡'},
-  {type:'Schnupfen', icon:'🤧'},
-  {type:'Husten', icon:'😷'},
-  {type:'Halsschmerzen', icon:'🗣'},
-  {type:'Übelkeit', icon:'🤢'},
-  {type:'Schwindel', icon:'💫'},
-  {type:'Müdigkeit', icon:'😴'},
-  {type:'Anderes', icon:'❓'}
-];
-let genSymActiveType = null;
-
-function renderGenSymChips() {
-  const container = document.getElementById('gen-sym-chips');
-  if (!container) return;
-  container.innerHTML = '';
-  GEN_SYM_TYPES.forEach(g => {
-    const btn = document.createElement('button');
-    btn.className = 'chip';
-    btn.textContent = g.icon + ' ' + g.type;
-    btn.style.cssText = 'font-size:0.85rem;padding:8px 14px;';
-    btn.onclick = () => genSymOpen(g.type);
-    container.appendChild(btn);
-  });
-}
-
-function genSymOpen(type) {
-  genSymActiveType = type;
-  document.getElementById('gen-sym-title').textContent = type;
-  document.getElementById('gen-sym-int-slider').value = 5;
-  genSymUpdateInt(5);
-  document.getElementById('gen-sym-note').value = '';
-  document.getElementById('gen-sym-panel').style.display = '';
-  // Highlight active chip
-  document.querySelectorAll('#gen-sym-chips .chip').forEach(b => {
-    b.classList.toggle('active', b.textContent.includes(type));
-  });
-}
-
-function genSymUpdateInt(v) {
-  const iv = parseInt(v);
-  document.getElementById('gen-sym-int-val').textContent = iv;
-  document.getElementById('gen-sym-int-desc').textContent = SYM_INT_DESCS[iv] || '';
-  document.getElementById('gen-sym-int-val').style.color = symIntColor(iv);
-}
-
-function genSymSave() {
-  if (!genSymActiveType) return;
-  const intensity = parseInt(document.getElementById('gen-sym-int-slider').value);
-  const note = document.getElementById('gen-sym-note').value.trim();
-  const color = symIntColor(intensity);
-  if (!state.symptomLog) state.symptomLog = [];
-  state.symptomLog.unshift({zone:'Allgemein', type:genSymActiveType, intensity, note, color, ts:new Date().toISOString()});
-  if (state.symptomLog.length > 200) state.symptomLog.pop();
-  genSymActiveType = null;
-  document.getElementById('gen-sym-panel').style.display = 'none';
-  document.querySelectorAll('#gen-sym-chips .chip').forEach(b => b.classList.remove('active'));
-  saveState(); renderSymptoms(); renderHome();
-  showToast('🌡 Gespeichert – weitere Beschwerde?');
-}
-
-function genSymCancel() {
-  genSymActiveType = null;
-  document.getElementById('gen-sym-panel').style.display = 'none';
-  document.querySelectorAll('#gen-sym-chips .chip').forEach(b => b.classList.remove('active'));
 }
 
 function renderSymptoms(){
@@ -9224,6 +8321,7 @@ function showBreathingOverlay() {
   overlay.style.display = 'flex';
   document.getElementById('breath-title').textContent = t.name;
   document.getElementById('breath-subtitle').textContent = t.desc;
+  document.getElementById('breath-effect').textContent = t.effect || '';
   document.getElementById('breath-instruction').textContent = '';
   document.getElementById('breath-countdown').textContent = '';
   document.getElementById('breath-round').textContent = '';
