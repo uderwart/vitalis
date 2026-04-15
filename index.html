@@ -7594,7 +7594,11 @@ function updateQuickBtn() {
   const btn = document.getElementById('quick-checkin-btn');
   if (!btn) return;
   const tod = getTimeOfDay();
+  const todayStr = new Date().toDateString();
   if (tod === 'morning') {
+    // Hide if check-in already done today
+    const checkinDone = state.profile?.morningPlanned?.date === todayStr;
+    if (checkinDone) { btn.style.display = 'none'; return; }
     btn.style.display = '';
     btn.textContent = '⚡ 30-Sekunden Check-in';
     btn.style.background = 'linear-gradient(135deg,#1a3a2a,#2d5a3d)';
@@ -7679,7 +7683,6 @@ function startCheckout() {
   // Check if activities were planned this morning
   const planned = state.profile?.morningPlanned;
   const plannedDiv = document.getElementById('co-act-planned');
-  const unplannedDiv = document.getElementById('co-act-unplanned');
   const todayStr = new Date().toDateString();
 
   const indices = planned?.date === todayStr
@@ -7760,7 +7763,7 @@ function startCheckout() {
     document.getElementById('co-act-title').textContent = 'Dein Tag';
     document.getElementById('co-act-subtitle').textContent = 'Was du geplant hast – und was passiert ist.';
     plannedDiv.style.display = '';
-    unplannedDiv.style.display = 'none';
+
   } else {
     // Nothing planned – just show a simple summary
     document.getElementById('co-act-icon').textContent = '📋';
@@ -7774,7 +7777,7 @@ function startCheckout() {
       document.getElementById('co-act-subtitle').textContent = 'Morgen ist ein neuer Tag.';
     }
     plannedDiv.style.display = 'none';
-    unplannedDiv.style.display = 'none';
+
   }
 
   document.getElementById('co-note').value = '';
