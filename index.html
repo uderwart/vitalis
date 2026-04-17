@@ -837,67 +837,41 @@
 <!-- HOME / HEUTE -->
 <div id="section-home" class="section visible">
 
-  <!-- 1. BEGRÜSSUNG -->
+  <!-- ========== IDENTITÄT & KONTEXT (immer oben) ========== -->
+
+  <!-- Begrüßung -->
   <div style="padding:4px 4px 16px;">
     <h1 id="home-greeting" style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);"></h1>
     <div id="home-date" style="font-size:0.82rem;color:var(--muted);margin-top:2px;"></div>
   </div>
 
-  <!-- 1b. IDENTITÄTS-SATZ -->
+  <!-- Identitäts-Satz -->
   <div id="identity-card" style="display:none;background:linear-gradient(135deg,#fdf9ec,#f7efd4);border-left:3px solid var(--gold);border-radius:12px;padding:12px 16px;margin-bottom:14px;cursor:pointer;" onclick="openIdentityEditor()">
     <div style="font-size:0.68rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Ich bin…</div>
     <div id="identity-text" style="font-size:0.95rem;color:var(--ink);font-style:italic;line-height:1.4;"></div>
   </div>
 
-  <!-- 1c. PARTNER-MODUS -->
+  <!-- Partner -->
   <div id="partner-card" style="display:none;background:linear-gradient(135deg,#eef2f8,#d8e2ef);border-left:3px solid var(--accent3);border-radius:12px;padding:12px 16px;margin-bottom:14px;">
     <div style="font-size:0.68rem;font-weight:700;color:var(--accent3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Gemeinsam mit</div>
     <div id="partner-text" style="font-size:0.95rem;color:var(--ink);line-height:1.4;"></div>
   </div>
 
-  <!-- 2. CHECK-IN / CHECK-OUT BUTTON -->
+  <!-- Check-in/out-Button -->
   <button id="quick-checkin-btn" onclick="startTwoMin()" style="width:100%;margin-bottom:14px;padding:16px;border-radius:16px;border:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;font-family:'DM Serif Display',serif;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
     ⚡ 30-Sekunden Check-in
   </button>
 
-  <!-- 3. WÖCHENTLICHE ZUSAMMENFASSUNG -->
+  <!-- ========== SITUATIVE KARTEN (Wöchentlich, Laufende Aktivität) ========== -->
+
+  <!-- Wöchentliche Zusammenfassung (sonntags) -->
   <div id="weekly-summary-card" style="display:none;background:linear-gradient(135deg,#f4c261,#e8a020);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
     <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">📊 Deine letzte Woche</div>
     <div id="weekly-summary-content" style="font-size:0.85rem;line-height:1.8;opacity:0.95;"></div>
     <button onclick="document.getElementById('weekly-summary-card').style.display='none'" style="margin-top:12px;background:none;border:1.5px solid rgba(255,255,255,0.4);border-radius:10px;padding:6px 16px;color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">Verstanden ✓</button>
   </div>
 
-  <!-- 4. HEUTE GEPLANT -->
-  <div id="planned-activity-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-      <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;">📋 Heute geplant</div>
-      <button onclick="editTodayPlan()" style="background:none;border:none;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;padding:0;">✏️ Ändern</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:1.6rem;" id="planned-act-icon">🏃</span>
-      <div style="flex:1;">
-        <div style="font-weight:700;font-size:0.95rem;color:var(--ink);" id="planned-act-name"></div>
-        <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Abends beim Check-out bestätigen</div>
-      </div>
-    </div>
-    <button onclick="exportPlanToCalendar()" style="margin-top:10px;width:100%;padding:9px;border-radius:10px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">📅 In Kalender exportieren</button>
-  </div>
-
-  <!-- 5. SCHLAF MORGEN-CHECK -->
-  <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
-    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌙 Guten Morgen!</div>
-    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht? (1 = schlecht · 10 = super)</div>
-    <div style="text-align:center;font-family:'DM Serif Display',serif;font-size:2.5rem;color:#f4c261;margin-bottom:6px;" id="checkin-sleep-val">5</div>
-    <input type="range" id="checkin-sleep-slider" min="1" max="10" value="5"
-      style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.3);outline:none;cursor:pointer;margin-bottom:16px;"
-      oninput="document.getElementById('checkin-sleep-val').textContent=this.value">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <button onclick="skipSleepCheckin()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
-      <button onclick="quickLogSleepSlider()" style="padding:8px 20px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Speichern ✓</button>
-    </div>
-  </div>
-
-  <!-- 6. AKTIVE AKTIVITÄT BANNER -->
+  <!-- Aktive Aktivität (wenn gerade läuft) -->
   <div id="active-activity-banner" style="display:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;border-radius:16px;padding:16px 18px;margin-bottom:12px;">
     <div style="display:flex;align-items:center;gap:12px;">
       <div style="font-size:1.8rem;" id="active-act-icon">🏃</div>
@@ -912,44 +886,23 @@
     </div>
   </div>
 
-  <!-- 7. KACHELN -->
-  <div id="home-tiles" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;"></div>
+  <!-- ========== MORGENS (5–12 Uhr): erst Schlaf, dann Tages-Check, dann Plan ========== -->
 
-  <!-- 7b. TAGES-FOKUS (überlagert das Haupt-Ziel für heute) -->
-  <div id="home-focus-card" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 16px;margin-bottom:12px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-      <div>
-        <div style="font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Heutiger Fokus</div>
-        <div id="home-focus-current" style="font-size:0.95rem;color:var(--ink);font-weight:600;"></div>
-      </div>
-      <button onclick="openFocusChooser()" style="padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;">Ändern</button>
+  <!-- Schlaf-Check-in -->
+  <div id="sleep-checkin-card" style="display:none;background:linear-gradient(135deg,#1a1a3e,#2d3561);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌙 Guten Morgen!</div>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:14px;">Wie war deine Nacht? (1 = schlecht · 10 = super)</div>
+    <div style="text-align:center;font-family:'DM Serif Display',serif;font-size:2.5rem;color:#f4c261;margin-bottom:6px;" id="checkin-sleep-val">5</div>
+    <input type="range" id="checkin-sleep-slider" min="1" max="10" value="5"
+      style="-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:rgba(255,255,255,0.3);outline:none;cursor:pointer;margin-bottom:16px;"
+      oninput="document.getElementById('checkin-sleep-val').textContent=this.value">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button onclick="skipSleepCheckin()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+      <button onclick="quickLogSleepSlider()" style="padding:8px 20px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Speichern ✓</button>
     </div>
   </div>
 
-  <!-- 8. TIPP DER WOCHE -->
-  <div id="home-tip-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
-    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Wussten Sie?</div>
-    <div id="home-tip-text" style="font-size:0.85rem;color:var(--ink);line-height:1.5;"></div>
-    <div id="home-tip-source" style="font-size:0.72rem;color:var(--muted);margin-top:6px;font-style:italic;"></div>
-    <button id="home-tip-btn" onclick="" style="margin-top:10px;padding:8px 16px;border-radius:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;display:none;">Jetzt eintragen →</button>
-  </div>
-
-  <!-- 9. DANKBARKEIT ABEND -->
-  <div id="gratitude-checkin-card" style="display:none;background:linear-gradient(135deg,#2d1b4e,#4a2060);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
-    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌟 Guten Abend!</div>
-    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:12px;">Wofür bist du heute dankbar?</div>
-    <textarea id="gratitude-input" placeholder="Heute war ich dankbar für…"
-      style="width:100%;padding:10px 12px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:70px;background:rgba(255,255,255,0.15);color:white;outline:none;"
-      onfocus="this.style.background='rgba(255,255,255,0.2)'"
-      onblur="this.style.background='rgba(255,255,255,0.15)'"
-    ></textarea>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
-      <button onclick="skipGratitude()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
-      <button onclick="logGratitude()" style="padding:8px 18px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Notieren ✓</button>
-    </div>
-  </div>
-
-  <!-- 10. TAGES-CHECK (morgens, einmal täglich) -->
+  <!-- Tages-Check (Energie + Fokus) -->
   <div id="daily-check-card" style="display:none;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
     <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">⚡ Wie startest du?</div>
     <div style="font-size:0.82rem;opacity:0.8;margin-bottom:16px;">30 Sekunden – optional</div>
@@ -976,10 +929,67 @@
     </div>
   </div>
 
-  <!-- 11. WENN-DANN PLAN (ganz unten) -->
+  <!-- Heute geplant -->
+  <div id="planned-activity-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;">📋 Heute geplant</div>
+      <button onclick="editTodayPlan()" style="background:none;border:none;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;padding:0;">✏️ Ändern</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:1.6rem;" id="planned-act-icon">🏃</span>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:0.95rem;color:var(--ink);" id="planned-act-name"></div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Abends beim Check-out bestätigen</div>
+      </div>
+    </div>
+    <button onclick="exportPlanToCalendar()" style="margin-top:10px;width:100%;padding:9px;border-radius:10px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">📅 In Kalender exportieren</button>
+  </div>
+
+  <!-- Wenn-Dann-Plan (WOOP-Ergebnis) -->
   <div id="intention-card" style="display:none;background:var(--card);border:2px solid var(--accent);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
     <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Dein Plan für heute</div>
     <div id="intention-text" style="font-size:0.88rem;color:var(--ink);line-height:1.5;font-style:italic;"></div>
+  </div>
+
+  <!-- ========== TAGSÜBER: Status & Orientierung ========== -->
+
+  <!-- Tages-Fokus (überlagert Haupt-Ziel) -->
+  <div id="home-focus-card" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 16px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div>
+        <div style="font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Heutiger Fokus</div>
+        <div id="home-focus-current" style="font-size:0.95rem;color:var(--ink);font-weight:600;"></div>
+      </div>
+      <button onclick="openFocusChooser()" style="padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;">Ändern</button>
+    </div>
+  </div>
+
+  <!-- Status-Kacheln -->
+  <div id="home-tiles" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;"></div>
+
+  <!-- Tipp der Woche -->
+  <div id="home-tip-card" style="display:none;background:linear-gradient(135deg,#eef6f1,#d4ede0);border-radius:16px;padding:14px 16px;margin-bottom:12px;">
+    <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💡 Wussten Sie?</div>
+    <div id="home-tip-text" style="font-size:0.85rem;color:var(--ink);line-height:1.5;"></div>
+    <div id="home-tip-source" style="font-size:0.72rem;color:var(--muted);margin-top:6px;font-style:italic;"></div>
+    <button id="home-tip-btn" onclick="" style="margin-top:10px;padding:8px 16px;border-radius:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;display:none;">Jetzt eintragen →</button>
+  </div>
+
+  <!-- ========== ABENDS: Dankbarkeit ========== -->
+
+  <!-- Dankbarkeit -->
+  <div id="gratitude-checkin-card" style="display:none;background:linear-gradient(135deg,#2d1b4e,#4a2060);color:white;border:none;border-radius:20px;padding:20px;margin-bottom:12px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px;">🌟 Guten Abend!</div>
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:12px;">Wofür bist du heute dankbar?</div>
+    <textarea id="gratitude-input" placeholder="Heute war ich dankbar für…"
+      style="width:100%;padding:10px 12px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:none;height:70px;background:rgba(255,255,255,0.15);color:white;outline:none;"
+      onfocus="this.style.background='rgba(255,255,255,0.2)'"
+      onblur="this.style.background='rgba(255,255,255,0.15)'"
+    ></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+      <button onclick="skipGratitude()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;padding:0;">Überspringen</button>
+      <button onclick="logGratitude()" style="padding:8px 18px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Notieren ✓</button>
+    </div>
   </div>
 
 </div>
